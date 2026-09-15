@@ -1,6 +1,6 @@
 {
 	"name": "@tideworthy/tidysites-platform",
-	"version": "0.1.3",
+	"version": "0.1.5",
 	"description": "The Tidysites platform integration for EmDash sites: bootstrap, sessions, maintenance, health, and publish hooks under /_tidy/*.",
 	"license": "MIT",
 	"type": "module",
