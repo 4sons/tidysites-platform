@@ -35,6 +35,7 @@ Re-verify every line of this list when bumping the EmDash peer range. All are pu
 | `emdash` `OptionsRepository`, `UserRepository`, `ulid`, `getMigrationStatus`, `applySeed`, `validateSeed`, `definePlugin` | options, users, tokens, health, seed, plugin | runtime.ts, store.ts, plugin.ts |
 | `emdash/runtime` `getDb()` | the singleton Kysely for the configured database | runtime.ts |
 | `emdash/seed` `loadSeed()` | the template's seed file at build time (path from `package.json` `emdash.seed`) | runtime.ts |
+| `virtual:emdash/config` default export, `virtual:emdash/storage` `createStorage` | the storage provider for seed media, as the setup wizard builds it | runtime.ts |
 | `emdash/middleware` `runScheduledTasks()` | scheduled publishing on demand | routes/maintenance.ts |
 | `@emdash-cms/auth` `generatePrefixedToken`, `VALID_SCOPES` | API token minting (`ec_pat_` prefix, hash stored) | runtime.ts |
 | Tables `users`, `options`, `_emdash_api_tokens` (direct Kysely) | role update, email_verified, token replace, handoff sweep | store.ts |
@@ -46,7 +47,7 @@ Re-verify every line of this list when bumping the EmDash peer range. All are pu
 
 Handoff tokens for sign-in links live in the `options` table under `tidy:handoff:<token>` with an `expiresAt`; they are deleted on claim and swept on every mint. No extra binding is needed for them.
 
-Known limitation: `applySeed` is called without a `storage` provider, so a seed that references media files will not have them copied. Today's templates carry no seed media. If one does, pass EmDash's storage from `locals.emdash.storage` (only present on editor requests) or build it from the configured storage descriptor.
+Seed media: `applySeed` receives the site's storage, built from the virtual modules `virtual:emdash/config` (the integration's config, `storage: { entrypoint, config }`) and `virtual:emdash/storage` (`createStorage`). These exist only inside a site build; `src/virtual-modules.d.ts` declares them and runtime.ts imports them dynamically inside try/catch. Without storage, `$media` references are skipped, which is what happened before 0.1.7.
 
 ## Testing
 

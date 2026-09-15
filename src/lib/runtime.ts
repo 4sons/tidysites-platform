@@ -15,15 +15,35 @@ import { createEmdashStore } from "./store";
 
 export { workerEnv } from "./env";
 
+/**
+ * The site's configured storage (R2 on Cloudflare), built the same way
+ * EmDash's setup wizard builds it: from the virtual config and storage
+ * modules the EmDash integration generates at build time. Without it,
+ * `applySeed` skips every `$media` reference in the seed.
+ */
+async function storageProvider(): Promise<unknown> {
+	try {
+		const [cfgMod, storageMod] = await Promise.all([
+			import("virtual:emdash/config") as Promise<{ default?: { storage?: { config?: unknown } } }>,
+			import("virtual:emdash/storage") as Promise<{ createStorage?: (config: unknown) => unknown }>
+		]);
+		const storageConfig = cfgMod.default?.storage;
+		if (!storageConfig || typeof storageMod.createStorage !== "function") return undefined;
+		return storageMod.createStorage(storageConfig.config);
+	} catch {
+		return undefined;
+	}
+}
+
 export async function buildDeps(): Promise<Deps> {
-	const db = await getDb();
+	const [db, storage] = await Promise.all([getDb(), storageProvider()]);
 	const store = createEmdashStore(db, { OptionsRepository, UserRepository, ulid, getMigrationStatus });
 	return {
 		store,
 		seed: {
 			load: async () => (await loadSeed()) as unknown as Record<string, unknown> & { settings?: Record<string, unknown> },
 			validate: (seed) => validateSeed(seed),
-			apply: (seed) => applySeed(db, seed as unknown as Parameters<typeof applySeed>[1], { includeContent: true, onConflict: "skip" })
+			apply: (seed) => applySeed(db, seed as unknown as Parameters<typeof applySeed>[1], { includeContent: true, onConflict: "skip", ...(storage ? { storage: storage as never } : {}) })
 		},
 		tokens: {
 			generate: () => generatePrefixedToken("ec_pat_"),

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7
+
+- Bootstrap applies the seed with the site's configured storage, so `$media` references in a template seed are downloaded into the site's media library. Before this every seed photo was skipped with "no storage configured". The storage comes from EmDash's `virtual:emdash/config` and `virtual:emdash/storage` modules, the same way the setup wizard builds it.
+
 ## 0.1.6
 
 - First version on npm as `@tideworthy/tidysites-platform` (the npm scope is the parent brand; the name says which product it serves). Lockfile regenerated from a clean state so `npm ci` works on Linux runners. 0.1.3, 0.1.4, and 0.1.5 were release attempts that never reached npm; do not use them.
