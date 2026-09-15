@@ -39,6 +39,7 @@ Re-verify every line of this list when bumping the EmDash peer range. All are pu
 | `@emdash-cms/auth` `generatePrefixedToken`, `VALID_SCOPES` | API token minting (`ec_pat_` prefix, hash stored) | runtime.ts |
 | Tables `users`, `options`, `_emdash_api_tokens` (direct Kysely) | role update, email_verified, token replace, handoff sweep | store.ts |
 | Option names `emdash:setup_complete`, `emdash:setup_state`, `emdash:site_title`, `emdash:site_tagline`, `emdash:site_url` | setup completion, health | handlers.ts |
+| `cloudflare:workers` `env` (dynamic import) | bindings, vars, secrets in routes and hooks; `locals.runtime.env` is gone in the Astro 6+ adapter and throws | env.ts |
 | Astro `context.session.set("user", { id })` | sign-in, identical to EmDash's `handleDevBypass` and passkey login | routes/session-claim.ts |
 | Cookie `emdash-edit-mode=true` | visual editing mode | routes/session-claim.ts |
 | Roles: admin 50, editor 40 | role mapping | store.ts `ROLE_LEVEL` |

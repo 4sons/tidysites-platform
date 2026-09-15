@@ -6,7 +6,6 @@
  * This is the only file (besides src/plugin.ts) that imports EmDash. Keep it
  * that way: it is the list of things to re-verify on an EmDash upgrade.
  */
-import type { APIContext } from "astro";
 import { OptionsRepository, UserRepository, applySeed, getMigrationStatus, ulid, validateSeed } from "emdash";
 import { getDb } from "emdash/runtime";
 import { loadSeed } from "emdash/seed";
@@ -14,19 +13,7 @@ import { VALID_SCOPES, generatePrefixedToken } from "@emdash-cms/auth";
 import type { Deps } from "./handlers";
 import { createEmdashStore } from "./store";
 
-type Env = Record<string, unknown>;
-
-/** The worker env: from the adapter's `locals.runtime.env`, else `cloudflare:workers`. */
-export async function workerEnv(context: Pick<APIContext, "locals">): Promise<Env | undefined> {
-	const fromLocals = (context.locals as { runtime?: { env?: Env } }).runtime?.env;
-	if (fromLocals) return fromLocals;
-	try {
-		const mod = (await import("cloudflare:workers")) as unknown as { env?: Env };
-		return mod.env;
-	} catch {
-		return undefined;
-	}
-}
+export { workerEnv } from "./env";
 
 export async function buildDeps(): Promise<Deps> {
 	const db = await getDb();

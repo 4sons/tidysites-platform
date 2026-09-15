@@ -14,7 +14,7 @@ export function platformRoute(
 	options: { requireBearer?: boolean } = {}
 ): APIRoute {
 	return async (context) => {
-		const env = await workerEnv(context);
+		const env = await workerEnv();
 		const g = gate(context.request, env, options.requireBearer ?? true);
 		if (!g.ok) return g.response;
 		try {
