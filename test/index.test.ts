@@ -12,7 +12,7 @@ describe("tidyPlatform()", () => {
 	it("injects every platform route as a server route with a package entrypoint", () => {
 		const injectRoute = vi.fn();
 		const integration = tidyPlatform();
-		expect(integration.name).toBe("@tidysites/platform");
+		expect(integration.name).toBe("@tideworthy/tidysites-platform");
 		(integration.hooks["astro:config:setup"] as unknown as (o: { injectRoute: typeof injectRoute }) => void)({ injectRoute });
 		expect(injectRoute).toHaveBeenCalledTimes(PLATFORM_ROUTES.length);
 		const patterns = injectRoute.mock.calls.map((c) => (c[0] as { pattern: string }).pattern).sort();
@@ -20,15 +20,15 @@ describe("tidyPlatform()", () => {
 		for (const call of injectRoute.mock.calls) {
 			const r = call[0] as { entrypoint: string; prerender: boolean };
 			expect(r.prerender).toBe(false);
-			expect(r.entrypoint.startsWith("@tidysites/platform/routes/")).toBe(true);
-			expect(Object.keys(pkg.exports)).toContain(r.entrypoint.replace("@tidysites/platform", "."));
+			expect(r.entrypoint.startsWith("@tideworthy/tidysites-platform/routes/")).toBe(true);
+			expect(Object.keys(pkg.exports)).toContain(r.entrypoint.replace("@tideworthy/tidysites-platform", "."));
 		}
 	});
 });
 
 describe("tidyPlatformPlugin()", () => {
 	it("is a native descriptor pointing at the plugin export", () => {
-		expect(tidyPlatformPlugin()).toEqual({ id: PLUGIN_ID, version: VERSION, format: "native", entrypoint: "@tidysites/platform/plugin" });
+		expect(tidyPlatformPlugin()).toEqual({ id: PLUGIN_ID, version: VERSION, format: "native", entrypoint: "@tideworthy/tidysites-platform/plugin" });
 		expect(Object.keys(pkg.exports)).toContain("./plugin");
 	});
 });

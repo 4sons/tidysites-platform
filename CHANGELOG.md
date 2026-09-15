@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.1.3
+
+- Renamed to `@tideworthy/tidysites-platform`: the npm scope is the parent brand, the package name says which product it serves. First version actually published to npm. No code changes.
+
 ## 0.1.2
 
-- Published to npm as `@tidysites/platform`. Release workflow publishes on version tags with provenance. No code changes.
+- Release workflow publishes on version tags with provenance. Never reached npm (no scope yet).
 
 ## 0.1.1
 
@@ -16,4 +20,4 @@ First release. Replaces the routes and plugin that lived inline in `template-hom
 - EmDash plugin descriptor `tidyPlatformPlugin()` and `createPlugin()` with `content:afterPublish`, `content:afterUnpublish`, `content:afterDelete` hooks (`errorPolicy: "continue"`, 8 s timeout) that post `{ reason, collection, id }` to the control plane over the `PLATFORM` binding.
 - One-time sign-in links: mint with the site secret, claim from a browser, single use, 30 to 600 s lifetime, local redirects only.
 - Token rotation by email or by token name; health with migration status.
-- `@tidysites/platform/client`: a typed caller for all routes.
+- `@tideworthy/tidysites-platform/client`: a typed caller for all routes.

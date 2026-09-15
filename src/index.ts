@@ -1,10 +1,10 @@
 /**
- * @tidysites/platform
+ * @tideworthy/tidysites-platform
  *
  * Two exports a template wires into astro.config.mjs:
  *
  *   import emdash from "emdash/astro";
- *   import { tidyPlatform, tidyPlatformPlugin } from "@tidysites/platform";
+ *   import { tidyPlatform, tidyPlatformPlugin } from "@tideworthy/tidysites-platform";
  *
  *   integrations: [
  *     tidyPlatform(),
@@ -19,7 +19,7 @@ import { PLUGIN_ID, VERSION } from "./version";
 
 export { VERSION, PLUGIN_ID };
 
-const PACKAGE = "@tidysites/platform";
+const PACKAGE = "@tideworthy/tidysites-platform";
 
 export const PLATFORM_ROUTES = [
 	{ pattern: "/_tidy/bootstrap", entrypoint: `${PACKAGE}/routes/bootstrap` },

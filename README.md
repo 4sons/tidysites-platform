@@ -1,4 +1,4 @@
-# @tidysites/platform
+# @tideworthy/tidysites-platform
 
 The Tidysites platform integration for [EmDash](https://emdash.dev) sites on Astro. It adds a small set of platform routes under `/_tidy/*` and an EmDash plugin whose publish hooks tell the platform to ship the site live.
 
@@ -7,17 +7,17 @@ It is the only code in a Tidysites template that knows about the platform, and i
 ## Install
 
 ```sh
-npm install @tidysites/platform
+npm install @tideworthy/tidysites-platform
 ```
 
-Peer dependencies: `astro` 7, `emdash` and `@emdash-cms/auth` 0.37.x, `kysely`. Published on npm as `@tidysites/platform`; GitHub tags `vX.Y.Z` match each version.
+Peer dependencies: `astro` 7, `emdash` and `@emdash-cms/auth` 0.37.x, `kysely`. Published on npm as `@tideworthy/tidysites-platform`; GitHub tags `vX.Y.Z` match each version.
 
 ## Wire it up
 
 ```js
 // astro.config.mjs
 import emdash from "emdash/astro";
-import { tidyPlatform, tidyPlatformPlugin } from "@tidysites/platform";
+import { tidyPlatform, tidyPlatformPlugin } from "@tideworthy/tidysites-platform";
 
 export default defineConfig({
 	integrations: [
@@ -97,7 +97,7 @@ The plugin registers `content:afterPublish`, `content:afterUnpublish`, and `cont
 ## Calling the routes
 
 ```ts
-import { createTidySiteClient } from "@tidysites/platform/client";
+import { createTidySiteClient } from "@tideworthy/tidysites-platform/client";
 
 const site = createTidySiteClient({ origin: "https://staging-acme.example.dev", secret, fetch: (r) => namespace.get("site-acme").fetch(r) });
 await site.health();
