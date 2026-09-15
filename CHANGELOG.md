@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Published to npm as `@tidysites/platform`. Release workflow publishes on version tags with provenance. No code changes.
+
 ## 0.1.1
 
 - Fix: the routes read the worker env from `cloudflare:workers` only. 0.1.0 touched `locals.runtime.env` first, which the Cloudflare adapter for Astro 6+ removed with a throwing getter, so every gated route failed on Astro 7. Not usable; use 0.1.1.

@@ -1,6 +1,6 @@
 {
 	"name": "@tidysites/platform",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "The Tidysites platform integration for EmDash sites: bootstrap, sessions, maintenance, health, and publish hooks under /_tidy/*.",
 	"license": "MIT",
 	"type": "module",
@@ -49,5 +49,9 @@
 		"react-dom": "19.2.4",
 		"typescript": "^5.9.0",
 		"vitest": "^3.2.0"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
 	}
 }

@@ -10,7 +10,7 @@ It is the only code in a Tidysites template that knows about the platform, and i
 npm install @tidysites/platform
 ```
 
-Peer dependencies: `astro` 7, `emdash` and `@emdash-cms/auth` 0.37.x, `kysely`.
+Peer dependencies: `astro` 7, `emdash` and `@emdash-cms/auth` 0.37.x, `kysely`. Published on npm as `@tidysites/platform`; GitHub tags `vX.Y.Z` match each version.
 
 ## Wire it up
 

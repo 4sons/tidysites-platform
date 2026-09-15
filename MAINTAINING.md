@@ -58,7 +58,7 @@ Known limitation: `applySeed` is called without a `storage` provider, so a seed 
 1. Bump `version` in `package.json` and `VERSION` in `src/version.ts` (a test fails if they differ). Add a CHANGELOG entry.
 2. `npm run check`.
 3. Commit, tag `vX.Y.Z`, push the tag. CI runs the check.
-4. Publish to npm (`npm publish --access public`) from an account with rights on the `@tidysites` scope. Until the scope is set up, templates pin the git tag: `"@tidysites/platform": "github:4sons/tidysites-platform#vX.Y.Z"`.
+4. Pushing the tag runs `.github/workflows/release.yml`, which checks that the tag matches `package.json`, runs the check, and publishes to npm with provenance using the `NPM_TOKEN` repository secret (a granular token on the `@tidysites` scope, owned by Adam's npm account). Templates depend on `"@tidysites/platform": "^X.Y.Z"`.
 5. Bump the version in each template's `package.json`, rebuild the template, and roll it through the platform's template rollout. Sites pick up the new package with their next template artifact; nothing is hot-swapped.
 
 ## Upgrading EmDash
