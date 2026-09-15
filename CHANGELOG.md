@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.1.3
+## 0.1.6
 
-- Renamed to `@tideworthy/tidysites-platform`: the npm scope is the parent brand, the package name says which product it serves. First version actually published to npm. No code changes.
+- First version on npm as `@tideworthy/tidysites-platform` (the npm scope is the parent brand; the name says which product it serves). Lockfile regenerated from a clean state so `npm ci` works on Linux runners. 0.1.3, 0.1.4, and 0.1.5 were release attempts that never reached npm; do not use them.
 
 ## 0.1.2
 
