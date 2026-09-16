@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1
+
+- Editor: a record region nested inside a section (a service card in the services grid) gets its own "Edit details" chip; clicking it edits the record instead of following the card's link, and leaving it hands the chip back to the section.
+
 ## 0.5.0
 
 - Editor: image picker over the site's media library with upload, for block fields whose id names an image URL (`imageUrl`, `photoUrl`, …) and for record fields of kind image.

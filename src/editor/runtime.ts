@@ -202,6 +202,8 @@ export function start(config: Config): void {
 	for (const f of frames()) {
 		f.addEventListener("mouseenter", () => showBlockChip(f));
 		f.addEventListener("click", (e) => {
+			// A record listed inside the section (a service card) handles its own click.
+			if ((e.target as HTMLElement).closest("[data-tidy-record]")) return;
 			if (isInteractive(e.target)) return;
 			e.preventDefault();
 			showBlockChip(f);
@@ -209,14 +211,21 @@ export function start(config: Config): void {
 		});
 	}
 	for (const r of Array.from(document.querySelectorAll<HTMLElement>("[data-tidy-record]"))) {
+		const frame = r.parentElement?.closest<HTMLElement>("[data-tidy-block]") ?? null;
 		r.addEventListener("mouseenter", () => showRecordChip(r));
+		// Leaving a card inside a section hands the chip back to the section.
+		if (frame) r.addEventListener("mouseleave", () => showBlockChip(frame));
 		r.addEventListener("click", (e) => {
-			if (isInteractive(e.target)) return;
+			// Cards are often links; in edit mode a click edits instead of navigating.
+			if ((e.target as HTMLElement).closest("button,input,select,textarea,label")) return;
 			e.preventDefault();
+			e.stopPropagation();
 			showRecordChip(r);
 			void openRecord({ collection: r.dataset.tidyRecord ?? "", id: r.dataset.tidyRecordId ?? "", label: r.dataset.tidyRecordLabel ?? "" });
 		});
 	}
+	// The chip sits outside every frame; hovering it must not count as leaving.
+	chip.addEventListener("mouseenter", () => current?.classList.add("tidy-active"));
 	bEdit.addEventListener("click", () => {
 		if (!current) return;
 		if (current.dataset.tidyBlock) openBlock(current.dataset.tidyBlock);
