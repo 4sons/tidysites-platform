@@ -11,9 +11,11 @@ describe("version", () => {
 describe("tidyPlatform()", () => {
 	it("injects every platform route as a server route with a package entrypoint", () => {
 		const injectRoute = vi.fn();
+		const addMiddleware = vi.fn();
 		const integration = tidyPlatform();
 		expect(integration.name).toBe("@tideworthy/tidysites-platform");
-		(integration.hooks["astro:config:setup"] as unknown as (o: { injectRoute: typeof injectRoute }) => void)({ injectRoute });
+		(integration.hooks["astro:config:setup"] as unknown as (o: { injectRoute: typeof injectRoute; addMiddleware: typeof addMiddleware }) => void)({ injectRoute, addMiddleware });
+		expect(addMiddleware).toHaveBeenCalledWith({ entrypoint: "@tideworthy/tidysites-platform/middleware", order: "pre" });
 		expect(injectRoute).toHaveBeenCalledTimes(PLATFORM_ROUTES.length);
 		const patterns = injectRoute.mock.calls.map((c) => (c[0] as { pattern: string }).pattern).sort();
 		expect(patterns).toEqual(["/_tidy/bootstrap", "/_tidy/fill", "/_tidy/health", "/_tidy/maintenance", "/_tidy/rotate-token", "/_tidy/session", "/_tidy/session/claim"]);

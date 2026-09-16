@@ -31,13 +31,18 @@ export const PLATFORM_ROUTES = [
 	{ pattern: "/_tidy/maintenance", entrypoint: `${PACKAGE}/routes/maintenance` }
 ] as const;
 
-/** Astro integration: registers every platform route as a server route. */
+/**
+ * Astro integration: registers every platform route as a server route and the
+ * framing middleware (a `frame-ancestors` policy from TIDY_FRAME_ANCESTORS so
+ * the platform can embed the staging preview; inert without the variable).
+ */
 export function tidyPlatform(): AstroIntegration {
 	return {
 		name: PACKAGE,
 		hooks: {
-			"astro:config:setup": ({ injectRoute }) => {
+			"astro:config:setup": ({ injectRoute, addMiddleware }) => {
 				for (const route of PLATFORM_ROUTES) injectRoute({ pattern: route.pattern, entrypoint: route.entrypoint, prerender: false });
+				addMiddleware({ entrypoint: `${PACKAGE}/middleware`, order: "pre" });
 			}
 		}
 	};

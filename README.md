@@ -39,6 +39,10 @@ The worker entry stays EmDash's own:
 export { default, PluginBridge } from "@emdash-cms/cloudflare/worker";
 ```
 
+## Framing the staging preview
+
+EmDash answers every page with `X-Frame-Options: SAMEORIGIN` unless a Content-Security-Policy is present. `tidyPlatform()` registers a middleware that, when the site carries a `TIDY_FRAME_ANCESTORS` variable (space-separated https origins), replaces that header with `Content-Security-Policy: frame-ancestors 'self' <origins>` so the platform's website page can embed the site. Without the variable nothing changes.
+
 ## Bindings the routes read
 
 | Binding | Type | Purpose |
