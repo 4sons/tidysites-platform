@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+- Editor: image picker over the site's media library with upload, for block fields whose id names an image URL (`imageUrl`, `photoUrl`, …) and for record fields of kind image.
+- Editor: record details. A `[data-tidy-record]` region (with `data-tidy-record-id` and `data-tidy-record-label`) gets an "Edit details" chip; the business record is always reachable from the pill. Forms come from EmDash's manifest (string, text, richText, number, boolean, select, image). Record saves publish at once, since other pages read the published version.
+- Editor: Publish publishes every entry saved in this browser session (pending list in sessionStorage); the pill shows the count.
+- Editor: EmDash's toolbar is hidden and `data-emdash-ref` attributes are removed on block pages, so one editor owns the page. Article pages, which do not mount this editor, keep EmDash's inline editing.
+
 ## 0.4.0
 
 - The Tideworthy on-site editor: `@tideworthy/tidysites-platform/editor` is an Astro component a template renders in edit mode with the page's block schemas and block list. Every framed block (`data-tidy-block`, `data-tidy-type`, list in `data-tidy-blocks`) gets a hover chip with Edit, move up, move down, add a section below, and remove; Edit opens a side panel whose form comes from the block's Block Kit field schema (text, multiline, number, toggle, select, repeater). Saves go through EmDash's `PUT /_emdash/api/content/:collection/:id` as a draft with the editor's session; Publish is EmDash's publish call. Exists because EmDash's inline editor renders custom blocks as "edit in admin" placeholders. Pure block operations in `@tideworthy/tidysites-platform/editor/ops`.
