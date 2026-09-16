@@ -11,6 +11,7 @@ import { getDb } from "emdash/runtime";
 import { loadSeed } from "emdash/seed";
 import { VALID_SCOPES, generatePrefixedToken } from "@emdash-cms/auth";
 import type { Deps } from "./handlers";
+import { HttpError } from "./http";
 import { createEmdashStore } from "./store";
 
 export { workerEnv } from "./env";
@@ -63,7 +64,13 @@ export async function buildDeps(): Promise<Deps> {
 						merged[collection].push({ ...e, data: existing ? { ...current, ...e.data } : e.data });
 					}
 				}
-				const r = await applySeed(db, { version: 1, content: merged } as unknown as Parameters<typeof applySeed>[1], { includeContent: true, onConflict: "update", ...storageOpt });
+				// The seed format's version is the string "1"; applySeed validates the
+				// document first and a shape problem comes back as a 400 with the
+				// validator's paths instead of a bare 500.
+				const doc = { version: "1", content: merged };
+				const v = validateSeed(doc);
+				if (!v.valid) throw new HttpError(400, "invalid content", v.errors);
+				const r = await applySeed(db, doc as unknown as Parameters<typeof applySeed>[1], { includeContent: true, onConflict: "update", ...storageOpt });
 				return { created: r.content?.created ?? 0, updated: r.content?.updated ?? 0, media: r.media?.created ?? 0 };
 			}
 		},

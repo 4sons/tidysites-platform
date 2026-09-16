@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Fix: `POST /_tidy/fill` failed every upsert with "internal error" because the content-only seed document carried a numeric version; the seed format's version is the string "1". The document is now validated before it is applied, so a shape problem answers 400 with the validator's paths. 0.2.0's fill route is unusable for writes; removals worked.
+
 ## 0.2.0
 
 - New route `POST /_tidy/fill`: real content over the template's sample content. Settings, entries upserted by slug with field-level merge over the existing entry, `$ref` and `$media` resolved as in a seed, and a `remove` list for sample entries the fill did not replace. Client gains `fill()`.
