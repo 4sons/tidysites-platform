@@ -1,0 +1,16 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"types": [],
+		"lib": [
+			"ES2022",
+			"DOM",
+			"DOM.Iterable"
+		]
+	},
+	"include": [
+		"src/editor/runtime.ts",
+		"src/editor/ops.ts"
+	],
+	"exclude": []
+}

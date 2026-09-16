@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- The Tideworthy on-site editor: `@tideworthy/tidysites-platform/editor` is an Astro component a template renders in edit mode with the page's block schemas and block list. Every framed block (`data-tidy-block`, `data-tidy-type`, list in `data-tidy-blocks`) gets a hover chip with Edit, move up, move down, add a section below, and remove; Edit opens a side panel whose form comes from the block's Block Kit field schema (text, multiline, number, toggle, select, repeater). Saves go through EmDash's `PUT /_emdash/api/content/:collection/:id` as a draft with the editor's session; Publish is EmDash's publish call. Exists because EmDash's inline editor renders custom blocks as "edit in admin" placeholders. Pure block operations in `@tideworthy/tidysites-platform/editor/ops`.
+
 ## 0.3.0
 
 - `tidyPlatform()` registers a middleware: with a `TIDY_FRAME_ANCESTORS` variable on the site (space-separated https origins), responses carry `Content-Security-Policy: frame-ancestors 'self' <origins>` in place of EmDash's `X-Frame-Options: SAMEORIGIN`, so the platform can embed the staging preview. Inert without the variable. New export `@tideworthy/tidysites-platform/middleware`.

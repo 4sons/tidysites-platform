@@ -1,0 +1,60 @@
+---
+/**
+ * The Tideworthy on-site editor for block-built pages. Render it from the
+ * layout when the page is in edit mode, with the entry the page shows, the
+ * block schemas the template declares, and the block list as rendered. The
+ * template frames each custom block with `data-tidy-block` (its key) and
+ * `data-tidy-type`, and wraps the list in `data-tidy-blocks`.
+ */
+import type { Block, BlockSchema } from "./ops";
+
+interface Props {
+	collection: string;
+	id: string;
+	field?: string;
+	blocks: BlockSchema[];
+	value: Block[];
+	/** The entry's status as rendered: "draft" shows the Publish control at once. */
+	status?: string;
+}
+const { collection, id, field = "content", blocks, value, status } = Astro.props;
+const config = JSON.stringify({ collection, id, field, blocks, value, status });
+---
+<script type="application/json" id="tidy-editor-config" set:html={config.replace(/</g, "\\u003c")} />
+<script src="./runtime.ts"></script>
+<style is:global>
+	[data-tidy-block] { position: relative; outline: 2px dashed transparent; outline-offset: -2px; transition: outline-color 120ms; cursor: pointer; }
+	[data-tidy-block]:hover, [data-tidy-block].tidy-active { outline-color: #2b7fd1; }
+	.tidy-chip { position: absolute; z-index: 2147483000; display: flex; gap: 4px; align-items: center; padding: 4px 6px; background: #17211c; color: #fff; border-radius: 8px; font: 500 13px/1.2 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+	.tidy-chip[hidden], .tidy-panel[hidden], .tidy-status[hidden] { display: none; }
+	.tidy-chip-label { padding: 0 6px 0 4px; opacity: .85; }
+	.tidy-btn { appearance: none; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: inherit; border-radius: 6px; padding: 4px 8px; font: inherit; cursor: pointer; }
+	.tidy-btn:hover { background: rgba(255,255,255,.18); }
+	.tidy-btn:disabled { opacity: .35; cursor: default; }
+	.tidy-btn-primary { background: #2b7fd1; border-color: #2b7fd1; color: #fff; }
+	.tidy-btn-primary:hover { background: #2470bd; }
+	.tidy-btn-danger:hover { background: #b3261e; border-color: #b3261e; }
+	.tidy-btn-sm { padding: 3px 8px; font-size: 12px; }
+	.tidy-add-end { display: block; width: calc(100% - 32px); margin: 16px; padding: 14px; border: 2px dashed #2b7fd1; border-radius: 10px; background: rgba(43,127,209,.06); color: #2b7fd1; font: 600 14px system-ui, sans-serif; cursor: pointer; }
+	.tidy-panel { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); z-index: 2147483001; overflow: auto; background: #fff; color: #17211c; border-left: 1px solid #d3dcd6; box-shadow: -12px 0 40px rgba(0,0,0,.18); padding: 20px; font: 14px/1.45 system-ui, sans-serif; }
+	.tidy-panel-head h2 { margin: 0 0 4px; font-size: 18px; }
+	.tidy-panel-head p { margin: 0 0 16px; color: #4a5851; }
+	.tidy-form { display: grid; gap: 14px; }
+	.tidy-field { display: grid; gap: 6px; }
+	.tidy-field-label { font-weight: 600; font-size: 13px; }
+	.tidy-field input[type="text"], .tidy-field input[type="number"], .tidy-field textarea, .tidy-field select { width: 100%; box-sizing: border-box; border: 1px solid #c9d2cc; border-radius: 6px; padding: 8px 10px; font: inherit; background: #fff; color: inherit; }
+	.tidy-field textarea { resize: vertical; min-height: 88px; }
+	.tidy-field-toggle { display: flex; align-items: center; gap: 10px; }
+	.tidy-repeater { border: 1px solid #d3dcd6; border-radius: 8px; padding: 12px; display: grid; gap: 12px; }
+	.tidy-repeater legend { font-weight: 600; padding: 0 6px; }
+	.tidy-repeater-item { display: grid; gap: 10px; padding: 12px; background: #f6f7f5; border-radius: 6px; }
+	.tidy-panel .tidy-btn { color: #17211c; border-color: #c9d2cc; background: #fff; }
+	.tidy-panel .tidy-btn-primary { color: #fff; background: #2b7fd1; border-color: #2b7fd1; }
+	.tidy-panel .tidy-btn-danger { color: #b3261e; }
+	.tidy-panel-actions { display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; border-top: 1px solid #e6ede8; }
+	.tidy-add-list { display: grid; gap: 8px; margin-bottom: 16px; }
+	.tidy-add-item { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border: 1px solid #d3dcd6; border-radius: 8px; background: #fff; cursor: pointer; font: inherit; }
+	.tidy-add-item:hover { border-color: #2b7fd1; background: rgba(43,127,209,.06); }
+	.tidy-add-item span { color: #4a5851; font-size: 13px; }
+	.tidy-status { position: fixed; left: 16px; bottom: 16px; z-index: 2147483000; display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: #17211c; color: #fff; border-radius: 999px; font: 500 13px system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+</style>

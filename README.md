@@ -43,6 +43,20 @@ export { default, PluginBridge } from "@emdash-cms/cloudflare/worker";
 
 EmDash answers every page with `X-Frame-Options: SAMEORIGIN` unless a Content-Security-Policy is present. `tidyPlatform()` registers a middleware that, when the site carries a `TIDY_FRAME_ANCESTORS` variable (space-separated https origins), replaces that header with `Content-Security-Policy: frame-ancestors 'self' <origins>` so the platform's website page can embed the site. Without the variable nothing changes.
 
+## The on-site editor
+
+EmDash's inline editor edits plain rich text; a Block Kit block inside a Portable Text field renders as an "edit in admin" placeholder. Templates built from blocks use the Tideworthy editor instead:
+
+```astro
+---
+import TidyEditor from "@tideworthy/tidysites-platform/editor";
+const editMode = Astro.cookies.get("emdash-edit-mode")?.value === "true";
+---
+{editMode && <TidyEditor collection="pages" id={page.data.id} blocks={blockSchema} value={content} />}
+```
+
+The template renders the block list inside `<div data-tidy-blocks>` and each custom block inside `<div data-tidy-block={_key} data-tidy-type={_type}>`, and passes `PortableText` a copy of the array (`[...blocks]`) so EmDash's inline editor does not mount on it. `blocks` is the plugin definition's `portableTextBlocks`. Hovering a block shows a chip (Edit, move, add below, remove); Edit opens a panel built from the block's fields; Save writes a draft through EmDash's content API with the signed-in editor's session and reloads; Publish calls EmDash's publish. Article bodies keep EmDash's inline editor by passing the original array.
+
 ## Bindings the routes read
 
 | Binding | Type | Purpose |
