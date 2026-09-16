@@ -54,6 +54,10 @@ Seed media: `applySeed` receives the site's storage, built from the virtual modu
 - `npm test` runs the unit suites against the in-memory store: auth gate, validators, every handler and its edge cases (idempotent bootstrap, invalid seed, role remap, disabled users, single-use and expiry of sign-in links, unsafe redirects, token rotation by email and by name, health), the publish request, the hook plugin, the integration entry, and the client.
 - The live proof is a site provisioned from a template built with this package: bootstrap through the control plane, `health`, a minted session claimed with cookies landing on `/_emdash/admin`, edit mode on a page, a reused link answering 410, `rotate-token` invalidating the old token, `maintenance` publishing a scheduled entry, and an EmDash publish reaching production. Steps and results for 0.1.0 are recorded in `tidysites-plan.md` section 9 and `workers/tidysites-control/SPIKE.md` in the platform repo.
 
+## Changes go through pull requests
+
+Every change to this repo, docs included, is a branch and a pull request merged with a squash, the same as the platform repo. After the merge, announce it in the team's #pull-requests channel from the platform repo: `scripts/pr/announce.sh <pr> --repo 4sons/tidysites-platform "<note>"`, where the note leads with why the change was needed, then what changed, then how it was checked. Release tags are pushed after the merge, from main.
+
 ## Releasing
 
 1. Bump `version` in `package.json` and `VERSION` in `src/version.ts` (a test fails if they differ). Add a CHANGELOG entry.
