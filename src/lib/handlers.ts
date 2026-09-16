@@ -12,6 +12,13 @@ export interface SeedOps {
 	load(): Promise<Record<string, unknown> & { settings?: Record<string, unknown> }>;
 	validate(seed: unknown): { valid: boolean; errors?: unknown };
 	apply(seed: Record<string, unknown>): Promise<{ collections?: unknown; content?: unknown }>;
+	/** Upsert content entries by slug (existing entries are updated), downloading `$media` URLs into the site's storage. */
+	upsertContent(content: Record<string, FillEntry[]>): Promise<{ created: number; updated: number; media: number }>;
+}
+
+export interface ContentOps {
+	findIdBySlug(collection: string, slug: string): Promise<string | null>;
+	delete(collection: string, id: string): Promise<boolean>;
 }
 
 export interface TokenOps {
@@ -24,6 +31,7 @@ export interface Deps {
 	store: PlatformStore;
 	seed: SeedOps;
 	tokens: TokenOps;
+	content: ContentOps;
 	now?: () => number;
 }
 
@@ -111,6 +119,117 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 	const t = tokens.generate();
 	await store.replaceToken({ userId: user.id, name, hash: t.hash, prefix: t.prefix, scopes: [...tokens.scopes] });
 	return { ok: true, userId: user.id, token: t.raw, steps };
+}
+
+// ---------------------------------------------------------------------------
+// Fill: write real content over the template's sample content
+// ---------------------------------------------------------------------------
+
+/** One entry in the seed's content shape: `data` holds field values, `$ref:<id>` and `$media` resolve as in a template seed. */
+export interface FillEntry {
+	id: string;
+	slug?: string | null;
+	status?: "published" | "draft";
+	data: Record<string, unknown>;
+}
+
+export interface FillInput {
+	/** Site title and tagline; either may be omitted. */
+	settings?: unknown;
+	/** Entries per collection slug, upserted by slug. */
+	content?: unknown;
+	/** Entry slugs per collection slug to delete (sample entries the fill did not replace). Unknown slugs are ignored. */
+	remove?: unknown;
+}
+
+export interface FillResult {
+	ok: true;
+	settings: string[];
+	content: { created: number; updated: number; media: number };
+	removed: number;
+	missing: Array<{ collection: string; slug: string }>;
+}
+
+const COLLECTION_SLUG = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+const ENTRY_SLUG = /^[a-z0-9][a-z0-9_-]{0,127}$/i;
+const MAX_ENTRIES = 2000;
+
+function fillContent(value: unknown): Record<string, FillEntry[]> {
+	if (value === undefined) return {};
+	if (value === null || typeof value !== "object" || Array.isArray(value)) throw new HttpError(400, "content must be an object of collection slug to entry list");
+	const out: Record<string, FillEntry[]> = {};
+	let count = 0;
+	for (const [collection, entries] of Object.entries(value as Record<string, unknown>)) {
+		if (!COLLECTION_SLUG.test(collection)) throw new HttpError(400, `content: "${collection}" is not a collection slug`);
+		if (!Array.isArray(entries)) throw new HttpError(400, `content.${collection} must be a list of entries`);
+		out[collection] = entries.map((e, i) => {
+			if (e === null || typeof e !== "object" || Array.isArray(e)) throw new HttpError(400, `content.${collection}[${i}] must be an entry object`);
+			const entry = e as Record<string, unknown>;
+			if (typeof entry.id !== "string" || !ENTRY_SLUG.test(entry.id)) throw new HttpError(400, `content.${collection}[${i}].id must be a slug-like id`);
+			if (entry.slug !== undefined && entry.slug !== null && (typeof entry.slug !== "string" || !ENTRY_SLUG.test(entry.slug))) throw new HttpError(400, `content.${collection}[${i}].slug must be a slug`);
+			if (entry.status !== undefined && entry.status !== "published" && entry.status !== "draft") throw new HttpError(400, `content.${collection}[${i}].status must be published or draft`);
+			if (entry.data === null || typeof entry.data !== "object" || Array.isArray(entry.data)) throw new HttpError(400, `content.${collection}[${i}].data must be an object`);
+			count++;
+			return { id: entry.id, slug: entry.slug === undefined ? entry.id : (entry.slug as string | null), status: entry.status as FillEntry["status"], data: entry.data as Record<string, unknown> };
+		});
+	}
+	if (count > MAX_ENTRIES) throw new HttpError(400, `content: at most ${MAX_ENTRIES} entries per call`);
+	return out;
+}
+
+function fillRemove(value: unknown): Array<{ collection: string; slug: string }> {
+	if (value === undefined) return [];
+	if (value === null || typeof value !== "object" || Array.isArray(value)) throw new HttpError(400, "remove must be an object of collection slug to slug list");
+	const out: Array<{ collection: string; slug: string }> = [];
+	for (const [collection, slugs] of Object.entries(value as Record<string, unknown>)) {
+		if (!COLLECTION_SLUG.test(collection)) throw new HttpError(400, `remove: "${collection}" is not a collection slug`);
+		if (!Array.isArray(slugs) || slugs.some((x) => typeof x !== "string" || !ENTRY_SLUG.test(x))) throw new HttpError(400, `remove.${collection} must be a list of slugs`);
+		for (const slug of slugs as string[]) out.push({ collection, slug });
+	}
+	return out;
+}
+
+/**
+ * Write real content over a bootstrapped site: settings, entries upserted by
+ * slug (so re-running with the same document is safe), then sample entries
+ * the platform names for removal. Writes happen in that order so a removed
+ * sample is never a dangling reference target for an entry written here.
+ */
+export async function fill(input: FillInput, deps: Deps): Promise<FillResult> {
+	if (input.settings !== undefined && (input.settings === null || typeof input.settings !== "object" || Array.isArray(input.settings))) throw new HttpError(400, "settings must be an object");
+	const settings = (input.settings ?? {}) as Record<string, unknown>;
+	if (settings.title !== undefined && (typeof settings.title !== "string" || settings.title.length > 200)) throw new HttpError(400, "settings.title must be a string of at most 200 characters");
+	if (settings.tagline !== undefined && (typeof settings.tagline !== "string" || settings.tagline.length > 500)) throw new HttpError(400, "settings.tagline must be a string of at most 500 characters");
+	const content = fillContent(input.content);
+	const remove = fillRemove(input.remove);
+	if ((await deps.store.getOption("emdash:setup_complete")) !== true) throw new HttpError(409, "site is not bootstrapped yet");
+
+	const applied: string[] = [];
+	if (typeof settings.title === "string") {
+		await deps.store.setOption("emdash:site_title", settings.title);
+		applied.push("title");
+	}
+	if (typeof settings.tagline === "string") {
+		await deps.store.setOption("emdash:site_tagline", settings.tagline);
+		applied.push("tagline");
+	}
+
+	const written = Object.keys(content).length > 0 ? await deps.seed.upsertContent(content) : { created: 0, updated: 0, media: 0 };
+
+	// Never delete something this same call just wrote.
+	const kept = new Set(Object.entries(content).flatMap(([c, entries]) => entries.map((e) => `${c}/${e.slug ?? e.id}`)));
+	let removed = 0;
+	const missing: Array<{ collection: string; slug: string }> = [];
+	for (const r of remove) {
+		if (kept.has(`${r.collection}/${r.slug}`)) continue;
+		const id = await deps.content.findIdBySlug(r.collection, r.slug);
+		if (!id) {
+			missing.push(r);
+			continue;
+		}
+		if (await deps.content.delete(r.collection, id)) removed++;
+	}
+	return { ok: true, settings: applied, content: written, removed, missing };
 }
 
 // ---------------------------------------------------------------------------

@@ -6,7 +6,7 @@
  * This is the only file (besides src/plugin.ts) that imports EmDash. Keep it
  * that way: it is the list of things to re-verify on an EmDash upgrade.
  */
-import { OptionsRepository, UserRepository, applySeed, getMigrationStatus, ulid, validateSeed } from "emdash";
+import { ContentRepository, OptionsRepository, UserRepository, applySeed, getMigrationStatus, ulid, validateSeed } from "emdash";
 import { getDb } from "emdash/runtime";
 import { loadSeed } from "emdash/seed";
 import { VALID_SCOPES, generatePrefixedToken } from "@emdash-cms/auth";
@@ -38,12 +38,38 @@ async function storageProvider(): Promise<unknown> {
 export async function buildDeps(): Promise<Deps> {
 	const [db, storage] = await Promise.all([getDb(), storageProvider()]);
 	const store = createEmdashStore(db, { OptionsRepository, UserRepository, ulid, getMigrationStatus });
+	const content = new ContentRepository(db);
+	const storageOpt = storage ? { storage: storage as never } : {};
 	return {
 		store,
 		seed: {
 			load: async () => (await loadSeed()) as unknown as Record<string, unknown> & { settings?: Record<string, unknown> },
 			validate: (seed) => validateSeed(seed),
-			apply: (seed) => applySeed(db, seed as unknown as Parameters<typeof applySeed>[1], { includeContent: true, onConflict: "skip", ...(storage ? { storage: storage as never } : {}) })
+			apply: (seed) => applySeed(db, seed as unknown as Parameters<typeof applySeed>[1], { includeContent: true, onConflict: "skip", ...storageOpt }),
+			// A content-only seed document: no collections, menus, or settings, so
+			// applySeed touches nothing but entries. "update" makes it an upsert by
+			// slug. applySeed replaces an existing entry's data wholesale, so fields
+			// the caller did not send are carried over from the current entry first:
+			// a fill names only what it knows and the template's images and blocks
+			// survive underneath.
+			upsertContent: async (entries) => {
+				const merged: typeof entries = {};
+				for (const [collection, list] of Object.entries(entries)) {
+					merged[collection] = [];
+					for (const e of list) {
+						const slug = e.slug ?? e.id;
+						const existing = slug ? await content.findBySlug(collection, slug) : null;
+						const current = (existing?.data ?? {}) as Record<string, unknown>;
+						merged[collection].push({ ...e, data: existing ? { ...current, ...e.data } : e.data });
+					}
+				}
+				const r = await applySeed(db, { version: 1, content: merged } as unknown as Parameters<typeof applySeed>[1], { includeContent: true, onConflict: "update", ...storageOpt });
+				return { created: r.content?.created ?? 0, updated: r.content?.updated ?? 0, media: r.media?.created ?? 0 };
+			}
+		},
+		content: {
+			findIdBySlug: async (collection, slug) => (await content.findBySlug(collection, slug))?.id ?? null,
+			delete: (collection, id) => content.delete(collection, id)
 		},
 		tokens: {
 			generate: () => generatePrefixedToken("ec_pat_"),

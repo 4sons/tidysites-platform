@@ -8,6 +8,8 @@ export interface MemoryState {
 	tokens: Array<{ userId: string; name: string; hash: string; prefix: string; scopes: string[]; createdAt: number }>;
 	handoffs: Map<string, Handoff>;
 	migrations: { applied: number; pending: number };
+	/** "collection/slug" → data, for the fill tests. */
+	content: Record<string, Record<string, unknown>>;
 }
 
 export function createMemoryStore(seedState: Partial<MemoryState> = {}): PlatformStore & { state: MemoryState } {
@@ -17,6 +19,7 @@ export function createMemoryStore(seedState: Partial<MemoryState> = {}): Platfor
 		tokens: [],
 		handoffs: new Map(),
 		migrations: { applied: 12, pending: 0 },
+		content: {},
 		...seedState
 	};
 	let nextId = 1;
@@ -71,7 +74,24 @@ export function createDeps(overrides: Partial<Deps> & { store?: ReturnType<typeo
 		seed: {
 			load: async () => ({ version: 1, settings: { title: "Seed Title" }, collections: [] }),
 			validate: () => ({ valid: true }),
-			apply: async () => ({ collections: 3, content: 4 })
+			apply: async () => ({ collections: 3, content: 4 }),
+			upsertContent: async (content) => {
+				let created = 0;
+				let updated = 0;
+				for (const [collection, entries] of Object.entries(content)) {
+					for (const e of entries) {
+						const key = `${collection}/${e.slug ?? e.id}`;
+						if (store.state.content[key] !== undefined) updated++;
+						else created++;
+						store.state.content[key] = e.data;
+					}
+				}
+				return { created, updated, media: 0 };
+			}
+		},
+		content: {
+			findIdBySlug: async (collection, slug) => (store.state.content[`${collection}/${slug}`] !== undefined ? `${collection}/${slug}` : null),
+			delete: async (_collection, id) => delete store.state.content[id]
 		},
 		tokens: {
 			generate: () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_REDIRECT, HANDOFF_TTL, bootstrap, claimSession, health, mintSession, rotateToken } from "../src/lib/handlers";
+import { DEFAULT_REDIRECT, HANDOFF_TTL, bootstrap, claimSession, fill, health, mintSession, rotateToken } from "../src/lib/handlers";
 import { ROLE_LEVEL } from "../src/lib/store";
 import { VERSION } from "../src/version";
 import { createDeps, createMemoryStore } from "./memory-store";
@@ -233,5 +233,77 @@ describe("health", () => {
 		await bootstrap({ adminEmail: "p@a.test", title: "Acme" }, deps, ORIGIN);
 		deps.store.state.migrations = { applied: 12, pending: 2 };
 		expect(await health(deps)).toMatchObject({ ok: false, setupComplete: true, siteTitle: "Acme", siteUrl: ORIGIN, migrations: { pending: 2 } });
+	});
+});
+
+describe("fill", () => {
+	async function bootstrapped() {
+		const deps = createDeps();
+		await bootstrap({ adminEmail: "p@a.test", title: "Seeded" }, deps, ORIGIN);
+		deps.store.state.content["services/ant-control"] = { title: "Sample ants" };
+		deps.store.state.content["services/sample-two"] = { title: "Sample two" };
+		deps.store.state.content["reviews/review-1"] = { title: "Sample review" };
+		return deps;
+	}
+
+	it("refuses to run before bootstrap", async () => {
+		const deps = createDeps();
+		await expect(fill({ content: {} }, deps)).rejects.toMatchObject({ status: 409 });
+	});
+
+	it("writes settings, upserts entries by slug, removes the named samples, and reports the missing ones", async () => {
+		const deps = await bootstrapped();
+		const r = await fill(
+			{
+				settings: { title: "Romney Pest Control", tagline: "Pest control on demand" },
+				content: {
+					services: [
+						{ id: "ant-control", data: { title: "Ant control" } },
+						{ id: "termite-control", slug: "termite-control", status: "published", data: { title: "Termite control" } }
+					]
+				},
+				remove: { services: ["sample-two", "ant-control", "never-existed"], reviews: ["review-1"] }
+			},
+			deps
+		);
+		expect(r).toEqual({ ok: true, settings: ["title", "tagline"], content: { created: 1, updated: 1, media: 0 }, removed: 2, missing: [{ collection: "services", slug: "never-existed" }] });
+		expect(deps.store.state.options.get("emdash:site_title")).toBe("Romney Pest Control");
+		expect(deps.store.state.options.get("emdash:site_tagline")).toBe("Pest control on demand");
+		// The entry this call wrote is never removed, even when named.
+		expect(deps.store.state.content["services/ant-control"]).toEqual({ title: "Ant control" });
+		expect(deps.store.state.content["services/termite-control"]).toEqual({ title: "Termite control" });
+		expect(deps.store.state.content["services/sample-two"]).toBeUndefined();
+		expect(deps.store.state.content["reviews/review-1"]).toBeUndefined();
+	});
+
+	it("is a no-op with an empty body except for the bootstrap check", async () => {
+		const deps = await bootstrapped();
+		let calls = 0;
+		deps.seed.upsertContent = async () => (calls++, { created: 0, updated: 0, media: 0 });
+		const r = await fill({}, deps);
+		expect(calls).toBe(0);
+		expect(r).toMatchObject({ ok: true, settings: [], removed: 0, missing: [] });
+	});
+
+	it("validates shapes: 400 for bad settings, content, entries, and remove lists", async () => {
+		const deps = await bootstrapped();
+		await expect(fill({ settings: [] }, deps)).rejects.toMatchObject({ status: 400 });
+		await expect(fill({ settings: { title: "x".repeat(201) } }, deps)).rejects.toMatchObject({ status: 400 });
+		await expect(fill({ content: [] }, deps)).rejects.toMatchObject({ status: 400 });
+		await expect(fill({ content: { "Bad Slug": [] } }, deps)).rejects.toMatchObject({ status: 400 });
+		await expect(fill({ content: { services: {} } }, deps)).rejects.toMatchObject({ status: 400 });
+		await expect(fill({ content: { services: [{ id: "ok", data: [] }] } }, deps)).rejects.toMatchObject({ status: 400 });
+		await expect(fill({ content: { services: [{ id: "has space", data: {} }] } }, deps)).rejects.toMatchObject({ status: 400 });
+		await expect(fill({ content: { services: [{ id: "ok", status: "trashed", data: {} }] } }, deps)).rejects.toMatchObject({ status: 400 });
+		await expect(fill({ remove: { services: "ant-control" } }, deps)).rejects.toMatchObject({ status: 400 });
+		await expect(fill({ remove: { services: ["ok", 3] } }, deps)).rejects.toMatchObject({ status: 400 });
+		// Nothing was written by any of the rejected calls.
+		expect(deps.store.state.content["services/ant-control"]).toEqual({ title: "Sample ants" });
+	});
+
+	it("caps a single call at 2000 entries", async () => {
+		const deps = await bootstrapped();
+		const many = Array.from({ length: 2001 }, (_, i) => ({ id: `e${i}`, data: {} }));
+		await expect(fill({ content: { services: many } }, deps)).rejects.toMatchObject({ status: 400 });
 	});
 });

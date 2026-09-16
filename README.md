@@ -86,6 +86,23 @@ The browser lands here. Signs the user in (an Astro session, exactly as EmDash's
 
 Replaces the platform API token. `{ "email": "...", "tokenName": "platform" }`. Both optional: with no email, the token's current owner is used. Returns `{ ok, userId, token }`.
 
+### `POST /_tidy/fill`
+
+Writes real content over the template's sample content on a bootstrapped site. Same document shape as a seed's `content` section, so `$ref:<id>` and `$media: { url, alt, filename }` resolve the same way (media is downloaded into the site's storage).
+
+```json
+{
+  "settings": { "title": "Romney Pest Control", "tagline": "Pest control on demand" },
+  "content": {
+    "services": [{ "id": "ant-control", "data": { "title": "Ant control", "summary": "…" } }],
+    "reviews": [{ "id": "google-1", "data": { "title": "Dana R.", "quote": "…", "rating": 5, "service": "$ref:ant-control" } }]
+  },
+  "remove": { "services": ["mosquito-treatment"], "posts": ["fire-ants-after-rain"] }
+}
+```
+
+Entries are upserted by slug (`slug` defaults to `id`). An existing entry keeps every field the document does not name, so a fill can send only what it knows and the template's images and blocks stay underneath. `remove` deletes the named sample entries; slugs written by the same call are never removed, and unknown slugs are reported back in `missing`. Refuses with 409 before bootstrap. Returns `{ ok, settings, content: { created, updated, media }, removed, missing }`. Re-running the same document is safe.
+
 ### `POST /_tidy/maintenance?cron=…`
 
 Runs EmDash's scheduled work now (scheduled publishing, cleanup) and returns what it published. Workers in a dispatch namespace never receive cron triggers, so the platform's cron calls this on every site each minute.

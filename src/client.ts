@@ -3,9 +3,9 @@
  * platform app. Pass `fetch` to route calls through a dispatch-namespace
  * binding instead of the public internet.
  */
-import type { BootstrapInput, BootstrapResult, HealthResult, MintSessionInput, MintSessionResult, RotateTokenInput } from "./lib/handlers";
+import type { BootstrapInput, BootstrapResult, FillEntry, FillInput, FillResult, HealthResult, MintSessionInput, MintSessionResult, RotateTokenInput } from "./lib/handlers";
 
-export type { BootstrapInput, BootstrapResult, HealthResult, MintSessionInput, MintSessionResult, RotateTokenInput };
+export type { BootstrapInput, BootstrapResult, FillEntry, FillInput, FillResult, HealthResult, MintSessionInput, MintSessionResult, RotateTokenInput };
 
 export interface MaintenanceResult {
 	ok: true;
@@ -56,6 +56,7 @@ export function createTidySiteClient(options: TidySiteClientOptions) {
 		mintSession: (input: MintSessionInput) => call<MintSessionResult>("POST", "/_tidy/session", input),
 		health: () => call<HealthResult>("GET", "/_tidy/health"),
 		rotateToken: (input: RotateTokenInput = {}) => call<{ ok: true; userId: string; token: string }>("POST", "/_tidy/rotate-token", input),
+		fill: (input: FillInput) => call<FillResult>("POST", "/_tidy/fill", input),
 		maintenance: (cron?: string) => call<MaintenanceResult>("POST", `/_tidy/maintenance${cron ? `?cron=${encodeURIComponent(cron)}` : ""}`)
 	};
 }

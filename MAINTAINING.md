@@ -64,7 +64,7 @@ Seed media: `applySeed` receives the site's storage, built from the virtual modu
 
 ## Upgrading EmDash
 
-1. Read the EmDash release notes between the pinned version and the target for: repositories, `getDb`, `runScheduledTasks`, seed functions, session shape, the edit-mode cookie, role levels, the `_emdash_api_tokens` and `options` tables.
+1. Read the EmDash release notes between the pinned version and the target for: repositories, `getDb`, `ContentRepository` (findBySlug, delete; the fill route), `runScheduledTasks`, seed functions, session shape, the edit-mode cookie, role levels, the `_emdash_api_tokens` and `options` tables.
 2. Widen or move the peer range in `package.json`, install, `npm run check`.
 3. Build a template against it and run the live proof above on a throwaway site before any template pointer moves.
 4. Ship a minor of this package; templates pin both the EmDash version and this package's version together.
