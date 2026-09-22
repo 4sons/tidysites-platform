@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1
+
+- Editor: the class the bar puts on `<html>` is `tidy-has-bar`. 0.7.0 used `tidy-bar`, the bar's own class, so the bar's fixed styles applied to the document and pushed the top of the page off screen for a signed-in editor.
+
 ## 0.7.0
 
 - Editor: the corner pill is a bar across the top of the page. "Staging" (the `label` prop) on the left; Edit on the right while editing is off; Business details, Publish (with the count, only while something is unpublished) and Done while it is on. The bar sets `--tidy-bar` on `<html>` so a template's sticky header can sit below it.

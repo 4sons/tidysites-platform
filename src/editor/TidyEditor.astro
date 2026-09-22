@@ -35,7 +35,7 @@ const here = Astro.url.pathname + Astro.url.search;
 const toggle = (on: boolean) => `/_tidy/edit?on=${on ? 1 : 0}&to=${encodeURIComponent(here)}`;
 const editable = active && Boolean(collection && id && blocks && value);
 const config = editable ? JSON.stringify({ collection, id, field, blocks, value, records, done: toggle(false) }) : null;
-const htmlClass = !signedIn ? "" : !active ? "tidy-bar tidy-idle" : editable ? "tidy-bar" : "tidy-bar tidy-inline";
+const htmlClass = !signedIn ? "" : !active ? "tidy-has-bar tidy-idle" : editable ? "tidy-has-bar" : "tidy-has-bar tidy-inline";
 ---
 {signedIn && (
 	<>
@@ -57,8 +57,8 @@ const htmlClass = !signedIn ? "" : !active ? "tidy-bar tidy-idle" : editable ? "
 )}
 <style is:global>
 	.tidy-editing #emdash-toolbar, .tidy-idle #emdash-toolbar { display: none !important; }
-	html.tidy-bar { --tidy-bar: 44px; }
-	html.tidy-bar body { padding-top: var(--tidy-bar); }
+	html.tidy-has-bar { --tidy-bar: 44px; }
+	html.tidy-has-bar body { padding-top: var(--tidy-bar); }
 	.tidy-bar { position: fixed; top: 0; left: 0; right: 0; height: var(--tidy-bar, 44px); z-index: 2147483000; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; box-sizing: border-box; background: #17211c; color: #fff; font: 500 13px/1 system-ui, sans-serif; box-shadow: 0 1px 0 rgba(255,255,255,.08), 0 6px 20px rgba(0,0,0,.18); }
 	.tidy-bar-label { opacity: .7; letter-spacing: .04em; text-transform: uppercase; font-size: 11px; }
 	.tidy-bar-actions { display: flex; align-items: center; gap: 8px; }
