@@ -1,17 +1,19 @@
 ---
 /**
  * The Tideworthy on-site editor. Mount it from the layout on every page; it
- * renders nothing for a visitor, an "Edit" pill for a signed-in editor, and
- * the editor itself once editing is on (the `emdash-edit-mode` cookie, set
- * and cleared by /_tidy/edit from the pill). Block pages hand it the entry
- * they show, the block schemas the template declares, and the block list as
- * rendered; the template frames each custom block with `data-tidy-block`
- * (its key) and `data-tidy-type`, and wraps the list in `data-tidy-blocks`.
- * A record region (`data-tidy-record`, `data-tidy-record-id`,
- * `data-tidy-record-label`) gets an "Edit details" chip whose form comes
- * from EmDash's manifest. A page without blocks (an article) gets the pill
- * only; EmDash's inline editing handles its prose in edit mode. EmDash's own
- * toolbar shows only there: while editing is off the pill is the one control.
+ * renders nothing for a visitor and, for a signed-in editor, a bar across the
+ * top of the page: "Edit" while editing is off, the editor's controls while
+ * it is on (the `emdash-edit-mode` cookie, set and cleared by /_tidy/edit).
+ * Block pages hand it the entry they show, the block schemas the template
+ * declares, and the block list as rendered; the template frames each custom
+ * block with `data-tidy-block` (its key) and `data-tidy-type`, and wraps the
+ * list in `data-tidy-blocks`. A record region (`data-tidy-record`,
+ * `data-tidy-record-id`, `data-tidy-record-label`) gets an "Edit details"
+ * chip whose form comes from EmDash's manifest. A page without blocks (an
+ * article) gets the bar only; EmDash's inline editing handles its prose and
+ * its toolbar shows there. While editing is off, EmDash's toolbar is hidden:
+ * the bar is the one control. The bar sets `--tidy-bar` on <html> (its
+ * height) so a template's sticky header can sit below it.
  */
 import type { Block, BlockSchema } from "./ops";
 
@@ -21,25 +23,31 @@ interface Props {
 	field?: string;
 	blocks?: BlockSchema[];
 	value?: Block[] | null;
-	/** Records reachable from the pill (the business) or from `[data-tidy-record]` regions on the page. */
+	/** Records reachable from the bar (the business) or from `[data-tidy-record]` regions on the page. */
 	records?: Array<{ collection: string; id: string; label: string }>;
+	/** What the bar calls this site; "Staging" by default. */
+	label?: string;
 }
-const { collection, id, field = "content", blocks, value, records = [] } = Astro.props;
+const { collection, id, field = "content", blocks, value, records = [], label = "Staging" } = Astro.props;
 const signedIn = Boolean(Astro.session ? await Astro.session.get("user") : null);
 const active = Astro.cookies.get("emdash-edit-mode")?.value === "true";
 const here = Astro.url.pathname + Astro.url.search;
 const toggle = (on: boolean) => `/_tidy/edit?on=${on ? 1 : 0}&to=${encodeURIComponent(here)}`;
 const editable = active && Boolean(collection && id && blocks && value);
 const config = editable ? JSON.stringify({ collection, id, field, blocks, value, records, done: toggle(false) }) : null;
+const htmlClass = !signedIn ? "" : !active ? "tidy-bar tidy-idle" : editable ? "tidy-bar" : "tidy-bar tidy-inline";
 ---
-{signedIn && !active && (
+{signedIn && (
 	<>
-		<div class="tidy-status tidy-status-idle"><a class="tidy-btn tidy-btn-primary" href={toggle(true)}>Edit</a></div>
-		<script is:inline>document.documentElement.classList.add("tidy-idle");</script>
+		<div class="tidy-bar" id="tidy-bar" role="region" aria-label="Site editing">
+			<span class="tidy-bar-label">{label}</span>
+			<div class="tidy-bar-actions" id="tidy-bar-actions">
+				{!active && <a class="tidy-btn tidy-btn-primary" href={toggle(true)}>Edit</a>}
+				{active && !editable && <a class="tidy-btn" href={toggle(false)}>Done</a>}
+			</div>
+		</div>
+		<script is:inline define:vars={{ htmlClass }}>document.documentElement.className += " " + htmlClass;</script>
 	</>
-)}
-{signedIn && active && !editable && (
-	<div class="tidy-status"><span>Editing</span><a class="tidy-btn" href={toggle(false)}>Done</a></div>
 )}
 {config && (
 	<>
@@ -49,8 +57,17 @@ const config = editable ? JSON.stringify({ collection, id, field, blocks, value,
 )}
 <style is:global>
 	.tidy-editing #emdash-toolbar, .tidy-idle #emdash-toolbar { display: none !important; }
-	[data-tidy-record] { outline: 2px dashed transparent; outline-offset: 4px; transition: outline-color 120ms; cursor: pointer; }
-	[data-tidy-record]:hover, [data-tidy-record].tidy-active { outline-color: #2b7fd1; }
+	html.tidy-bar { --tidy-bar: 44px; }
+	html.tidy-bar body { padding-top: var(--tidy-bar); }
+	.tidy-bar { position: fixed; top: 0; left: 0; right: 0; height: var(--tidy-bar, 44px); z-index: 2147483000; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; box-sizing: border-box; background: #17211c; color: #fff; font: 500 13px/1 system-ui, sans-serif; box-shadow: 0 1px 0 rgba(255,255,255,.08), 0 6px 20px rgba(0,0,0,.18); }
+	.tidy-bar-label { opacity: .7; letter-spacing: .04em; text-transform: uppercase; font-size: 11px; }
+	.tidy-bar-actions { display: flex; align-items: center; gap: 8px; }
+	.tidy-bar-actions a { text-decoration: none; }
+	.tidy-bar .tidy-btn { padding: 6px 12px; }
+	.tidy-bar-count { opacity: .85; margin-right: 4px; }
+	.tidy-bar-count:empty { display: none; }
+	.tidy-editing [data-tidy-record] { outline: 2px dashed transparent; outline-offset: 4px; transition: outline-color 120ms; cursor: pointer; }
+	.tidy-editing [data-tidy-record]:hover, .tidy-editing [data-tidy-record].tidy-active { outline-color: #2b7fd1; }
 	.tidy-image-preview { display: grid; place-items: center; min-height: 96px; border: 1px solid #d3dcd6; border-radius: 6px; background: #f6f7f5; overflow: hidden; }
 	.tidy-image-preview img { max-width: 100%; max-height: 180px; display: block; }
 	.tidy-image-empty { color: #7b877f; font-size: 13px; padding: 8px; }
@@ -60,10 +77,10 @@ const config = editable ? JSON.stringify({ collection, id, field, blocks, value,
 	.tidy-image-thumb { padding: 0; border: 2px solid transparent; border-radius: 6px; overflow: hidden; background: #fff; cursor: pointer; aspect-ratio: 1; }
 	.tidy-image-thumb:hover { border-color: #2b7fd1; }
 	.tidy-image-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-	[data-tidy-block] { position: relative; outline: 2px dashed transparent; outline-offset: -2px; transition: outline-color 120ms; cursor: pointer; }
-	[data-tidy-block]:hover, [data-tidy-block].tidy-active { outline-color: #2b7fd1; }
+	.tidy-editing [data-tidy-block] { position: relative; outline: 2px dashed transparent; outline-offset: -2px; transition: outline-color 120ms; cursor: pointer; }
+	.tidy-editing [data-tidy-block]:hover, .tidy-editing [data-tidy-block].tidy-active { outline-color: #2b7fd1; }
 	.tidy-chip { position: absolute; z-index: 2147483000; display: flex; gap: 4px; align-items: center; padding: 4px 6px; background: #17211c; color: #fff; border-radius: 8px; font: 500 13px/1.2 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
-	.tidy-chip[hidden], .tidy-panel[hidden], .tidy-status[hidden] { display: none; }
+	.tidy-chip[hidden], .tidy-panel[hidden] { display: none; }
 	.tidy-chip-label { padding: 0 6px 0 4px; opacity: .85; }
 	.tidy-btn { appearance: none; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: inherit; border-radius: 6px; padding: 4px 8px; font: inherit; cursor: pointer; }
 	.tidy-btn:hover { background: rgba(255,255,255,.18); }
@@ -93,7 +110,4 @@ const config = editable ? JSON.stringify({ collection, id, field, blocks, value,
 	.tidy-add-item { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border: 1px solid #d3dcd6; border-radius: 8px; background: #fff; cursor: pointer; font: inherit; }
 	.tidy-add-item:hover { border-color: #2b7fd1; background: rgba(43,127,209,.06); }
 	.tidy-add-item span { color: #4a5851; font-size: 13px; }
-	.tidy-status { position: fixed; left: 16px; bottom: 16px; z-index: 2147483000; display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: #17211c; color: #fff; border-radius: 999px; font: 500 13px system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
-	.tidy-status a { text-decoration: none; }
-	.tidy-status-idle { padding: 4px; }
 </style>

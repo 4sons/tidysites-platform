@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0
+
+- Editor: the corner pill is a bar across the top of the page. "Staging" (the `label` prop) on the left; Edit on the right while editing is off; Business details, Publish (with the count, only while something is unpublished) and Done while it is on. The bar sets `--tidy-bar` on `<html>` so a template's sticky header can sit below it.
+- Editor: editing is a page edit. Inside the sections a click edits the block or record it lands on and never follows a link; a click on the header or footer (outside the menu) opens Business details.
+- Editor: section and record outlines show only while editing. They used to show on hover for every visitor, live site included.
+
 ## 0.6.1
 
 - Editor: EmDash's toolbar is hidden while editing is off, so the Edit pill is the one control on the page. It still shows on article pages in edit mode, where EmDash's inline editing needs it.
