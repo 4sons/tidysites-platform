@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+- `GET /_tidy/edit?on=1|0&to=/path`: switches on-site editing on or off for the signed-in editor (the `emdash-edit-mode` cookie) and returns to the page. No bearer; a visitor without a session is sent back unchanged.
+- Editor: mounts itself. The layout renders `<TidyEditor>` on every page; it shows nothing to a visitor, an "Edit" pill to a signed-in editor, and the editor once editing is on. A page without blocks gets the pill only (EmDash's inline editing handles its prose). The pill gains "Done". Every prop is optional now; EmDash's toolbar is hidden only while this editor runs (`html.tidy-editing`).
+
 ## 0.5.1
 
 - Editor: a record region nested inside a section (a service card in the services grid) gets its own "Edit details" chip; clicking it edits the record instead of following the card's link, and leaving it hands the chip back to the section.

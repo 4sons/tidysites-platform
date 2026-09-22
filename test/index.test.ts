@@ -18,7 +18,7 @@ describe("tidyPlatform()", () => {
 		expect(addMiddleware).toHaveBeenCalledWith({ entrypoint: "@tideworthy/tidysites-platform/middleware", order: "pre" });
 		expect(injectRoute).toHaveBeenCalledTimes(PLATFORM_ROUTES.length);
 		const patterns = injectRoute.mock.calls.map((c) => (c[0] as { pattern: string }).pattern).sort();
-		expect(patterns).toEqual(["/_tidy/bootstrap", "/_tidy/fill", "/_tidy/health", "/_tidy/maintenance", "/_tidy/rotate-token", "/_tidy/session", "/_tidy/session/claim"]);
+		expect(patterns).toEqual(["/_tidy/bootstrap", "/_tidy/edit", "/_tidy/fill", "/_tidy/health", "/_tidy/maintenance", "/_tidy/rotate-token", "/_tidy/session", "/_tidy/session/claim"]);
 		for (const call of injectRoute.mock.calls) {
 			const r = call[0] as { entrypoint: string; prerender: boolean };
 			expect(r.prerender).toBe(false);

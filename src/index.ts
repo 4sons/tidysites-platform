@@ -25,6 +25,7 @@ export const PLATFORM_ROUTES = [
 	{ pattern: "/_tidy/bootstrap", entrypoint: `${PACKAGE}/routes/bootstrap` },
 	{ pattern: "/_tidy/session", entrypoint: `${PACKAGE}/routes/session` },
 	{ pattern: "/_tidy/session/claim", entrypoint: `${PACKAGE}/routes/session-claim` },
+	{ pattern: "/_tidy/edit", entrypoint: `${PACKAGE}/routes/edit` },
 	{ pattern: "/_tidy/health", entrypoint: `${PACKAGE}/routes/health` },
 	{ pattern: "/_tidy/rotate-token", entrypoint: `${PACKAGE}/routes/rotate-token` },
 	{ pattern: "/_tidy/fill", entrypoint: `${PACKAGE}/routes/fill` },

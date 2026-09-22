@@ -32,6 +32,8 @@ interface Config {
 	blocks: BlockSchema[];
 	value: Block[];
 	records?: RecordRef[];
+	/** Where "Done" goes: /_tidy/edit switching editing off and returning here. */
+	done?: string;
 }
 
 interface ManifestField {
@@ -88,6 +90,7 @@ export function start(config: Config): void {
 	const frames = () => Array.from(document.querySelectorAll<HTMLElement>("[data-tidy-block]"));
 
 	// EmDash's inline editor is for prose pages; here the sections and records own their fields.
+	document.documentElement.classList.add("tidy-editing");
 	document.querySelectorAll("[data-emdash-ref]").forEach((n) => n.removeAttribute("data-emdash-ref"));
 
 	// --- pending publishes ---------------------------------------------------
@@ -99,7 +102,8 @@ export function start(config: Config): void {
 	const statusText = el("span");
 	const bizBtn = el("button", { type: "button", class: "tidy-btn", text: "Business details" });
 	const publishBtn = el("button", { type: "button", class: "tidy-btn tidy-btn-primary", text: "Publish" });
-	status.append(statusText, bizBtn, publishBtn);
+	const doneBtn = el("a", { class: "tidy-btn", href: config.done ?? `/_tidy/edit?on=0&to=${encodeURIComponent(location.pathname + location.search)}`, text: "Done" });
+	status.append(statusText, bizBtn, publishBtn, doneBtn);
 	document.body.append(status);
 	const business = (config.records ?? []).find((r) => r.collection === "business");
 	bizBtn.hidden = !business;
