@@ -96,6 +96,10 @@ Mints a one-time sign-in link for a person the platform has already authenticate
 
 The browser lands here. Signs the user in (an Astro session, exactly as EmDash's own login does), sets or clears the visual-editing cookie, and redirects with 303 to the requested path. A link can be used once. Expired, reused, or unknown links get a 410 page.
 
+### `GET /_tidy/edit?on=1|0&to=/path`
+
+No bearer. For the browser session the claim signed in: sets (`on=1`) or clears the `emdash-edit-mode` cookie and answers 303 to `to` (a local path; anything else becomes `/`). Without a signed-in session it answers the same 303 and changes nothing. The editor's pill links here.
+
 ### `GET /_tidy/health`
 
 `{ ok, plugin, setupComplete, siteTitle, siteUrl, migrations: { applied, pending }, time }`. `ok` is false and the status is 503 when migrations are pending.

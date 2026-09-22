@@ -1,31 +1,50 @@
 ---
 /**
- * The Tideworthy on-site editor for block-built pages. Render it from the
- * layout when the page is in edit mode, with the entry the page shows, the
- * block schemas the template declares, and the block list as rendered. The
- * template frames each custom block with `data-tidy-block` (its key) and
- * `data-tidy-type`, and wraps the list in `data-tidy-blocks`. A record region
- * (`data-tidy-record`, `data-tidy-record-id`, `data-tidy-record-label`) gets an
- * "Edit details" chip whose form comes from EmDash's manifest.
+ * The Tideworthy on-site editor. Mount it from the layout on every page; it
+ * renders nothing for a visitor, an "Edit" pill for a signed-in editor, and
+ * the editor itself once editing is on (the `emdash-edit-mode` cookie, set
+ * and cleared by /_tidy/edit from the pill). Block pages hand it the entry
+ * they show, the block schemas the template declares, and the block list as
+ * rendered; the template frames each custom block with `data-tidy-block`
+ * (its key) and `data-tidy-type`, and wraps the list in `data-tidy-blocks`.
+ * A record region (`data-tidy-record`, `data-tidy-record-id`,
+ * `data-tidy-record-label`) gets an "Edit details" chip whose form comes
+ * from EmDash's manifest. A page without blocks (an article) gets the pill
+ * only; EmDash's inline editing handles its prose in edit mode.
  */
 import type { Block, BlockSchema } from "./ops";
 
 interface Props {
-	collection: string;
-	id: string;
+	collection?: string;
+	id?: string;
 	field?: string;
-	blocks: BlockSchema[];
-	value: Block[];
+	blocks?: BlockSchema[];
+	value?: Block[] | null;
 	/** Records reachable from the pill (the business) or from `[data-tidy-record]` regions on the page. */
 	records?: Array<{ collection: string; id: string; label: string }>;
 }
 const { collection, id, field = "content", blocks, value, records = [] } = Astro.props;
-const config = JSON.stringify({ collection, id, field, blocks, value, records });
+const signedIn = Boolean(Astro.session ? await Astro.session.get("user") : null);
+const active = Astro.cookies.get("emdash-edit-mode")?.value === "true";
+const here = Astro.url.pathname + Astro.url.search;
+const toggle = (on: boolean) => `/_tidy/edit?on=${on ? 1 : 0}&to=${encodeURIComponent(here)}`;
+const editable = active && Boolean(collection && id && blocks && value);
+const config = editable ? JSON.stringify({ collection, id, field, blocks, value, records, done: toggle(false) }) : null;
 ---
-<script type="application/json" id="tidy-editor-config" set:html={config.replace(/</g, "\\u003c")} />
-<script src="./runtime.ts"></script>
+{signedIn && !active && (
+	<div class="tidy-status tidy-status-idle"><a class="tidy-btn tidy-btn-primary" href={toggle(true)}>Edit</a></div>
+)}
+{signedIn && active && !editable && (
+	<div class="tidy-status"><span>Editing</span><a class="tidy-btn" href={toggle(false)}>Done</a></div>
+)}
+{config && (
+	<>
+		<script type="application/json" id="tidy-editor-config" set:html={config.replace(/</g, "\\u003c")} />
+		<script src="./runtime.ts"></script>
+	</>
+)}
 <style is:global>
-	#emdash-toolbar { display: none !important; }
+	.tidy-editing #emdash-toolbar { display: none !important; }
 	[data-tidy-record] { outline: 2px dashed transparent; outline-offset: 4px; transition: outline-color 120ms; cursor: pointer; }
 	[data-tidy-record]:hover, [data-tidy-record].tidy-active { outline-color: #2b7fd1; }
 	.tidy-image-preview { display: grid; place-items: center; min-height: 96px; border: 1px solid #d3dcd6; border-radius: 6px; background: #f6f7f5; overflow: hidden; }
@@ -71,4 +90,6 @@ const config = JSON.stringify({ collection, id, field, blocks, value, records })
 	.tidy-add-item:hover { border-color: #2b7fd1; background: rgba(43,127,209,.06); }
 	.tidy-add-item span { color: #4a5851; font-size: 13px; }
 	.tidy-status { position: fixed; left: 16px; bottom: 16px; z-index: 2147483000; display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: #17211c; color: #fff; border-radius: 999px; font: 500 13px system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+	.tidy-status a { text-decoration: none; }
+	.tidy-status-idle { padding: 4px; }
 </style>
