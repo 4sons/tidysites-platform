@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1
+
+- Editor: EmDash's toolbar is hidden while editing is off, so the Edit pill is the one control on the page. It still shows on article pages in edit mode, where EmDash's inline editing needs it.
+
 ## 0.6.0
 
 - `GET /_tidy/edit?on=1|0&to=/path`: switches on-site editing on or off for the signed-in editor (the `emdash-edit-mode` cookie) and returns to the page. No bearer; a visitor without a session is sent back unchanged.

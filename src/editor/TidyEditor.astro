@@ -10,7 +10,8 @@
  * A record region (`data-tidy-record`, `data-tidy-record-id`,
  * `data-tidy-record-label`) gets an "Edit details" chip whose form comes
  * from EmDash's manifest. A page without blocks (an article) gets the pill
- * only; EmDash's inline editing handles its prose in edit mode.
+ * only; EmDash's inline editing handles its prose in edit mode. EmDash's own
+ * toolbar shows only there: while editing is off the pill is the one control.
  */
 import type { Block, BlockSchema } from "./ops";
 
@@ -32,7 +33,10 @@ const editable = active && Boolean(collection && id && blocks && value);
 const config = editable ? JSON.stringify({ collection, id, field, blocks, value, records, done: toggle(false) }) : null;
 ---
 {signedIn && !active && (
-	<div class="tidy-status tidy-status-idle"><a class="tidy-btn tidy-btn-primary" href={toggle(true)}>Edit</a></div>
+	<>
+		<div class="tidy-status tidy-status-idle"><a class="tidy-btn tidy-btn-primary" href={toggle(true)}>Edit</a></div>
+		<script is:inline>document.documentElement.classList.add("tidy-idle");</script>
+	</>
 )}
 {signedIn && active && !editable && (
 	<div class="tidy-status"><span>Editing</span><a class="tidy-btn" href={toggle(false)}>Done</a></div>
@@ -44,7 +48,7 @@ const config = editable ? JSON.stringify({ collection, id, field, blocks, value,
 	</>
 )}
 <style is:global>
-	.tidy-editing #emdash-toolbar { display: none !important; }
+	.tidy-editing #emdash-toolbar, .tidy-idle #emdash-toolbar { display: none !important; }
 	[data-tidy-record] { outline: 2px dashed transparent; outline-offset: 4px; transition: outline-color 120ms; cursor: pointer; }
 	[data-tidy-record]:hover, [data-tidy-record].tidy-active { outline-color: #2b7fd1; }
 	.tidy-image-preview { display: grid; place-items: center; min-height: 96px; border: 1px solid #d3dcd6; border-radius: 6px; background: #f6f7f5; overflow: hidden; }
