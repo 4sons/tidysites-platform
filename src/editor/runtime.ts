@@ -97,20 +97,19 @@ export function start(config: Config): void {
 	const pending = new Set<string>(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "[]") as string[]);
 	const persistPending = () => sessionStorage.setItem(PENDING_KEY, JSON.stringify([...pending]));
 
-	// --- status pill ---------------------------------------------------------
-	const status = el("div", { class: "tidy-status" });
-	const statusText = el("span");
+	// --- the bar's controls --------------------------------------------------
+	const status = document.getElementById("tidy-bar-actions") ?? document.body.appendChild(el("div", { class: "tidy-bar-actions" }));
+	const statusText = el("span", { class: "tidy-bar-count" });
 	const bizBtn = el("button", { type: "button", class: "tidy-btn", text: "Business details" });
 	const publishBtn = el("button", { type: "button", class: "tidy-btn tidy-btn-primary", text: "Publish" });
 	const doneBtn = el("a", { class: "tidy-btn", href: config.done ?? `/_tidy/edit?on=0&to=${encodeURIComponent(location.pathname + location.search)}`, text: "Done" });
-	status.append(statusText, bizBtn, publishBtn, doneBtn);
-	document.body.append(status);
+	status.replaceChildren(statusText, bizBtn, publishBtn, doneBtn);
 	const business = (config.records ?? []).find((r) => r.collection === "business");
 	bizBtn.hidden = !business;
 	bizBtn.addEventListener("click", () => business && void openRecord(business));
 	function refreshStatus(text?: string) {
 		const n = pending.size;
-		statusText.textContent = text ?? (n === 0 ? "Editing" : `${n} unpublished change${n === 1 ? "" : "s"}`);
+		statusText.textContent = text ?? (n === 0 ? "" : `${n} unpublished change${n === 1 ? "" : "s"}`);
 		publishBtn.hidden = n === 0 && !text?.startsWith("Publish failed");
 	}
 	refreshStatus();
@@ -228,6 +227,38 @@ export function start(config: Config): void {
 			void openRecord({ collection: r.dataset.tidyRecord ?? "", id: r.dataset.tidyRecordId ?? "", label: r.dataset.tidyRecordLabel ?? "" });
 		});
 	}
+	// Editing is a page edit: inside the sections a click edits what it lands
+	// on and never follows a link; outside them the header and footer show the
+	// business record's facts, so a click there opens Business details. The
+	// menu keeps walking the site, and the editor's own controls are untouched.
+	document.addEventListener(
+		"click",
+		(e) => {
+			const t = e.target as HTMLElement | null;
+			if (!t || t.closest(".tidy-bar,.tidy-chip,.tidy-panel,.tidy-add-end,#emdash-toolbar")) return;
+			if (t.closest("[data-tidy-blocks]")) {
+				if (!t.closest("a,button")) return;
+				e.preventDefault();
+				e.stopPropagation();
+				const record = t.closest<HTMLElement>("[data-tidy-record]");
+				const frame = t.closest<HTMLElement>("[data-tidy-block]");
+				if (record) {
+					showRecordChip(record);
+					void openRecord({ collection: record.dataset.tidyRecord ?? "", id: record.dataset.tidyRecordId ?? "", label: record.dataset.tidyRecordLabel ?? "" });
+				} else if (frame) {
+					showBlockChip(frame);
+					openBlock(frame.dataset.tidyBlock ?? "");
+				}
+				return;
+			}
+			if (t.closest("main") || t.closest("nav a, header button, input, select, textarea, label")) return;
+			if (!business) return;
+			e.preventDefault();
+			e.stopPropagation();
+			void openRecord(business);
+		},
+		true
+	);
 	// The chip sits outside every frame; hovering it must not count as leaving.
 	chip.addEventListener("mouseenter", () => current?.classList.add("tidy-active"));
 	bEdit.addEventListener("click", () => {
