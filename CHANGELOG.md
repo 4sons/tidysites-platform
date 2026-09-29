@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.0
+
+- EmDash 1.0: the peer range is `>=1.0.0 <2.0.0` for `emdash` and `@emdash-cms/auth` (was 0.37 only). Nothing in the package changed: every export it depends on (`emdash/runtime` `getDb`, `emdash/seed` `loadSeed`, `emdash/middleware` `runScheduledTasks`, the repositories, `applySeed`, the auth token helpers) is still public in 1.0.1; only the `emdash/middleware/*` and `emdash/db/*-migrations` subpaths moved under `emdash/internal/*`, and this package never used them. Proven on a 0.37 database: the 1.0.1 runtime applied its 15 migrations on the first request (73 to 88), pages, sessions, editing, fill, maintenance and the content API all answered as before.
+
 ## 0.7.1
 
 - Editor: the class the bar puts on `<html>` is `tidy-has-bar`. 0.7.0 used `tidy-bar`, the bar's own class, so the bar's fixed styles applied to the document and pushed the top of the page off screen for a signed-in editor.
