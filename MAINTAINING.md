@@ -36,7 +36,7 @@ Re-verify every line of this list when bumping the EmDash peer range. All are pu
 | `emdash/runtime` `getDb()` | the singleton Kysely for the configured database | runtime.ts |
 | `emdash/seed` `loadSeed()` | the template's seed file at build time (path from `package.json` `emdash.seed`) | runtime.ts |
 | `virtual:emdash/config` default export, `virtual:emdash/storage` `createStorage` | the storage provider for seed media, as the setup wizard builds it | runtime.ts |
-| `emdash/middleware` `runScheduledTasks()` | scheduled publishing on demand | routes/maintenance.ts |
+| `emdash/middleware` `runScheduledTasks()` | scheduled publishing on demand (still public in 1.0; the `emdash/middleware/*` subpaths moved to `emdash/internal/*`, unused here) | routes/maintenance.ts |
 | `@emdash-cms/auth` `generatePrefixedToken`, `VALID_SCOPES` | API token minting (`ec_pat_` prefix, hash stored) | runtime.ts |
 | Tables `users`, `options`, `_emdash_api_tokens` (direct Kysely) | role update, email_verified, token replace, handoff sweep | store.ts |
 | Option names `emdash:setup_complete`, `emdash:setup_state`, `emdash:site_title`, `emdash:site_tagline`, `emdash:site_url` | setup completion, health | handlers.ts |
@@ -67,6 +67,8 @@ Every change to this repo, docs included, is a branch and a pull request merged 
 5. Bump the version in each template's `package.json`, rebuild the template, and roll it through the platform's template rollout. Sites pick up the new package with their next template artifact; nothing is hot-swapped.
 
 ## Upgrading EmDash
+
+The peer range is a major (`>=1.0.0 <2.0.0`); EmDash promises breaking changes only in a new major from 1.0 on. The 0.37 to 1.0.1 upgrade (0.8.0) was rehearsed locally before any pointer moved: run the previous template with `astro dev` against a local D1, bootstrap it through `/_tidy/bootstrap`, stop it, copy `.wrangler/state` into the upgraded template's folder, start that one and read `/_tidy/health` (migrations applied and pending), then walk pages, a minted session, edit mode, `/_tidy/fill`, `/_tidy/maintenance` and the content API. `wrangler d1 export` refuses EmDash databases (fts5 virtual tables), so the production fallback is D1 Time Travel, not a dump.
 
 1. Read the EmDash release notes between the pinned version and the target for: repositories, `getDb`, `ContentRepository` (findBySlug, delete; the fill route), `runScheduledTasks`, seed functions, session shape, the edit-mode cookie, role levels, the `_emdash_api_tokens` and `options` tables.
 2. Widen or move the peer range in `package.json`, install, `npm run check`.
