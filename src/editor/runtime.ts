@@ -99,9 +99,11 @@ export function start(config: Config): void {
 	const schemaOf = (type: string) => config.blocks.find((b) => b.slug === type);
 	const frames = () => Array.from(document.querySelectorAll<HTMLElement>("[data-tidy-block]"));
 
-	// EmDash's inline editor is for prose pages; here the sections and records own their fields.
+	// Inside the sections and the record regions this editor owns the fields, so
+	// EmDash's inline editor must not mount there; article prose outside them
+	// keeps EmDash's in-place editing under this bar.
 	document.documentElement.classList.add("tidy-editing");
-	document.querySelectorAll("[data-emdash-ref]").forEach((n) => n.removeAttribute("data-emdash-ref"));
+	document.querySelectorAll("[data-tidy-blocks] [data-emdash-ref], [data-tidy-record] [data-emdash-ref]").forEach((n) => n.removeAttribute("data-emdash-ref"));
 
 	// --- pending publishes ---------------------------------------------------
 	// Records whose publish failed after a save; the page itself is read from EmDash.
