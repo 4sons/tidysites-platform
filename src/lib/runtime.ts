@@ -47,6 +47,15 @@ export async function buildDeps(): Promise<Deps> {
 			load: async () => (await loadSeed()) as unknown as Record<string, unknown> & { settings?: Record<string, unknown> },
 			validate: (seed) => validateSeed(seed),
 			apply: (seed) => applySeed(db, seed as unknown as Parameters<typeof applySeed>[1], { includeContent: true, onConflict: "skip", ...storageOpt }),
+			// Structure only: "update" rewrites an existing collection's definition
+			// and upserts its fields (never deletes one), adds missing block types
+			// and amends compatible block versions. The caller has already stripped
+			// content, settings and menus from the document.
+			applyStructure: async (seed) => {
+				const r = (await applySeed(db, seed as unknown as Parameters<typeof applySeed>[1], { includeContent: false, onConflict: "update" })) as unknown as Record<string, unknown>;
+				const pick = (k: string) => (r[k] !== undefined ? { [k]: r[k] } : {});
+				return { ...pick("blockTypes"), ...pick("collections"), ...pick("fields"), ...pick("relations") };
+			},
 			// A content-only seed document: no collections, menus, or settings, so
 			// applySeed touches nothing but entries. "update" makes it an upsert by
 			// slug. applySeed replaces an existing entry's data wholesale, so fields

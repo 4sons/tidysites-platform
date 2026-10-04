@@ -10,6 +10,8 @@ export interface MemoryState {
 	migrations: { applied: number; pending: number };
 	/** "collection/slug" → data, for the fill tests. */
 	content: Record<string, Record<string, unknown>>;
+	/** The last structural seed applySchema handed to the seed ops. */
+	structureApplied?: unknown;
 }
 
 export function createMemoryStore(seedState: Partial<MemoryState> = {}): PlatformStore & { state: MemoryState } {
@@ -75,6 +77,10 @@ export function createDeps(overrides: Partial<Deps> & { store?: ReturnType<typeo
 			load: async () => ({ version: 1, settings: { title: "Seed Title" }, collections: [] }),
 			validate: () => ({ valid: true }),
 			apply: async () => ({ collections: 3, content: 4 }),
+			applyStructure: async (seed) => {
+				store.state.structureApplied = seed;
+				return { blockTypes: { created: 1, skipped: 0, updated: 0 }, collections: { created: 0, updated: 2, skipped: 0 }, fields: { created: 1, updated: 9, skipped: 0 } };
+			},
 			upsertContent: async (content) => {
 				let created = 0;
 				let updated = 0;

@@ -29,6 +29,7 @@ export const PLATFORM_ROUTES = [
 	{ pattern: "/_tidy/health", entrypoint: `${PACKAGE}/routes/health` },
 	{ pattern: "/_tidy/rotate-token", entrypoint: `${PACKAGE}/routes/rotate-token` },
 	{ pattern: "/_tidy/fill", entrypoint: `${PACKAGE}/routes/fill` },
+	{ pattern: "/_tidy/schema", entrypoint: `${PACKAGE}/routes/schema` },
 	{ pattern: "/_tidy/maintenance", entrypoint: `${PACKAGE}/routes/maintenance` }
 ] as const;
 

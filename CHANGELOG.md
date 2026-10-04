@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0
+
+- Editor: sections are an EmDash `blocks` field (`sections` by default), and the forms come from the seed's block type definitions (`slug`, `type`, `validation.options`, `subFields`) instead of Block Kit shapes. Fields render by EmDash type: string, text, url, number, integer, boolean, datetime, select, multiSelect, image (the media picker, storing EmDash's media value) and repeater; Portable Text and file fields say "edit in the admin". New blocks carry no `_version` so EmDash stamps the active one; a saved block keeps its `_type`, `_key` and `_version`, and fields the form read as empty are left out rather than written as null.
+- Editor: Publish reads the page's draft state from EmDash (`compare`), so a draft an agent staged over the API is publishable from the page; the count no longer depends on this browser's session.
+- `POST /_tidy/schema`: applies the template seed's block types, collections, fields and relations to a bootstrapped site (`onConflict: "update"`, no content, settings or menus). How a template schema change reaches a site provisioned before it. Refuses before bootstrap (409).
+
 ## 0.8.0
 
 - EmDash 1.0: the peer range is `>=1.0.0 <2.0.0` for `emdash` and `@emdash-cms/auth` (was 0.37 only). Nothing in the package changed: every export it depends on (`emdash/runtime` `getDb`, `emdash/seed` `loadSeed`, `emdash/middleware` `runScheduledTasks`, the repositories, `applySeed`, the auth token helpers) is still public in 1.0.1; only the `emdash/middleware/*` and `emdash/db/*-migrations` subpaths moved under `emdash/internal/*`, and this package never used them. Proven on a 0.37 database: the 1.0.1 runtime applied its 15 migrations on the first request (73 to 88), pages, sessions, editing, fill, maintenance and the content API all answered as before.

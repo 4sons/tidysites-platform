@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_REDIRECT, HANDOFF_TTL, bootstrap, claimSession, fill, health, mintSession, rotateToken } from "../src/lib/handlers";
+import { DEFAULT_REDIRECT, HANDOFF_TTL, applySchema, bootstrap, claimSession, fill, health, mintSession, rotateToken } from "../src/lib/handlers";
 import { ROLE_LEVEL } from "../src/lib/store";
 import { VERSION } from "../src/version";
 import { createDeps, createMemoryStore } from "./memory-store";
@@ -305,5 +305,42 @@ describe("fill", () => {
 		const deps = await bootstrapped();
 		const many = Array.from({ length: 2001 }, (_, i) => ({ id: `e${i}`, data: {} }));
 		await expect(fill({ content: { services: many } }, deps)).rejects.toMatchObject({ status: 400 });
+	});
+});
+
+describe("applySchema", () => {
+	it("refuses before bootstrap", async () => {
+		const deps = createDeps();
+		await expect(applySchema(deps)).rejects.toMatchObject({ status: 409 });
+	});
+
+	it("applies only the structural parts of the seed and reports what changed", async () => {
+		const deps = createDeps();
+		deps.seed.load = async () => ({
+			version: "1",
+			settings: { title: "Seed Title" },
+			blockTypes: [{ slug: "hero", label: "Hero", currentVersion: 1, versions: [{ version: 1, fields: [] }] }],
+			collections: [{ slug: "pages", label: "Pages", fields: [] }],
+			relations: [],
+			menus: [{ name: "primary", items: [] }],
+			content: { pages: [{ id: "home", data: {} }] }
+		});
+		await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
+		const r = await applySchema(deps);
+		expect(r.ok).toBe(true);
+		expect(r.applied).toMatchObject({ blockTypes: { created: 1 }, fields: { created: 1, updated: 9 } });
+		expect(deps.store.state.structureApplied).toEqual({
+			version: "1",
+			blockTypes: [{ slug: "hero", label: "Hero", currentVersion: 1, versions: [{ version: 1, fields: [] }] }],
+			collections: [{ slug: "pages", label: "Pages", fields: [] }],
+			relations: []
+		});
+	});
+
+	it("refuses an invalid seed with 500 and the validator's details", async () => {
+		const deps = createDeps();
+		await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
+		deps.seed.validate = () => ({ valid: false, errors: ["collections[0].slug: bad"] });
+		await expect(applySchema(deps)).rejects.toMatchObject({ status: 500, details: ["collections[0].slug: bad"] });
 	});
 });
