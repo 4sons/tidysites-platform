@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1
+
+- Editor: one editor on the site. An article page (a post, a service area, a page with the article layout) gets the bar too, with Publish from the entry's draft state, Business details and Done, over EmDash's inline prose editing; EmDash's own pill is hidden under the bar everywhere. Inside sections and record regions this editor owns the fields and EmDash's inline editor does not mount; outside them (article prose) it keeps working.
+
 ## 0.9.0
 
 - Editor: sections are an EmDash `blocks` field (`sections` by default), and the forms come from the seed's block type definitions (`slug`, `type`, `validation.options`, `subFields`) instead of Block Kit shapes. Fields render by EmDash type: string, text, url, number, integer, boolean, datetime, select, multiSelect, image (the media picker, storing EmDash's media value) and repeater; Portable Text and file fields say "edit in the admin". New blocks carry no `_version` so EmDash stamps the active one; a saved block keeps its `_type`, `_key` and `_version`, and fields the form read as empty are left out rather than written as null.
