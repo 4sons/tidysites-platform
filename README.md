@@ -10,7 +10,7 @@ It is the only code in a Tidysites template that knows about the platform, and i
 npm install @tideworthy/tidysites-platform
 ```
 
-Peer dependencies: `astro` 7, `emdash` and `@emdash-cms/auth` 0.37.x, `kysely`. Published on npm as `@tideworthy/tidysites-platform`; GitHub tags `vX.Y.Z` match each version.
+Peer dependencies: `astro` 7, `emdash` and `@emdash-cms/auth` 1.x, `kysely`. Published on npm as `@tideworthy/tidysites-platform`; GitHub tags `vX.Y.Z` match each version.
 
 ## Wire it up
 
@@ -45,17 +45,17 @@ EmDash answers every page with `X-Frame-Options: SAMEORIGIN` unless a Content-Se
 
 ## The on-site editor
 
-EmDash's inline editor edits plain rich text; a Block Kit block inside a Portable Text field renders as an "edit in admin" placeholder. Templates built from blocks use the Tideworthy editor instead:
+A template built from sections (an EmDash `blocks` field) uses the Tideworthy editor on the site:
 
 ```astro
 ---
 import TidyEditor from "@tideworthy/tidysites-platform/editor";
-const editMode = Astro.cookies.get("emdash-edit-mode")?.value === "true";
+import seed from "../../seed/seed.json";
 ---
-{editMode && <TidyEditor collection="pages" id={page.data.id} blocks={blockSchema} value={content} />}
+<TidyEditor collection="pages" id={page.data.id} field="sections" blocks={seed.blockTypes} value={page.data.sections} records={[{ collection: "business", id, label: "Business details" }]} />
 ```
 
-The template renders the block list inside `<div data-tidy-blocks>` and each custom block inside `<div data-tidy-block={_key} data-tidy-type={_type}>`, and passes `PortableText` a copy of the array (`[...blocks]`) so EmDash's inline editor does not mount on it. `blocks` is the plugin definition's `portableTextBlocks`. Hovering a block shows a chip (Edit, move, add below, remove); Edit opens a panel built from the block's fields; Save writes a draft through EmDash's content API with the signed-in editor's session and reloads; Publish publishes every entry saved in the session. A text field whose id ends in `imageUrl` (or `photoUrl`, `logoUrl`) gets an image picker over the media library with upload. Records: wrap a region in `data-tidy-record="services" data-tidy-record-id="…" data-tidy-record-label="Service details"` and pass `records` to the component; the form comes from EmDash's manifest and saves publish at once. Pass the business record in `records` and it is always one click away in the pill. A section that lists records (a services grid) wraps each card in the same `data-tidy-record` attributes, so the card edits its record and the section's chip edits the section. On these pages EmDash's toolbar is hidden and its inline editing is off; article bodies keep EmDash's inline editor by passing the original array and not mounting this component.
+The template renders the sections inside `<div data-tidy-blocks>` and each one inside `<div data-tidy-block={_key} data-tidy-type={_type}>`. `blocks` is the seed's `blockTypes` (the same definitions EmDash's admin and MCP read); the form for a block comes from its retained version's fields. Hovering a block shows a chip (Edit, move, add below, remove); Edit opens the panel; Save writes the field through EmDash's content API with the signed-in editor's session, as a draft, and reloads. Publish appears when EmDash says the page has a draft (so a draft an agent staged over the API is publishable from the page) and publishes it. Image fields get a picker over the media library with upload and store EmDash's media value. Records: wrap a region in `data-tidy-record="services" data-tidy-record-id="…" data-tidy-record-label="Service details"` and pass `records` to the component; the form comes from EmDash's manifest and saves publish at once. Pass the business record in `records` and it is always one click away in the bar. A section that lists records (a services grid) wraps each card in the same `data-tidy-record` attributes, so the card edits its record and the section's chip edits the section. On these pages EmDash's toolbar is hidden and its inline editing is off; article bodies keep EmDash's inline editor by not passing a sections field.
 
 ## Bindings the routes read
 
@@ -124,6 +124,10 @@ Writes real content over the template's sample content on a bootstrapped site. S
 ```
 
 Entries are upserted by slug (`slug` defaults to `id`). An existing entry keeps every field the document does not name, so a fill can send only what it knows and the template's images and blocks stay underneath. `remove` deletes the named sample entries; slugs written by the same call are never removed, and unknown slugs are reported back in `missing`. Refuses with 409 before bootstrap. Returns `{ ok, settings, content: { created, updated, media }, removed, missing }`. Re-running the same document is safe.
+
+### `POST /_tidy/schema`
+
+Applies the template seed's structure to a site that is already set up: block types (new ones created, compatible versions amended), collections and their fields (existing ones updated to the template's definition, missing ones added, nothing deleted) and relations. Entries, settings, menus, taxonomies and sections are untouched. Refuses with 409 before bootstrap. Returns `{ ok, applied }` with EmDash's counts. This is how a template schema change reaches a site provisioned before it; the platform calls it before deploying the new template artifact.
 
 ### `POST /_tidy/maintenance?cron=…`
 

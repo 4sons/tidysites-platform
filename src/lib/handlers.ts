@@ -12,6 +12,12 @@ export interface SeedOps {
 	load(): Promise<Record<string, unknown> & { settings?: Record<string, unknown> }>;
 	validate(seed: unknown): { valid: boolean; errors?: unknown };
 	apply(seed: Record<string, unknown>): Promise<{ collections?: unknown; content?: unknown }>;
+	/**
+	 * Apply only the structural parts of a seed (block types, collections and
+	 * their fields, relations) to a site that is already set up, updating what
+	 * exists and adding what is missing. Never touches entries, settings or menus.
+	 */
+	applyStructure(seed: Record<string, unknown>): Promise<Record<string, unknown>>;
 	/** Upsert content entries by slug (existing entries are updated), downloading `$media` URLs into the site's storage. */
 	upsertContent(content: Record<string, FillEntry[]>): Promise<{ created: number; updated: number; media: number }>;
 }
@@ -119,6 +125,36 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 	const t = tokens.generate();
 	await store.replaceToken({ userId: user.id, name, hash: t.hash, prefix: t.prefix, scopes: [...tokens.scopes] });
 	return { ok: true, userId: user.id, token: t.raw, steps };
+}
+
+// ---------------------------------------------------------------------------
+// Schema: bring an existing site's structure up to the template's
+// ---------------------------------------------------------------------------
+
+export interface SchemaResult {
+	ok: true;
+	applied: Record<string, unknown>;
+}
+
+/** The seed keys that describe structure; everything else is left out before applying. */
+const STRUCTURE_KEYS = ["$schema", "version", "defaultLocale", "blockTypes", "collections", "relations"] as const;
+
+/**
+ * Apply the template seed's block types, collections, fields and relations to
+ * a bootstrapped site. Existing definitions are updated to the template's,
+ * missing ones are created, nothing is deleted, and entries, settings, menus,
+ * taxonomies and sections are untouched. This is how a template schema change
+ * reaches a site that was provisioned before it. Refuses before bootstrap.
+ */
+export async function applySchema(deps: Deps): Promise<SchemaResult> {
+	if ((await deps.store.getOption("emdash:setup_complete")) !== true) throw new HttpError(409, "site is not bootstrapped yet");
+	const full = await deps.seed.load();
+	const structure: Record<string, unknown> = {};
+	for (const k of STRUCTURE_KEYS) if (full[k] !== undefined) structure[k] = full[k];
+	const v = deps.seed.validate(structure);
+	if (!v.valid) throw new HttpError(500, "invalid seed", v.errors);
+	const applied = await deps.seed.applyStructure(structure);
+	return { ok: true, applied };
 }
 
 // ---------------------------------------------------------------------------

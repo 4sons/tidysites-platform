@@ -3,21 +3,25 @@
 /**
  * The Tideworthy on-site editor. Runs on a page rendered in edit mode.
  *
- * Sections: every custom block sits in a frame (`[data-tidy-block]`, rendered
- * by the template); hovering shows a chip with Edit, Up, Down, Add and Remove,
- * and Edit opens a panel whose form comes from the block's field schema.
+ * Sections: every block of the page's `blocks` field sits in a frame
+ * (`[data-tidy-block]`, rendered by the template); hovering shows a chip with
+ * Edit, Up, Down, Add and Remove, and Edit opens a panel whose form comes from
+ * the block type's field definitions (the same ones EmDash's admin and MCP
+ * read).
  *
  * Records: a region wrapped in `[data-tidy-record]` (a service's header, say)
  * gets an "Edit … details" chip whose form comes from EmDash's manifest for
- * that collection; the business record is always reachable from the pill.
+ * that collection; the business record is always reachable from the bar.
  *
- * Images: a block field whose id names an image URL, or a record field of
- * kind image, gets a picker over the site's media library with upload.
+ * Images: an `image` field, in a block or a record, gets a picker over the
+ * site's media library with upload and stores EmDash's media value.
  *
- * Saves go through EmDash's content API with the editor's session, as drafts;
- * Publish publishes every entry touched in this browser session.
+ * Saves go through EmDash's content API with the editor's session, as drafts.
+ * Publish reads the entry's draft state from EmDash (so a draft an agent
+ * staged over the API is publishable from the page too) and publishes it,
+ * plus any record whose publish failed in this browser session.
  */
-import { coerce, defaultsFor, insertBlock, moveBlock, removeBlock, updateBlock, type Block, type BlockSchema, type FieldSchema } from "./ops";
+import { EDITABLE_TYPES, coerce, compact, defaultsFor, fieldsOf, insertBlock, moveBlock, removeBlock, updateBlock, type Block, type BlockTypeSchema, type FieldSchema } from "./ops";
 
 interface RecordRef {
 	collection: string;
@@ -29,7 +33,7 @@ interface Config {
 	collection: string;
 	id: string;
 	field: string;
-	blocks: BlockSchema[];
+	blocks: BlockTypeSchema[];
 	value: Block[];
 	records?: RecordRef[];
 	/** Where "Done" goes: /_tidy/edit switching editing off and returning here. */
@@ -56,9 +60,8 @@ interface MediaItem {
 const API = "/_emdash/api";
 const CSRF = { "X-EmDash-Request": "1" };
 const PENDING_KEY = "tidy-pending";
-const IMAGE_FIELD = /(image|photo|logo|picture)url$/i;
 /** Record fields the panel never shows: system, structural, or edited elsewhere. */
-const HIDDEN_RECORD_FIELDS = new Set(["content", "sort", "brand_primary", "brand_accent", "font_display", "font_body"]);
+const HIDDEN_RECORD_FIELDS = new Set(["content", "sections", "sort", "brand_primary", "brand_accent", "font_display", "font_body"]);
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, children: Array<Node | string> = []): HTMLElementTagNameMap[K] {
 	const e = document.createElement(tag);
@@ -75,9 +78,16 @@ function mediaUrl(m: MediaItem): string {
 	return m.url ?? `${API}/media/file/${m.storageKey}`;
 }
 
-/** The value an image record field stores: EmDash's media value for a library item. */
+/** The value an image field stores: EmDash's media value for a library item. */
 function mediaValue(m: MediaItem): Record<string, unknown> {
 	return { provider: "local", id: m.id, alt: m.alt ?? "", width: m.width ?? undefined, height: m.height ?? undefined, mimeType: m.mimeType, filename: m.filename, meta: { storageKey: m.storageKey } };
+}
+
+/** A URL to preview a stored image value, whatever shape it came in. */
+function imageSrc(v: unknown): string | null {
+	if (!v || typeof v !== "object") return typeof v === "string" && v ? v : null;
+	const o = v as { src?: string; url?: string; meta?: { storageKey?: string } };
+	return o.src ?? o.url ?? (o.meta?.storageKey ? `${API}/media/file/${o.meta.storageKey}` : null);
 }
 
 function api(path: string, init: RequestInit = {}): Promise<Response> {
@@ -86,7 +96,7 @@ function api(path: string, init: RequestInit = {}): Promise<Response> {
 
 export function start(config: Config): void {
 	let value: Block[] = config.value;
-	const schemaOf = (type: string) => config.blocks.find((b) => b.type === type);
+	const schemaOf = (type: string) => config.blocks.find((b) => b.slug === type);
 	const frames = () => Array.from(document.querySelectorAll<HTMLElement>("[data-tidy-block]"));
 
 	// EmDash's inline editor is for prose pages; here the sections and records own their fields.
@@ -94,8 +104,10 @@ export function start(config: Config): void {
 	document.querySelectorAll("[data-emdash-ref]").forEach((n) => n.removeAttribute("data-emdash-ref"));
 
 	// --- pending publishes ---------------------------------------------------
+	// Records whose publish failed after a save; the page itself is read from EmDash.
 	const pending = new Set<string>(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "[]") as string[]);
 	const persistPending = () => sessionStorage.setItem(PENDING_KEY, JSON.stringify([...pending]));
+	let pageHasDraft = false;
 
 	// --- the bar's controls --------------------------------------------------
 	const status = document.getElementById("tidy-bar-actions") ?? document.body.appendChild(el("div", { class: "tidy-bar-actions" }));
@@ -108,15 +120,29 @@ export function start(config: Config): void {
 	bizBtn.hidden = !business;
 	bizBtn.addEventListener("click", () => business && void openRecord(business));
 	function refreshStatus(text?: string) {
-		const n = pending.size;
+		const n = pending.size + (pageHasDraft ? 1 : 0);
 		statusText.textContent = text ?? (n === 0 ? "" : `${n} unpublished change${n === 1 ? "" : "s"}`);
 		publishBtn.hidden = n === 0 && !text?.startsWith("Publish failed");
 	}
 	refreshStatus();
+	/** Ask EmDash whether this page has a draft that differs from what is live. */
+	async function readDraftState(): Promise<void> {
+		try {
+			const r = await api(`/content/${encodeURIComponent(config.collection)}/${encodeURIComponent(config.id)}/compare`);
+			if (!r.ok) return;
+			const j = (await r.json().catch(() => ({}))) as { data?: { hasChanges?: boolean } };
+			pageHasDraft = j.data?.hasChanges === true;
+			refreshStatus();
+		} catch {
+			// the bar just shows no count
+		}
+	}
+	void readDraftState();
 	publishBtn.addEventListener("click", async () => {
 		publishBtn.disabled = true;
 		refreshStatus("Publishing");
-		const targets = pending.size ? [...pending] : [`${config.collection}/${config.id}`];
+		const targets = new Set<string>(pending);
+		if (pageHasDraft || targets.size === 0) targets.add(`${config.collection}/${config.id}`);
 		let failed = 0;
 		for (const t of targets) {
 			const [collection, id] = t.split("/") as [string, string];
@@ -133,16 +159,17 @@ export function start(config: Config): void {
 	});
 
 	/**
-	 * Page blocks save as a draft the page previews in edit mode; Publish makes
-	 * them live. Record details (the business, a service) are read by many
-	 * pages from their published version, so a draft would look like nothing
-	 * happened: they save and publish in one step.
+	 * Page sections save as a draft the page previews in edit mode; Publish
+	 * makes them live. Record details (the business, a service) are read by
+	 * many pages from their published version, so a draft would look like
+	 * nothing happened: they save and publish in one step.
 	 */
 	async function saveEntry(collection: string, id: string, data: Record<string, unknown>, publishNow = false): Promise<boolean> {
 		refreshStatus("Saving");
 		const r = await api(`/content/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ data }) });
 		if (!r.ok) {
-			refreshStatus(`Save failed (${r.status})`);
+			const j = (await r.json().catch(() => ({}))) as { error?: { message?: string } };
+			refreshStatus(`Save failed (${j.error?.message ?? r.status})`);
 			return false;
 		}
 		if (publishNow) {
@@ -153,9 +180,6 @@ export function start(config: Config): void {
 				refreshStatus(`Saved; publish failed (${p.status})`);
 				return false;
 			}
-		} else {
-			pending.add(`${collection}/${id}`);
-			persistPending();
 		}
 		refreshStatus("Saved. Reloading");
 		location.reload();
@@ -301,7 +325,7 @@ export function start(config: Config): void {
 	});
 
 	// --- image picker -----------------------------------------------------------
-	/** An image control. `get` returns the stored value (URL string or media value); set through `onPick`. */
+	/** An image control: preview, choose from the library, upload, remove. `onPick` receives the library item or null. */
 	function imageControl(label: string, currentUrl: string | null, onPick: (item: MediaItem | null) => void): HTMLElement {
 		const wrap = el("div", { class: "tidy-field tidy-image" }, [el("span", { class: "tidy-field-label", text: label })]);
 		const preview = el("div", { class: "tidy-image-preview" });
@@ -366,93 +390,120 @@ export function start(config: Config): void {
 	}
 
 	// --- block forms ---------------------------------------------------------
-	function fieldInput(f: FieldSchema, v: unknown, name: string): HTMLElement {
-		const wrap = el("label", { class: "tidy-field" }, [el("span", { class: "tidy-field-label", text: f.label })]);
-		if (f.type === "toggle") {
-			const cb = el("input", { type: "checkbox", name });
+	type Reader = () => unknown;
+
+	/** One control for a block field (or a repeater row's sub-field). Returns the element and a reader of its coerced value. */
+	function fieldControl(f: FieldSchema, v: unknown): { node: HTMLElement; read: Reader } {
+		const label = f.label || f.slug;
+		if (f.type === "image") {
+			let picked: unknown = v && typeof v === "object" ? v : undefined;
+			const node = imageControl(label, imageSrc(v), (item) => {
+				picked = item ? mediaValue(item) : undefined;
+			});
+			return { node, read: () => picked };
+		}
+		const wrap = el("label", { class: "tidy-field" }, [el("span", { class: "tidy-field-label", text: label })]);
+		if (f.type === "boolean") {
+			const cb = el("input", { type: "checkbox" });
 			cb.checked = v === true;
 			wrap.className = "tidy-field tidy-field-toggle";
 			wrap.prepend(cb);
-		} else if (f.type === "select") {
-			const s = el("select", { name });
-			for (const o of f.options ?? []) {
-				const opt = el("option", { value: o.value, text: o.label });
-				if (o.value === v) opt.selected = true;
+			return { node: wrap, read: () => cb.checked };
+		}
+		if (f.type === "select") {
+			const s = el("select");
+			if (!f.required) s.append(el("option", { value: "", text: "" }));
+			for (const o of f.validation?.options ?? []) {
+				const opt = el("option", { value: o, text: o });
+				if (o === v) opt.selected = true;
 				s.append(opt);
 			}
 			wrap.append(s);
-		} else if (f.type === "number_input") {
-			const i = el("input", { type: "number", name });
+			return { node: wrap, read: () => coerce(f, s.value) };
+		}
+		if (f.type === "multiSelect") {
+			const box = el("div", { class: "tidy-multi" });
+			const chosen = new Set(Array.isArray(v) ? (v as string[]) : []);
+			const boxes: HTMLInputElement[] = [];
+			for (const o of f.validation?.options ?? []) {
+				const cb = el("input", { type: "checkbox", value: o });
+				cb.checked = chosen.has(o);
+				boxes.push(cb);
+				box.append(el("label", { class: "tidy-multi-item" }, [cb, o]));
+			}
+			wrap.append(box);
+			return { node: wrap, read: () => boxes.filter((b) => b.checked).map((b) => b.value) };
+		}
+		if (f.type === "number" || f.type === "integer") {
+			const i = el("input", { type: "number", ...(f.type === "integer" ? { step: "1" } : { step: "any" }) });
 			i.value = typeof v === "number" ? String(v) : "";
 			wrap.append(i);
-		} else if (f.multiline) {
-			const t = el("textarea", { name, rows: "4" });
+			return { node: wrap, read: () => coerce(f, i.value) };
+		}
+		if (f.type === "datetime") {
+			const i = el("input", { type: "datetime-local" });
+			i.value = typeof v === "string" ? v.slice(0, 16) : "";
+			wrap.append(i);
+			return { node: wrap, read: () => (i.value ? new Date(i.value).toISOString() : undefined) };
+		}
+		if (f.type === "text") {
+			const t = el("textarea", { rows: "4" });
 			t.value = typeof v === "string" ? v : "";
 			wrap.append(t);
-		} else {
-			const i = el("input", { type: "text", name });
-			i.value = typeof v === "string" ? v : v === null || v === undefined ? "" : String(v);
-			wrap.append(i);
+			return { node: wrap, read: () => t.value };
 		}
-		return wrap;
+		const i = el("input", { type: f.type === "url" ? "url" : "text" });
+		i.value = typeof v === "string" ? v : v === null || v === undefined ? "" : String(v);
+		wrap.append(i);
+		return { node: wrap, read: () => i.value };
 	}
 
-	/** A text field that stores an image URL gets the picker; the hidden input keeps the URL for the reader. */
-	function blockField(f: FieldSchema, v: unknown, name: string): HTMLElement {
-		if (f.type !== "text_input" || !IMAGE_FIELD.test(f.action_id)) return fieldInput(f, v, name);
-		const hidden = el("input", { type: "hidden", name });
-		hidden.value = typeof v === "string" ? v : "";
-		const control = imageControl(f.label, hidden.value || null, (item) => {
-			hidden.value = item ? mediaUrl(item) : "";
-		});
-		control.append(hidden);
-		return control;
-	}
-
-	function buildBlockForm(schema: BlockSchema, data: Record<string, unknown>): { form: HTMLFormElement; read: () => Record<string, unknown> } {
+	function buildBlockForm(type: BlockTypeSchema, block: Block): { form: HTMLFormElement; read: () => Record<string, unknown> } {
 		const form = el("form", { class: "tidy-form" });
-		const repeaters = new Map<string, { field: FieldSchema; items: HTMLElement }>();
-		for (const f of schema.fields) {
+		const readers: Array<[string, Reader]> = [];
+		for (const f of fieldsOf(type, block._version)) {
+			if (!EDITABLE_TYPES.has(f.type)) {
+				form.append(el("p", { class: "tidy-field-note", text: `${f.label || f.slug}: edit in the admin` }));
+				continue;
+			}
 			if (f.type === "repeater") {
-				const box = el("fieldset", { class: "tidy-repeater" }, [el("legend", { text: f.label })]);
+				const sub = f.validation?.subFields ?? [];
+				const box = el("fieldset", { class: "tidy-repeater" }, [el("legend", { text: f.label || f.slug })]);
 				const items = el("div", { class: "tidy-repeater-items" });
-				const rows = Array.isArray(data[f.action_id]) ? (data[f.action_id] as Record<string, unknown>[]) : [];
+				const rows = Array.isArray(block[f.slug]) ? (block[f.slug] as Record<string, unknown>[]) : [];
+				const rowReaders = new Map<HTMLElement, Array<[string, Reader]>>();
 				const addItem = (row: Record<string, unknown>) => {
 					const item = el("div", { class: "tidy-repeater-item" });
-					for (const sub of f.fields ?? []) item.append(blockField(sub, row[sub.action_id], sub.action_id));
-					const rm = el("button", { type: "button", class: "tidy-btn tidy-btn-danger tidy-btn-sm", text: `Remove ${f.item_label ?? "item"}` });
-					rm.addEventListener("click", () => item.remove());
+					const rs: Array<[string, Reader]> = [];
+					for (const s of sub) {
+						const c = fieldControl(s, row[s.slug]);
+						item.append(c.node);
+						rs.push([s.slug, c.read]);
+					}
+					const rm = el("button", { type: "button", class: "tidy-btn tidy-btn-danger tidy-btn-sm", text: "Remove" });
+					rm.addEventListener("click", () => {
+						rowReaders.delete(item);
+						item.remove();
+					});
 					item.append(rm);
 					items.append(item);
+					rowReaders.set(item, rs);
 				};
 				rows.forEach(addItem);
-				const add = el("button", { type: "button", class: "tidy-btn tidy-btn-sm", text: `Add ${f.item_label ?? "item"}` });
+				const add = el("button", { type: "button", class: "tidy-btn tidy-btn-sm", text: "Add" });
 				add.addEventListener("click", () => addItem({}));
 				box.append(items, add);
 				form.append(box);
-				repeaters.set(f.action_id, { field: f, items });
-			} else form.append(blockField(f, data[f.action_id], f.action_id));
-		}
-		const readScope = (scope: ParentNode, fields: FieldSchema[]): Record<string, unknown> => {
-			const out: Record<string, unknown> = {};
-			for (const f of fields) {
-				if (f.type === "repeater") continue;
-				const input = scope.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(`[name="${f.action_id}"]`);
-				out[f.action_id] = coerce(f, f.type === "toggle" ? (input as HTMLInputElement | null)?.checked : input?.value);
+				readers.push([f.slug, () => Array.from(items.children).map((item) => compact(Object.fromEntries((rowReaders.get(item as HTMLElement) ?? []).map(([k, r]) => [k, r()]))))]);
+				continue;
 			}
-			return out;
-		};
+			const c = fieldControl(f, block[f.slug]);
+			form.append(c.node);
+			readers.push([f.slug, c.read]);
+		}
 		const read = (): Record<string, unknown> => {
 			const out: Record<string, unknown> = {};
-			for (const f of schema.fields) {
-				if (f.type === "repeater") {
-					const rep = repeaters.get(f.action_id)!;
-					out[f.action_id] = Array.from(rep.items.children).map((item) => readScope(item, f.fields ?? []));
-					continue;
-				}
-				const input = Array.from(form.children).map((c) => c.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(`[name="${f.action_id}"]`)).find(Boolean) ?? null;
-				out[f.action_id] = coerce(f, f.type === "toggle" ? (input as HTMLInputElement | null)?.checked : input?.value);
-			}
+			for (const [k, r] of readers) out[k] = r();
 			return out;
 		};
 		return { form, read };
@@ -460,26 +511,29 @@ export function start(config: Config): void {
 
 	function openBlock(key: string) {
 		const block = value.find((b) => b._key === key);
-		const schema = block ? schemaOf(block._type) : undefined;
-		if (!block || !schema) return;
-		const { form, read } = buildBlockForm(schema, block);
+		const type = block ? schemaOf(block._type) : undefined;
+		if (!block || !type) return;
+		const { form, read } = buildBlockForm(type, block);
 		const saveBtn = el("button", { type: "submit", class: "tidy-btn tidy-btn-primary", text: "Save" });
 		const cancel = el("button", { type: "button", class: "tidy-btn", text: "Cancel" });
 		cancel.addEventListener("click", closePanel);
 		form.addEventListener("submit", (e) => {
 			e.preventDefault();
 			saveBtn.disabled = true;
-			void saveBlocks(updateBlock(value, key, read()));
+			// Fields the form read as "no value" are removed from the block, not written as null.
+			const data = read();
+			const next = updateBlock(value, key, data).map((b) => (b._key === key ? compact(b) : b)) as Block[];
+			void saveBlocks(next);
 		});
 		form.append(el("div", { class: "tidy-panel-actions" }, [saveBtn, cancel]));
-		openPanel(schema.label, schema.description, form);
+		openPanel(type.label, type.description, form);
 	}
 
 	function openAdd(afterKey: string | null) {
 		const listEl = el("div", { class: "tidy-add-list" });
-		for (const s of config.blocks.filter((b) => b.category !== "Inline")) {
+		for (const s of config.blocks) {
 			const b = el("button", { type: "button", class: "tidy-add-item" }, [el("strong", { text: s.label }), el("span", { text: s.description ?? "" })]);
-			b.addEventListener("click", () => void saveBlocks(insertBlock(value, s.type, afterKey, defaultsFor(s))));
+			b.addEventListener("click", () => void saveBlocks(insertBlock(value, s.slug, afterKey, defaultsFor(s))));
 			listEl.append(b);
 		}
 		const cancel = el("button", { type: "button", class: "tidy-btn", text: "Cancel" });
@@ -507,13 +561,12 @@ export function start(config: Config): void {
 		const values: Record<string, unknown> = {};
 		const readers: Array<() => void> = [];
 		for (const [name, f] of Object.entries(fields)) {
-			if (HIDDEN_RECORD_FIELDS.has(name) || ["portableText", "reference", "json", "datetime"].includes(f.kind)) continue;
+			if (HIDDEN_RECORD_FIELDS.has(name) || ["portableText", "reference", "json", "datetime", "blocks"].includes(f.kind)) continue;
 			const label = f.label ?? name;
 			const v = data[name];
 			if (f.kind === "image") {
-				const cur = v as { src?: string; meta?: { storageKey?: string } } | null | undefined;
 				values[name] = v ?? null;
-				form.append(imageControl(label, cur?.src ?? (cur?.meta?.storageKey ? `${API}/media/file/${cur.meta.storageKey}` : null), (item) => {
+				form.append(imageControl(label, imageSrc(v), (item) => {
 					values[name] = item ? mediaValue(item) : null;
 				}));
 				continue;
