@@ -10,6 +10,7 @@
 	},
 	"include": [
 		"src/editor/runtime.ts",
+		"src/editor/revisions.ts",
 		"src/editor/ops.ts"
 	],
 	"exclude": []

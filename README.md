@@ -133,6 +133,10 @@ Applies the template seed's structure to a site that is already set up: block ty
 
 Runs EmDash's scheduled work now (scheduled publishing, cleanup) and returns what it published. Workers in a dispatch namespace never receive cron triggers, so the platform's cron calls this on every site each minute.
 
+### `GET|POST /_tidy/revisions`
+
+The site's revision history for the signed-in editor (the Astro session is the gate, no bearer). `GET ?path=/x` lists every publish; `GET ?id=<revision>&path=/x` returns that page as it was in the revision, read from the control plane's stored copy; `POST {action:"restore", id}` puts the live site and the staging content back on it; `POST {action:"publish"}` makes the live site follow staging now. The editor bar's Revisions and Publish live controls call it; `?tidy-revisions=1` on any page opens the list and `?tidy-revision=<id>` opens that revision of the page.
+
 ## Publish hooks
 
 The plugin registers `content:afterPublish`, `content:afterUnpublish`, and `content:afterDelete`. Each posts `{ reason, collection, id }` to `POST <TIDY_CONTROL_ORIGIN>/sites/<TIDY_SITE_ID>/publish` over the `PLATFORM` binding with the site secret as bearer. Hooks run with `errorPolicy: "continue"` and an 8 second timeout, so a slow or failing control plane never fails the editor's publish.
