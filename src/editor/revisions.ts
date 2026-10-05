@@ -100,9 +100,14 @@ export function startRevisions(): void {
 			const j = (await r.json().catch(() => ({}))) as { error?: string };
 			frame.srcdoc = `<p style="font:15px system-ui;margin:2rem">${j.error ?? "This revision could not be read."}</p>`;
 		} else {
-			// The stored copy links its assets by absolute path; a base tag resolves them against the live site, where they still are.
+			// The stored copy links its built assets by absolute path (/_astro/...);
+			// those are read from the revision itself, so the page shows the way it
+			// was built. Everything else (uploads, links) resolves against this site.
 			const html = await r.text();
-			frame.srcdoc = html.replace(/<head([^>]*)>/i, `<head$1><base href="${location.origin}/"><style>html.tidy-has-bar body{padding-top:0!important}#tidy-bar,.tidy-bar{display:none!important}</style>`);
+			const own = (p: string) => `${ROUTE}?id=${encodeURIComponent(rev.id)}&path=${encodeURIComponent(p)}`;
+			frame.srcdoc = html
+				.replace(/(href|src)="(\/_astro\/[^"]+)"/g, (_m, attr: string, p: string) => `${attr}="${own(p)}"`)
+				.replace(/<head([^>]*)>/i, `<head$1><base href="${location.origin}/"><style>html.tidy-has-bar body{padding-top:0!important}#tidy-bar,.tidy-bar{display:none!important}</style>`);
 		}
 		viewer.hidden = false;
 		restoreBtn.onclick = async () => {

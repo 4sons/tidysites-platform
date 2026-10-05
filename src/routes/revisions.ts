@@ -47,7 +47,11 @@ export const GET: APIRoute = async (context) => {
 		if (!/^[0-9a-f-]{36}$/i.test(id)) return json({ error: "bad revision id" }, 400);
 		const r = await c.call(`/releases/${id}/page?path=${encodeURIComponent(path)}`);
 		if (!r.ok) return json({ error: r.status === 404 ? "That page was not in this revision." : "The revision could not be read." }, r.status === 404 ? 404 : 502);
-		return new Response(await r.text(), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+		// A page comes back as HTML; a path with an extension is one of the
+		// revision's own files (its stylesheets, scripts, images), passed through
+		// with its type so the page shows the way it was built.
+		const type = r.headers.get("content-type") ?? "application/octet-stream";
+		return new Response(r.body, { headers: { "content-type": type, "cache-control": "no-store" } });
 	}
 	const r = await c.call("/releases");
 	if (!r.ok) return json({ error: "The revisions could not be read." }, 502);
