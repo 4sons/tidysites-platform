@@ -64,15 +64,16 @@ export function startRevisions(): void {
 	}
 
 	function renderList() {
-		const head = el("div", { class: "tidy-panel-head" }, [el("h2", { text: "Revisions" }), el("p", { text: "Every time the website was published. Open one to see this page as it was then." })]);
+		const head = el("div", { class: "tidy-panel-head" }, [el("h2", { text: "Revisions" }), el("p", { text: "Every earlier publish of the website. Open one to see this page as it was then." })]);
 		const list = el("div", { class: "tidy-add-list" });
-		revisions.forEach((rev, i) => {
-			const note = i === 0 ? "Live now" : rev.restoredFrom ? "Restored" : "";
+		// The newest revision is what is live now: nothing to view or restore, so the list starts after it.
+		revisions.slice(1).forEach((rev) => {
+			const note = rev.restoredFrom ? "Restored" : "";
 			const item = el("button", { type: "button", class: "tidy-add-item" }, [el("strong", { text: when(rev.at) }), el("span", { text: [note, rev.pages ? `${rev.pages} pages` : ""].filter(Boolean).join(" · ") })]);
-			item.addEventListener("click", () => void view(rev, i === 0));
+			item.addEventListener("click", () => void view(rev));
 			list.append(item);
 		});
-		if (revisions.length === 0) list.append(el("p", { class: "tidy-field-note", text: "Nothing published yet." }));
+		if (revisions.length < 2) list.append(el("p", { class: "tidy-field-note", text: "No earlier revisions yet." }));
 		const closeBtn = el("button", { type: "button", class: "tidy-btn", text: "Close" });
 		closeBtn.addEventListener("click", close);
 		panel.replaceChildren(head, list, el("div", { class: "tidy-panel-actions" }, [closeBtn]));
@@ -91,10 +92,9 @@ export function startRevisions(): void {
 	document.body.append(viewer);
 	backBtn.addEventListener("click", () => { viewer.hidden = true; frame.removeAttribute("srcdoc"); renderList(); });
 
-	async function view(rev: Revision, isLive: boolean) {
+	async function view(rev: Revision) {
 		panel.hidden = true;
-		viewerLabel.textContent = `${when(rev.at)}${isLive ? " · live now" : ""}`;
-		restoreBtn.hidden = isLive;
+		viewerLabel.textContent = when(rev.at);
 		const r = await fetch(`${ROUTE}?id=${encodeURIComponent(rev.id)}&path=${encodeURIComponent(here)}`, { credentials: "same-origin" });
 		if (!r.ok) {
 			const j = (await r.json().catch(() => ({}))) as { error?: string };
@@ -107,7 +107,7 @@ export function startRevisions(): void {
 			const own = (p: string) => `${ROUTE}?id=${encodeURIComponent(rev.id)}&path=${encodeURIComponent(p)}`;
 			frame.srcdoc = html
 				.replace(/(href|src)="(\/_astro\/[^"]+)"/g, (_m, attr: string, p: string) => `${attr}="${own(p)}"`)
-				.replace(/<head([^>]*)>/i, `<head$1><base href="${location.origin}/"><style>html.tidy-has-bar body{padding-top:0!important}#tidy-bar,.tidy-bar{display:none!important}</style>`);
+				.replace(/<head([^>]*)>/i, `<head$1><base href="${location.origin}/"><style>html.tidy-has-bar body{padding-top:0!important}#tidy-bar,.tidy-bar,#emdash-toolbar{display:none!important}</style>`);
 		}
 		viewer.hidden = false;
 		restoreBtn.onclick = async () => {
@@ -149,8 +149,9 @@ export function startRevisions(): void {
 	const want = params.get("tidy-revision");
 	if (want || params.get("tidy-revisions")) {
 		void load().then((list) => {
-			const rev = want ? list.find((x) => x.id === want) : null;
-			if (rev) void view(rev, list[0]?.id === rev.id);
+			// The newest revision is live now and is not in the list, so a link to it opens the list.
+			const rev = want ? list.slice(1).find((x) => x.id === want) : null;
+			if (rev) void view(rev);
 			else renderList();
 		}).catch(() => undefined);
 	}

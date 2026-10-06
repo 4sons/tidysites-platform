@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.2
+
+- Editor: the Revisions list starts after the newest publish, which is what is live now and has nothing to view or restore; a deep link to it opens the list. Inside the revision viewer EmDash's pill is hidden along with the bar.
+
 ## 0.9.1
 
 - Editor: one editor on the site. An article page (a post, a service area, a page with the article layout) gets the bar too, with Publish from the entry's draft state, Business details and Done, over EmDash's inline prose editing; EmDash's own pill is hidden under the bar everywhere. Inside sections and record regions this editor owns the fields and EmDash's inline editor does not mount; outside them (article prose) it keeps working.
