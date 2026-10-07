@@ -10,6 +10,7 @@
  * Deep links: ?tidy-revisions=1 opens the list; ?tidy-revision=<id> opens
  * that revision of this page.
  */
+import { tidyConfirm } from "./confirm";
 
 interface Revision {
 	id: string;
@@ -111,7 +112,7 @@ export function startRevisions(): void {
 		}
 		viewer.hidden = false;
 		restoreBtn.onclick = async () => {
-			if (!confirm(`Restore the website to ${when(rev.at)}?\n\nThe live site goes back to how it was then, and so does staging: every change made since is lost.`)) return;
+			if (!(await tidyConfirm({ title: `Restore the website to ${when(rev.at)}?`, body: "The live site goes back to how it was then, and so does staging: every change made since is lost.", cta: "Restore", danger: true }))) return;
 			restoreBtn.disabled = true;
 			restoreBtn.textContent = "Restoring";
 			const p = await fetch(ROUTE, { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "restore", id: rev.id }) });
@@ -135,7 +136,7 @@ export function startRevisions(): void {
 	});
 
 	liveBtn.addEventListener("click", async () => {
-		if (!confirm("Publish the website?\n\nEverything on staging goes live, every change made since the last publish.")) return;
+		if (!(await tidyConfirm({ title: "Publish the website?", body: "Everything on staging goes live, every change made since the last publish.", cta: "Publish" }))) return;
 		liveBtn.disabled = true;
 		liveBtn.textContent = "Publishing";
 		const p = await fetch(ROUTE, { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "publish" }) });

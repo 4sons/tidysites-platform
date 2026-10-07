@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
+import { tidyConfirm } from "./confirm";
 /**
  * The Tideworthy on-site editor. Runs on a page rendered in edit mode.
  *
@@ -295,8 +296,9 @@ export function start(config: Config): void {
 	bUp.addEventListener("click", () => current?.dataset.tidyBlock && moved(moveBlock(value, current.dataset.tidyBlock, -1)));
 	bDown.addEventListener("click", () => current?.dataset.tidyBlock && moved(moveBlock(value, current.dataset.tidyBlock, 1)));
 	bRemove.addEventListener("click", () => {
-		if (!current?.dataset.tidyBlock) return;
-		if (confirm(`Remove this ${chipLabel.textContent} section?`)) void saveBlocks(removeBlock(value, current.dataset.tidyBlock));
+		const key = current?.dataset.tidyBlock;
+		if (!key) return;
+		void tidyConfirm({ title: `Remove this ${chipLabel.textContent} section?`, body: "The section comes off the page. Publish for the change to show on the live website.", cta: "Remove", danger: true }).then((ok) => { if (ok) void saveBlocks(removeBlock(value, key)); });
 	});
 	bAdd.addEventListener("click", () => current?.dataset.tidyBlock && openAdd(current.dataset.tidyBlock));
 	function moved(next: Block[]) {
