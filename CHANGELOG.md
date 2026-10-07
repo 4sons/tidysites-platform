@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.3
+
+- Editor: one bar on the staging site for everyone. A visitor gets Sign in to edit, which goes through the platform's door for the site (`<control>/sites/<id>/sign-in?back=`) and comes back signed in; a signed-in editor gets Edit and the controls as before. The bar is taller, named "Staging website" with an amber edge and a line on what staging is. The publish crawl never sees it.
+
 ## 0.10.2
 
 - Editor: the Revisions list starts after the newest publish, which is what is live now and has nothing to view or restore; a deep link to it opens the list. Inside the revision viewer EmDash's pill is hidden along with the bar.
