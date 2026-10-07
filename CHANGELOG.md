@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.8
+
+- Editor: Request a change, from the bar and a floating button at the corner. A panel takes what to change and which page (the current one by default) and hands it to the platform through the control plane (`POST /_tidy/change`); it shows up under Changes.
+
 ## 0.10.7
 
 - Editor: Publish live, Restore and Remove section confirm in a dialog of the editor's own, never the browser's box. The bar's note reads "A private copy to see working changes on the website, not publicly accessible."

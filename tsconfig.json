@@ -27,6 +27,7 @@
 	"exclude": [
 		"src/editor/runtime.ts",
 		"src/editor/revisions.ts",
-		"src/editor/confirm.ts"
+		"src/editor/confirm.ts",
+		"src/editor/request.ts"
 	]
 }

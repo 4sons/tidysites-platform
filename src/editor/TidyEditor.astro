@@ -64,6 +64,7 @@ const htmlClass = !signedIn ? (signInUrl ? "tidy-has-bar tidy-idle" : "") : !act
 		</div>
 		<script is:inline define:vars={{ htmlClass }}>document.documentElement.className += " " + htmlClass;</script>
 		{signedIn && <script src="./revisions.ts"></script>}
+		{signedIn && <script src="./request.ts"></script>}
 	</>
 )}
 {config && (
@@ -135,6 +136,9 @@ const htmlClass = !signedIn ? (signInUrl ? "tidy-has-bar tidy-idle" : "") : !act
 	.tidy-add-item:hover { border-color: #2b7fd1; background: rgba(43,127,209,.06); }
 	.tidy-add-item span { color: #4a5851; font-size: 13px; }
 	.tidy-viewer { position: fixed; inset: 0; z-index: 2147483002; display: flex; flex-direction: column; background: #fff; }
+	.tidy-fab { position: fixed; right: 20px; bottom: 20px; z-index: 2147483000; width: 52px; height: 52px; border-radius: 50%; border: 0; background: #2b7fd1; color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,.28); }
+	.tidy-fab:hover { background: #2470bd; }
+	.tidy-form { display: grid; gap: 14px; margin-bottom: 16px; }
 	.tidy-dialog-backdrop { position: fixed; inset: 0; z-index: 2147483003; display: grid; place-items: center; background: rgba(23,33,28,.45); padding: 16px; }
 	.tidy-dialog { width: min(440px, 100%); background: #fff; color: #17211c; border-radius: 12px; padding: 20px; box-shadow: 0 24px 60px rgba(0,0,0,.3); font: 14px/1.45 system-ui, sans-serif; }
 	.tidy-dialog h2 { margin: 0 0 6px; font-size: 17px; }

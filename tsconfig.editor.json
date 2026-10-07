@@ -11,7 +11,9 @@
 	"include": [
 		"src/editor/runtime.ts",
 		"src/editor/revisions.ts",
-		"src/editor/ops.ts"
+		"src/editor/ops.ts",
+		"src/editor/confirm.ts",
+		"src/editor/request.ts"
 	],
 	"exclude": []
 }
