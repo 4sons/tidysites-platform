@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.11
+
+- Editor bar: Request a change comes first and carries the blue; Edit follows it plain.
+
 ## 0.10.10
 
 - Editor: the bar reads Edit, Request a change, Revisions, Publish live; Publish live is green.

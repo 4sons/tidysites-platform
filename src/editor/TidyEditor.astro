@@ -58,7 +58,7 @@ const htmlClass = !signedIn ? (signInUrl ? "tidy-has-bar tidy-idle" : "") : !act
 			<span class="tidy-bar-label"><span class="tidy-bar-dot" aria-hidden="true"></span>{label} website<span class="tidy-bar-note">A private copy to see working changes on the website, not publicly accessible.</span></span>
 			<div class="tidy-bar-actions" id="tidy-bar-actions">
 				{!signedIn && <a class="tidy-btn tidy-btn-primary" href={signInUrl!}>Sign in to edit</a>}
-				{signedIn && !active && <a class="tidy-btn tidy-btn-primary" href={toggle(true)}>Edit</a>}
+				{signedIn && !active && <a class="tidy-btn" href={toggle(true)}>Edit</a>}
 				{signedIn && active && !editable && <a class="tidy-btn" href={toggle(false)}>Done</a>}
 			</div>
 		</div>
