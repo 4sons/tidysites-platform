@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.5
+
+- Editor: the bar's note reads "Changes here go live when you publish."
+
 ## 0.10.4
 
 - Editor: the bar has a 1px white bottom edge, so it stands off a dark header as well as a light one.
