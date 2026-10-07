@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.14
+
+- Editor bar: Edit, Done and Sign in to edit show a spinner and what they are doing until the page comes back.
+
 ## 0.10.13
 
 - Editor: the request panel opens at once; who is signed in is read when the page loads and the greeting fills in. The middleware keeps only the noindex header; robots.txt and the sitemap for staging are the control plane's.

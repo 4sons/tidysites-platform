@@ -57,12 +57,23 @@ const htmlClass = !signedIn ? (signInUrl ? "tidy-has-bar tidy-idle" : "") : !act
 		<div class="tidy-bar" id="tidy-bar" role="region" aria-label="Site editing">
 			<span class="tidy-bar-label"><span class="tidy-bar-dot" aria-hidden="true"></span>{label} website<span class="tidy-bar-note">A private copy to see working changes on the website, not publicly accessible.</span></span>
 			<div class="tidy-bar-actions" id="tidy-bar-actions">
-				{!signedIn && <a class="tidy-btn tidy-btn-primary" href={signInUrl!}>Sign in to edit</a>}
-				{signedIn && !active && <a class="tidy-btn" href={toggle(true)}>Edit</a>}
-				{signedIn && active && !editable && <a class="tidy-btn" href={toggle(false)}>Done</a>}
+				{!signedIn && <a class="tidy-btn tidy-btn-primary" href={signInUrl!} data-tidy-busy="Signing in">Sign in to edit</a>}
+				{signedIn && !active && <a class="tidy-btn" href={toggle(true)} data-tidy-busy="Opening the editor">Edit</a>}
+				{signedIn && active && !editable && <a class="tidy-btn" href={toggle(false)} data-tidy-busy="Closing the editor">Done</a>}
 			</div>
 		</div>
 		<script is:inline define:vars={{ htmlClass }}>document.documentElement.className += " " + htmlClass;</script>
+		<script is:inline>
+			// A bar button that reloads the page shows it is working until the new page arrives.
+			document.querySelectorAll("#tidy-bar a[data-tidy-busy]").forEach((a) => {
+				a.addEventListener("click", () => {
+					if (a.classList.contains("tidy-busy")) return;
+					a.classList.add("tidy-busy");
+					a.setAttribute("aria-busy", "true");
+					a.innerHTML = '<span class="tidy-spinner" aria-hidden="true"></span>' + a.getAttribute("data-tidy-busy");
+				});
+			});
+		</script>
 		{signedIn && <script src="./revisions.ts"></script>}
 		{signedIn && <script src="./request.ts"></script>}
 	</>
@@ -110,6 +121,9 @@ const htmlClass = !signedIn ? (signInUrl ? "tidy-has-bar tidy-idle" : "") : !act
 	.tidy-btn-primary { background: #2b7fd1; border-color: #2b7fd1; color: #fff; }
 	.tidy-btn-primary:hover { background: #2470bd; }
 	.tidy-btn-danger:hover { background: #b3261e; border-color: #b3261e; }
+	.tidy-busy { pointer-events: none; opacity: .85; display: inline-flex; align-items: center; gap: 8px; }
+	.tidy-spinner { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; animation: tidy-spin .7s linear infinite; }
+	@keyframes tidy-spin { to { transform: rotate(360deg); } }
 	.tidy-btn-go { background: #1f9d55; border-color: #1f9d55; color: #fff; }
 	.tidy-btn-go:hover { background: #1a8a4a; }
 	.tidy-btn-sm { padding: 3px 8px; font-size: 12px; }
