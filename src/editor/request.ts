@@ -29,8 +29,16 @@ export function mountRequestChange(): void {
 		panel.replaceChildren();
 	}
 
-	function render() {
-		const head = el("div", { class: "tidy-panel-head" }, [el("h2", { text: "Request a change" }), el("p", { text: "Say what you would like changed. It shows up under Changes and someone picks it up." })]);
+	let who: { name: string | null } | null = null;
+	const firstName = () => (who?.name ?? "").trim().split(/\s+/)[0] || "";
+
+	async function render() {
+		if (!who) who = (await fetch(ROUTE, { credentials: "same-origin" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)) as { name: string | null } | null;
+		const name = firstName();
+		const head = el("div", { class: "tidy-panel-head" }, [
+			el("h2", { text: name ? `Hi ${name},` : "Hi there," }),
+			el("p", { text: "We would love to help you make some adjustments to your website. Describe what you would like to see different or new, and we will get a version back to you as soon as possible." })
+		]);
 		const body = el("textarea", { id: "tidy-change-body", rows: "7", maxlength: "10000", required: "" });
 		const page = el("input", { id: "tidy-change-page", type: "text", value: here });
 		const err = el("p", { class: "tidy-field-note", hidden: "" });
@@ -53,7 +61,7 @@ export function mountRequestChange(): void {
 			sending = false;
 			if (r?.ok && j.ok) {
 				panel.replaceChildren(
-					el("div", { class: "tidy-panel-head" }, [el("h2", { text: "Request sent" }), el("p", { text: "It is under Changes now. You will hear back there." })]),
+					el("div", { class: "tidy-panel-head" }, [el("h2", { text: name ? `Thanks, ${name}.` : "Thanks." }), el("p", { text: "We have your request and will get a version back to you as soon as possible." })]),
 					el("div", { class: "tidy-panel-actions" }, [el("button", { type: "button", class: "tidy-btn", text: "Close" })])
 				);
 				panel.querySelector("button")?.addEventListener("click", close);
@@ -67,7 +75,7 @@ export function mountRequestChange(): void {
 		panel.replaceChildren(
 			head,
 			el("div", { class: "tidy-form" }, [
-				el("div", { class: "tidy-field" }, [el("label", { class: "tidy-field-label", for: "tidy-change-body", text: "What would you like changed?" }), body]),
+				el("div", { class: "tidy-field" }, [el("label", { class: "tidy-field-label", for: "tidy-change-body", text: "What would you like to see different or new?" }), body]),
 				el("div", { class: "tidy-field" }, [el("label", { class: "tidy-field-label", for: "tidy-change-page", text: "Which page" }), page]),
 				err
 			]),
@@ -82,7 +90,7 @@ export function mountRequestChange(): void {
 	actions.prepend(barBtn);
 
 	const fab = el("button", { type: "button", class: "tidy-fab", title: "Request a change", "aria-label": "Request a change" });
-	fab.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+	fab.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>';
 	fab.addEventListener("click", render);
 	document.body.append(fab);
 	document.addEventListener("keydown", (e) => {

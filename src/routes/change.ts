@@ -4,6 +4,7 @@
  * own secret. The Astro session is the gate; the person's name and email
  * come from the site's user record.
  *
+ *   GET                       → { name, email } of the signed-in person
  *   POST { body, pageUrl? }  → { ok, changeId }
  */
 import type { APIRoute } from "astro";
@@ -45,4 +46,15 @@ export const POST: APIRoute = platformRoute(
 	{ requireBearer: false }
 );
 
-export const ALL = methodNotAllowed("POST");
+/** Who is signed in, for the panel's greeting: { name, email } or 401. */
+export const GET: APIRoute = platformRoute(
+	async (context, deps) => {
+		const session = context.session ? ((await context.session.get("user")) as { id?: string } | null) : null;
+		if (!session?.id) return new Response("Unauthorized", { status: 401 });
+		const user = await deps.store.findUserById(session.id);
+		return json({ name: user?.name ?? null, email: user?.email ?? null }, 200, { "cache-control": "no-store" });
+	},
+	{ requireBearer: false }
+);
+
+export const ALL = methodNotAllowed("GET, POST");

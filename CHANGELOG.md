@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.9
+
+- Editor: the request panel greets the person by name and speaks plainly; the floating button is a pen, not a chat bubble. `GET /_tidy/change` says who is signed in.
+
 ## 0.10.8
 
 - Editor: Request a change, from the bar and a floating button at the corner. A panel takes what to change and which page (the current one by default) and hands it to the platform through the control plane (`POST /_tidy/change`); it shows up under Changes.
