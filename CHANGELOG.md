@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.10.5
+## 0.10.6
 
 - Editor: Publish live, Restore and Remove section confirm in a dialog of the editor's own, never the browser's box. The bar's note reads "A private copy to see working changes on the website, not publicly accessible."
+
+## 0.10.5
+
+- Editor bar: an interim note.
 
 ## 0.10.5
 
