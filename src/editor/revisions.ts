@@ -41,8 +41,9 @@ export function startRevisions(): void {
 	if (!actions) return;
 	const here = location.pathname;
 	const revBtn = el("button", { type: "button", class: "tidy-btn", text: "Revisions" });
-	const liveBtn = el("button", { type: "button", class: "tidy-btn", text: "Publish live" });
-	actions.prepend(revBtn, liveBtn);
+	const liveBtn = el("button", { type: "button", class: "tidy-btn tidy-btn-go", text: "Publish live" });
+	// Edit, Request a change, Revisions, Publish live: the bar reads left to right in that order.
+	actions.append(revBtn, liveBtn);
 
 	// --- the panel --------------------------------------------------------
 	const panel = el("div", { class: "tidy-panel", hidden: "" });

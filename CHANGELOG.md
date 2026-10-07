@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.10
+
+- Editor: the bar reads Edit, Request a change, Revisions, Publish live; Publish live is green.
+
 ## 0.10.9
 
 - Editor: the request panel greets the person by name and speaks plainly; the floating button is a pen, not a chat bubble. `GET /_tidy/change` says who is signed in.
