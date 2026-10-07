@@ -27,16 +27,27 @@ export function mountRequestChange(): void {
 	function close() {
 		panel.hidden = true;
 		panel.replaceChildren();
+		greeting = null;
 	}
 
+	// Who is signed in, read once the page is up so the panel opens at once; the greeting fills in when it arrives.
 	let who: { name: string | null } | null = null;
 	const firstName = () => (who?.name ?? "").trim().split(/\s+/)[0] || "";
+	let greeting: HTMLElement | null = null;
+	const whoReady = fetch(ROUTE, { credentials: "same-origin" })
+		.then((r) => (r.ok ? r.json() : null))
+		.then((j) => {
+			who = (j as { name: string | null } | null) ?? null;
+			if (greeting && firstName()) greeting.textContent = `Hi ${firstName()},`;
+		})
+		.catch(() => undefined);
 
-	async function render() {
-		if (!who) who = (await fetch(ROUTE, { credentials: "same-origin" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)) as { name: string | null } | null;
+	function render() {
+		void whoReady;
 		const name = firstName();
+		greeting = el("h2", { text: name ? `Hi ${name},` : "Hi there," });
 		const head = el("div", { class: "tidy-panel-head" }, [
-			el("h2", { text: name ? `Hi ${name},` : "Hi there," }),
+			greeting,
 			el("p", { text: "We would love to help you make some adjustments to your website. Describe what you would like to see different or new, and we will get a version back to you as soon as possible." })
 		]);
 		const body = el("textarea", { id: "tidy-change-body", rows: "7", maxlength: "10000", required: "" });
@@ -61,7 +72,7 @@ export function mountRequestChange(): void {
 			sending = false;
 			if (r?.ok && j.ok) {
 				panel.replaceChildren(
-					el("div", { class: "tidy-panel-head" }, [el("h2", { text: name ? `Thanks, ${name}.` : "Thanks." }), el("p", { text: "We have your request and will get a version back to you as soon as possible." })]),
+					el("div", { class: "tidy-panel-head" }, [el("h2", { text: firstName() ? `Thanks, ${firstName()}.` : "Thanks." }), el("p", { text: "We have your request and will get a version back to you as soon as possible." })]),
 					el("div", { class: "tidy-panel-actions" }, [el("button", { type: "button", class: "tidy-btn", text: "Close" })])
 				);
 				panel.querySelector("button")?.addEventListener("click", close);

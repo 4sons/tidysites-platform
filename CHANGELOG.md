@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.13
+
+- Editor: the request panel opens at once; who is signed in is read when the page loads and the greeting fills in. The middleware keeps only the noindex header; robots.txt and the sitemap for staging are the control plane's.
+
 ## 0.10.12
 
 - The staging site is never indexed: every response carries `X-Robots-Tag: noindex, nofollow`, robots.txt disallows everything and the sitemap answers 404. The publish crawl still gets the real robots.txt and sitemap for the live copy.
