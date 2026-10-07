@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.12
+
+- The staging site is never indexed: every response carries `X-Robots-Tag: noindex, nofollow`, robots.txt disallows everything and the sitemap answers 404. The publish crawl still gets the real robots.txt and sitemap for the live copy.
+
 ## 0.10.11
 
 - Editor bar: Request a change comes first and carries the blue; Edit follows it plain.
