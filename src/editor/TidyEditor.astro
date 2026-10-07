@@ -77,7 +77,7 @@ const htmlClass = !signedIn ? (signInUrl ? "tidy-has-bar tidy-idle" : "") : !act
 	html.tidy-has-bar #emdash-toolbar { display: none !important; }
 	html.tidy-has-bar { --tidy-bar: 52px; }
 	html.tidy-has-bar body { padding-top: var(--tidy-bar); }
-	.tidy-bar { position: fixed; top: 0; left: 0; right: 0; height: var(--tidy-bar, 52px); z-index: 2147483000; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; box-sizing: border-box; background: #17211c; color: #fff; font: 500 13px/1 system-ui, sans-serif; border-top: 3px solid #f0b429; box-shadow: 0 1px 0 rgba(255,255,255,.08), 0 6px 20px rgba(0,0,0,.18); }
+	.tidy-bar { position: fixed; top: 0; left: 0; right: 0; height: var(--tidy-bar, 52px); z-index: 2147483000; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; box-sizing: border-box; background: #17211c; color: #fff; font: 500 13px/1 system-ui, sans-serif; border-top: 3px solid #f0b429; border-bottom: 1px solid #fff; box-shadow: 0 1px 0 rgba(255,255,255,.08), 0 6px 20px rgba(0,0,0,.18); }
 	.tidy-bar-label { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 14px; font-weight: 600; }
 	.tidy-bar-dot { width: 9px; height: 9px; border-radius: 50%; background: #f0b429; box-shadow: 0 0 0 3px rgba(240,180,41,.25); flex: none; }
 	.tidy-bar-note { font-weight: 400; font-size: 13px; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

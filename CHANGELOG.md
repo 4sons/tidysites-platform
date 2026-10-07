@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.4
+
+- Editor: the bar has a 1px white bottom edge, so it stands off a dark header as well as a light one.
+
 ## 0.10.3
 
 - Editor: one bar on the staging site for everyone. A visitor gets Sign in to edit, which goes through the platform's door for the site (`<control>/sites/<id>/sign-in?back=`) and comes back signed in; a signed-in editor gets Edit and the controls as before. The bar is taller, named "Staging website" with an amber edge and a line on what staging is. The publish crawl never sees it.
