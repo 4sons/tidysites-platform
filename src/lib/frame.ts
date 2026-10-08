@@ -6,7 +6,8 @@
  * get a `frame-ancestors` policy naming them instead. Nothing changes without
  * the variable.
  */
-const ORIGIN = /^https:\/\/[a-z0-9.-]+(?::\d+)?$/i;
+/** An https origin, or a local dev page (http://localhost, any port) for the brand preview. */
+const ORIGIN = /^(?:https:\/\/[a-z0-9.-]+(?::\d+)?|http:\/\/localhost(?::(?:\d+|\*))?)$/i;
 
 /** The origins allowed to frame the site, from the variable's value; invalid entries are dropped. */
 export function frameAncestors(value: unknown): string[] {
