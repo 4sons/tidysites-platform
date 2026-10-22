@@ -1,0 +1,4154 @@
+{
+  "$schema": "https://emdashcms.com/seed.schema.json",
+  "version": "1",
+  "meta": {
+    "name": "Tidysites template",
+    "description": "The one data shape every Tidysites theme renders: collections, fields, section types and menus for local businesses, service-area businesses, shops and agencies. Every collection and every section is optional; nothing here is content or design.",
+    "author": "Tidysites"
+  },
+  "blockTypes": [
+    {
+      "slug": "hero",
+      "label": "Hero",
+      "description": "Opening block",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "headline and photo",
+                  "headline and booking card",
+                  "headline and form",
+                  "photo with headline over",
+                  "headline and picker"
+                ]
+              },
+              "defaultValue": "headline and photo"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "subhead",
+              "label": "Subhead",
+              "type": "text"
+            },
+            {
+              "slug": "pill",
+              "label": "Pill (for example: Accepting new patients)",
+              "type": "string"
+            },
+            {
+              "slug": "button_label",
+              "label": "Button",
+              "type": "string"
+            },
+            {
+              "slug": "button_url",
+              "label": "Button link",
+              "type": "string"
+            },
+            {
+              "slug": "button2_label",
+              "label": "Second button",
+              "type": "string"
+            },
+            {
+              "slug": "button2_url",
+              "label": "Second button link",
+              "type": "string"
+            },
+            {
+              "slug": "image",
+              "label": "Image",
+              "type": "image"
+            },
+            {
+              "slug": "video_url",
+              "label": "Video",
+              "type": "string"
+            },
+            {
+              "slug": "show_phone",
+              "label": "Show phone",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_hours",
+              "label": "Show today's hours",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_rating",
+              "label": "Show rating",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_form",
+              "label": "Show the request form",
+              "type": "boolean"
+            },
+            {
+              "slug": "picker_title",
+              "label": "Picker title",
+              "type": "string"
+            },
+            {
+              "slug": "picker_note",
+              "label": "Picker note",
+              "type": "string"
+            },
+            {
+              "slug": "show_trust",
+              "label": "Show the trust strip",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "intro",
+      "label": "Intro",
+      "description": "Heading and paragraphs",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "button_label",
+              "label": "Button",
+              "type": "string"
+            },
+            {
+              "slug": "button_url",
+              "label": "Button link",
+              "type": "string"
+            },
+            {
+              "slug": "image",
+              "label": "Image",
+              "type": "image"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "services",
+      "label": "Services",
+      "description": "The services or categories",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "cards with summary",
+                  "image tiles",
+                  "icon cards",
+                  "grouped by category",
+                  "checklist"
+                ]
+              },
+              "defaultValue": "cards with summary"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "source",
+              "label": "Show",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "categories",
+                  "services",
+                  "featured services",
+                  "services in one category"
+                ]
+              },
+              "defaultValue": "categories"
+            },
+            {
+              "slug": "category",
+              "label": "Category slug when showing one category",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "show_all",
+              "label": "Show the All services button",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "feature",
+      "label": "Why choose us",
+      "description": "Points with an optional image",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "cards",
+                  "checklist",
+                  "image beside points",
+                  "mission statement"
+                ]
+              },
+              "defaultValue": "cards"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "image",
+              "label": "Image",
+              "type": "image"
+            },
+            {
+              "slug": "points",
+              "label": "Points",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Heading",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "body",
+                    "label": "Text",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "icon",
+                    "label": "Icon",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            {
+              "slug": "button_label",
+              "label": "Button",
+              "type": "string"
+            },
+            {
+              "slug": "button_url",
+              "label": "Button link",
+              "type": "string"
+            },
+            {
+              "slug": "bullets",
+              "label": "Bullets, one per line",
+              "type": "text"
+            },
+            {
+              "slug": "steps",
+              "label": "Numbered steps, one per line",
+              "type": "text"
+            },
+            {
+              "slug": "image_side",
+              "label": "Photo side",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "left",
+                  "right"
+                ]
+              },
+              "defaultValue": "left"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "steps",
+      "label": "Steps",
+      "description": "A real sequence: a first visit, a treatment journey",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "steps",
+              "label": "Steps",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Step",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "body",
+                    "label": "What happens",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "duration",
+                    "label": "How long",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "image",
+                    "label": "Image",
+                    "type": "image"
+                  }
+                ]
+              }
+            },
+            {
+              "slug": "show_prep",
+              "label": "Show the what-to-bring list",
+              "type": "boolean"
+            },
+            {
+              "slug": "prep",
+              "label": "What to bring, one per line",
+              "type": "text"
+            },
+            {
+              "slug": "show_forms",
+              "label": "Show forms links",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "team",
+      "label": "Team",
+      "description": "People from the people collection",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "cards",
+                  "grouped by department",
+                  "photo grid",
+                  "one person featured"
+                ]
+              },
+              "defaultValue": "cards"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "group",
+              "label": "Only this group",
+              "type": "string"
+            },
+            {
+              "slug": "featured_only",
+              "label": "Owners and providers only",
+              "type": "boolean"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "show_credentials",
+              "label": "Show credentials",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_bio",
+              "label": "Show short bios",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_all",
+              "label": "Show the Meet the team button",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "reviews",
+      "label": "Reviews",
+      "description": "Reviews from the reviews collection",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "quotes",
+                  "aggregate with quotes",
+                  "video testimonials",
+                  "single quote band"
+                ]
+              },
+              "defaultValue": "quotes"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "featured_only",
+              "label": "Featured reviews only",
+              "type": "boolean"
+            },
+            {
+              "slug": "service",
+              "label": "Only reviews for this service (slug)",
+              "type": "string"
+            },
+            {
+              "slug": "show_aggregate",
+              "label": "Show rating and count",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_source",
+              "label": "Show where each review came from",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_review_links",
+              "label": "Show the leave-a-review links",
+              "type": "boolean"
+            },
+            {
+              "slug": "service_area",
+              "label": "Only reviews from this service area (slug)",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "cases",
+      "label": "Results",
+      "description": "Before and after cases",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "pairs with story",
+                  "slider",
+                  "grid"
+                ]
+              },
+              "defaultValue": "pairs with story"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "service",
+              "label": "Only this service (slug)",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "show_names",
+              "label": "Show patient first names",
+              "type": "boolean"
+            },
+            {
+              "slug": "service_area",
+              "label": "Only this service area (slug)",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "faq",
+      "label": "FAQ",
+      "description": "Questions from the faqs collection or written here",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "group",
+              "label": "Only this group",
+              "type": "string"
+            },
+            {
+              "slug": "service",
+              "label": "Only this service (slug)",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "grouped",
+              "label": "Show group headings",
+              "type": "boolean"
+            },
+            {
+              "slug": "items",
+              "label": "Extra questions",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "question",
+                    "label": "Question",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "answer",
+                    "label": "Answer",
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "stats",
+      "label": "Numbers",
+      "description": "Value and label tiles",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "tiles",
+              "label": "Tiles",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "value",
+                    "label": "Value",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "label",
+                    "label": "Label",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "source",
+                    "label": "Source",
+                    "type": "string"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "badges",
+      "label": "Badges",
+      "description": "Associations, seals and awards",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "source",
+              "label": "Show",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "badges from the badges records",
+                  "badges written here"
+                ]
+              },
+              "defaultValue": "badges from the badges records"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "badges",
+              "label": "Badges",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Name",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "issuer",
+                    "label": "Issuer",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "image",
+                    "label": "Image",
+                    "type": "image"
+                  },
+                  {
+                    "slug": "url",
+                    "label": "Link",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            {
+              "slug": "group",
+              "label": "Only this group",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "insurance",
+      "label": "Insurance",
+      "description": "Insurers accepted",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "logos",
+                  "names",
+                  "one line"
+                ]
+              },
+              "defaultValue": "logos"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "show_network",
+              "label": "Show in and out of network",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_programs",
+              "label": "Show government programs",
+              "type": "boolean"
+            },
+            {
+              "slug": "button_label",
+              "label": "Button",
+              "type": "string"
+            },
+            {
+              "slug": "button_url",
+              "label": "Button link",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "financing",
+      "label": "Payment and financing",
+      "description": "Financing providers and payment methods",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "show_providers",
+              "label": "Show financing providers",
+              "type": "boolean"
+            },
+            {
+              "slug": "payment_methods",
+              "label": "Payment methods, comma separated",
+              "type": "string"
+            },
+            {
+              "slug": "show_hsa",
+              "label": "Show the HSA / FSA line",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_plans",
+              "label": "Show the plans button",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "plans",
+      "label": "Plans",
+      "description": "Membership plans and packages",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "kind",
+              "label": "Only this kind",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "featured_first",
+              "label": "Featured first",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "contact",
+      "label": "Request form",
+      "description": "A request or contact form",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "short",
+                  "appointment request",
+                  "question only"
+                ]
+              },
+              "defaultValue": "short"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "ask_patient_type",
+              "label": "Ask new or existing",
+              "type": "boolean"
+            },
+            {
+              "slug": "ask_service",
+              "label": "Ask which service",
+              "type": "boolean"
+            },
+            {
+              "slug": "ask_provider",
+              "label": "Ask preferred provider",
+              "type": "boolean"
+            },
+            {
+              "slug": "ask_day",
+              "label": "Ask preferred days",
+              "type": "boolean"
+            },
+            {
+              "slug": "ask_time",
+              "label": "Ask preferred time",
+              "type": "boolean"
+            },
+            {
+              "slug": "ask_contact_method",
+              "label": "Ask how to reply",
+              "type": "boolean"
+            },
+            {
+              "slug": "ask_referrer",
+              "label": "Ask how they heard",
+              "type": "boolean"
+            },
+            {
+              "slug": "submit_label",
+              "label": "Submit label",
+              "type": "string"
+            },
+            {
+              "slug": "promise",
+              "label": "What happens next, one line",
+              "type": "string"
+            },
+            {
+              "slug": "show_business_details",
+              "label": "Show address, phone and hours beside the form",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "location",
+      "label": "Location and hours",
+      "description": "Address, hours, parking, map",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "location",
+              "label": "Location slug (blank for the main one)",
+              "type": "string"
+            },
+            {
+              "slug": "hours_style",
+              "label": "Hours",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "per day",
+                  "grouped"
+                ]
+              },
+              "defaultValue": "per day"
+            },
+            {
+              "slug": "show_map",
+              "label": "Show the map",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_parking",
+              "label": "Show parking and directions",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_form",
+              "label": "Show the request form beside it",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "cta",
+      "label": "Call to action band",
+      "description": "A headline and a button",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "band",
+                  "band with facts",
+                  "band with form"
+                ]
+              },
+              "defaultValue": "band"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "button_label",
+              "label": "Button",
+              "type": "string"
+            },
+            {
+              "slug": "button_url",
+              "label": "Button link",
+              "type": "string"
+            },
+            {
+              "slug": "button2_label",
+              "label": "Second button",
+              "type": "string"
+            },
+            {
+              "slug": "button2_url",
+              "label": "Second button link",
+              "type": "string"
+            },
+            {
+              "slug": "show_phone",
+              "label": "Show phone",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_hours",
+              "label": "Show today's hours",
+              "type": "boolean"
+            },
+            {
+              "slug": "image",
+              "label": "Image",
+              "type": "image"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "gallery",
+      "label": "Gallery",
+      "description": "Photos of the office, the team or the community",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "strip",
+                  "grid",
+                  "with captions"
+                ]
+              },
+              "defaultValue": "strip"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "images",
+              "label": "Images",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "image",
+                    "label": "Image",
+                    "type": "image"
+                  },
+                  {
+                    "slug": "caption",
+                    "label": "Caption",
+                    "type": "string"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "video",
+      "label": "Video",
+      "description": "One embedded video",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "video_url",
+              "label": "Video",
+              "type": "string"
+            },
+            {
+              "slug": "caption",
+              "label": "Caption",
+              "type": "string"
+            },
+            {
+              "slug": "poster",
+              "label": "Poster image",
+              "type": "image"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "technologies",
+      "label": "Technology",
+      "description": "Equipment from the technologies collection",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "brands",
+      "label": "Brands",
+      "description": "Brands carried or used",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "logos",
+                  "names"
+                ]
+              },
+              "defaultValue": "logos"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "group",
+              "label": "Only this group",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "offer",
+      "label": "Offer",
+      "description": "One offer with how to claim it",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "offer",
+              "label": "Offer slug",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "button_label",
+              "label": "Button",
+              "type": "string"
+            },
+            {
+              "slug": "button_url",
+              "label": "Button link",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "conditions",
+      "label": "Conditions",
+      "description": "Conditions and symptoms we treat",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "chips",
+                  "cards"
+                ]
+              },
+              "defaultValue": "chips"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "downloads",
+      "label": "Forms",
+      "description": "Forms and instructions",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "group",
+              "label": "Only this group",
+              "type": "string"
+            },
+            {
+              "slug": "service",
+              "label": "Only this service (slug)",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "policies",
+      "label": "Policies",
+      "description": "Policy text blocks",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "group",
+              "label": "Only this group",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "posts",
+      "label": "Latest posts",
+      "description": "Blog teasers",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "category",
+              "label": "Only this category",
+              "type": "string"
+            },
+            {
+              "slug": "show_all",
+              "label": "Show the All posts button",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "locations",
+      "label": "Locations",
+      "description": "Cards for every location",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "show_hours",
+              "label": "Show hours",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_booking",
+              "label": "Show booking buttons",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "related",
+      "label": "Related services",
+      "description": "Other services in the same category",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "custom",
+      "label": "Custom section",
+      "description": "Your own HTML, CSS and script in an isolated frame",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "title",
+              "label": "Title",
+              "type": "string"
+            },
+            {
+              "slug": "html",
+              "label": "HTML",
+              "type": "text"
+            },
+            {
+              "slug": "css",
+              "label": "CSS",
+              "type": "text"
+            },
+            {
+              "slug": "js",
+              "label": "Script",
+              "type": "text"
+            },
+            {
+              "slug": "height",
+              "label": "Height in pixels",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "areas",
+      "label": "Service areas",
+      "description": "Places served, from the service area records",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "link list",
+                  "cards",
+                  "grouped by region",
+                  "map"
+                ]
+              },
+              "defaultValue": "link list"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "featured_only",
+              "label": "Featured only",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_all",
+              "label": "Show the All areas button",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "products",
+      "label": "Products",
+      "description": "Products from the product records",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "grid",
+                  "list",
+                  "featured"
+                ]
+              },
+              "defaultValue": "grid"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "category",
+              "label": "Only this category",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "show_prices",
+              "label": "Show prices",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_store_button",
+              "label": "Show the store button",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "case_studies",
+      "label": "Case studies",
+      "description": "Case studies from the records",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "cards",
+                  "one featured",
+                  "results strip"
+                ]
+              },
+              "defaultValue": "cards"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "service",
+              "label": "Only this service (slug)",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "show_results",
+              "label": "Show the result numbers",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "clients",
+      "label": "Clients",
+      "description": "Logo wall from the client records",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "logo wall",
+                  "logo strip",
+                  "with industries"
+                ]
+              },
+              "defaultValue": "logo wall"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "featured_only",
+              "label": "Featured only",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "signs",
+      "label": "Signs",
+      "description": "Short titled notes in a grid: signs you need it, what to watch for",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "items",
+              "label": "Items",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Title",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "text",
+                    "label": "Text",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "icon",
+                    "label": "Icon",
+                    "type": "string"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "options",
+      "label": "Options",
+      "description": "Two or three choices side by side",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "items",
+              "label": "Options",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "tag",
+                    "label": "Tag",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "title",
+                    "label": "Name",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "summary",
+                    "label": "Summary",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "facts",
+                    "label": "Facts, one per line as Label: value",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "price",
+                    "label": "Price",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "price_note",
+                    "label": "Price note",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "button_label",
+                    "label": "Button",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "button_url",
+                    "label": "Button link",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "featured",
+                    "label": "Featured",
+                    "type": "boolean"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "collections": [
+    {
+      "slug": "business",
+      "label": "Business",
+      "labelSingular": "Business",
+      "supports": [
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Business name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "tagline",
+          "label": "Tagline",
+          "type": "string"
+        },
+        {
+          "slug": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "slug": "phone_text",
+          "label": "Text number",
+          "type": "string"
+        },
+        {
+          "slug": "phone_label",
+          "label": "What the second number is for",
+          "type": "string"
+        },
+        {
+          "slug": "fax",
+          "label": "Fax",
+          "type": "string"
+        },
+        {
+          "slug": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "slug": "address",
+          "label": "Street address",
+          "type": "string"
+        },
+        {
+          "slug": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "slug": "region",
+          "label": "Province or state",
+          "type": "string"
+        },
+        {
+          "slug": "postal",
+          "label": "Postal code",
+          "type": "string"
+        },
+        {
+          "slug": "country",
+          "label": "Country",
+          "type": "string"
+        },
+        {
+          "slug": "hours",
+          "label": "Hours, one line",
+          "type": "string"
+        },
+        {
+          "slug": "hours_note",
+          "label": "Hours note (holidays, staffing)",
+          "type": "string"
+        },
+        {
+          "slug": "founded_year",
+          "label": "Founded year",
+          "type": "string"
+        },
+        {
+          "slug": "years_line",
+          "label": "Years in business, as the business says it",
+          "type": "string"
+        },
+        {
+          "slug": "rating",
+          "label": "Rating",
+          "type": "string"
+        },
+        {
+          "slug": "review_count",
+          "label": "Review count",
+          "type": "string"
+        },
+        {
+          "slug": "rating_source",
+          "label": "Rating source",
+          "type": "string"
+        },
+        {
+          "slug": "reviews_url",
+          "label": "Where to read or leave a review",
+          "type": "string"
+        },
+        {
+          "slug": "booking_url",
+          "label": "Online booking link",
+          "type": "string"
+        },
+        {
+          "slug": "booking_label",
+          "label": "Booking button label",
+          "type": "string"
+        },
+        {
+          "slug": "portal_url",
+          "label": "Patient or client portal link",
+          "type": "string"
+        },
+        {
+          "slug": "forms_url",
+          "label": "Forms link",
+          "type": "string"
+        },
+        {
+          "slug": "store_url",
+          "label": "Online store link",
+          "type": "string"
+        },
+        {
+          "slug": "store_label",
+          "label": "Store button label",
+          "type": "string"
+        },
+        {
+          "slug": "languages",
+          "label": "Languages spoken",
+          "type": "string"
+        },
+        {
+          "slug": "new_patients_line",
+          "label": "New patients line",
+          "type": "string"
+        },
+        {
+          "slug": "neighbourhoods",
+          "label": "Neighbourhoods or communities served",
+          "type": "string"
+        },
+        {
+          "slug": "is_service_area_business",
+          "label": "Serves customers at their location (no walk-in address)",
+          "type": "boolean"
+        },
+        {
+          "slug": "hide_address",
+          "label": "Keep the street address off the site",
+          "type": "boolean"
+        },
+        {
+          "slug": "service_area_line",
+          "label": "Service area, one line",
+          "type": "string"
+        },
+        {
+          "slug": "same_day_line",
+          "label": "Same-day or emergency line",
+          "type": "string"
+        },
+        {
+          "slug": "insurance_line",
+          "label": "Insurance, one line",
+          "type": "string"
+        },
+        {
+          "slug": "government_programs",
+          "label": "Government programs accepted",
+          "type": "string"
+        },
+        {
+          "slug": "hsa_fsa_line",
+          "label": "HSA / FSA line",
+          "type": "string"
+        },
+        {
+          "slug": "license_line",
+          "label": "Licence or registration line",
+          "type": "string"
+        },
+        {
+          "slug": "insured_line",
+          "label": "Insured and bonded line",
+          "type": "string"
+        },
+        {
+          "slug": "warranty_line",
+          "label": "Guarantee or warranty line",
+          "type": "string"
+        },
+        {
+          "slug": "accessibility_line",
+          "label": "Accessibility note",
+          "type": "string"
+        },
+        {
+          "slug": "parking_line",
+          "label": "Parking",
+          "type": "string"
+        },
+        {
+          "slug": "directions_line",
+          "label": "How to find us",
+          "type": "string"
+        },
+        {
+          "slug": "emergency_line",
+          "label": "Emergency or same-day line",
+          "type": "string"
+        },
+        {
+          "slug": "cta_label",
+          "label": "Main call to action label",
+          "type": "string"
+        },
+        {
+          "slug": "facebook",
+          "label": "Facebook",
+          "type": "string"
+        },
+        {
+          "slug": "instagram",
+          "label": "Instagram",
+          "type": "string"
+        },
+        {
+          "slug": "google",
+          "label": "Google profile",
+          "type": "string"
+        },
+        {
+          "slug": "youtube",
+          "label": "YouTube",
+          "type": "string"
+        },
+        {
+          "slug": "linkedin",
+          "label": "LinkedIn",
+          "type": "string"
+        },
+        {
+          "slug": "tiktok",
+          "label": "TikTok",
+          "type": "string"
+        },
+        {
+          "slug": "yelp",
+          "label": "Yelp",
+          "type": "string"
+        },
+        {
+          "slug": "brand_primary",
+          "label": "Brand colour",
+          "type": "string"
+        },
+        {
+          "slug": "brand_accent",
+          "label": "Accent colour",
+          "type": "string"
+        },
+        {
+          "slug": "font_display",
+          "label": "Display font",
+          "type": "string"
+        },
+        {
+          "slug": "font_body",
+          "label": "Body font",
+          "type": "string"
+        },
+        {
+          "slug": "logo",
+          "label": "Logo",
+          "type": "image"
+        },
+        {
+          "slug": "logo_dark",
+          "label": "Logo on dark",
+          "type": "image"
+        },
+        {
+          "slug": "favicon",
+          "label": "Favicon",
+          "type": "image"
+        },
+        {
+          "slug": "ga4_id",
+          "label": "GA4 measurement id",
+          "type": "string"
+        },
+        {
+          "slug": "gtm_id",
+          "label": "Tag Manager id",
+          "type": "string"
+        },
+        {
+          "slug": "custom_css",
+          "label": "Custom CSS",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "locations",
+      "label": "Locations",
+      "labelSingular": "Location",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Location name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "address",
+          "label": "Street address",
+          "type": "string"
+        },
+        {
+          "slug": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "slug": "region",
+          "label": "Province or state",
+          "type": "string"
+        },
+        {
+          "slug": "postal",
+          "label": "Postal code",
+          "type": "string"
+        },
+        {
+          "slug": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "slug": "phone_text",
+          "label": "Text number",
+          "type": "string"
+        },
+        {
+          "slug": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "slug": "hours_mon",
+          "label": "Monday",
+          "type": "string"
+        },
+        {
+          "slug": "hours_tue",
+          "label": "Tuesday",
+          "type": "string"
+        },
+        {
+          "slug": "hours_wed",
+          "label": "Wednesday",
+          "type": "string"
+        },
+        {
+          "slug": "hours_thu",
+          "label": "Thursday",
+          "type": "string"
+        },
+        {
+          "slug": "hours_fri",
+          "label": "Friday",
+          "type": "string"
+        },
+        {
+          "slug": "hours_sat",
+          "label": "Saturday",
+          "type": "string"
+        },
+        {
+          "slug": "hours_sun",
+          "label": "Sunday",
+          "type": "string"
+        },
+        {
+          "slug": "hours_note",
+          "label": "Hours note",
+          "type": "string"
+        },
+        {
+          "slug": "parking_line",
+          "label": "Parking",
+          "type": "string"
+        },
+        {
+          "slug": "directions_line",
+          "label": "How to find us",
+          "type": "string"
+        },
+        {
+          "slug": "transit_line",
+          "label": "Transit",
+          "type": "string"
+        },
+        {
+          "slug": "map_url",
+          "label": "Map link",
+          "type": "string"
+        },
+        {
+          "slug": "booking_url",
+          "label": "Booking link for this location",
+          "type": "string"
+        },
+        {
+          "slug": "photo",
+          "label": "Photo",
+          "type": "image"
+        },
+        {
+          "slug": "is_primary",
+          "label": "Main location",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "pages",
+      "label": "Pages",
+      "labelSingular": "Page",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "layout",
+          "label": "Layout",
+          "type": "string"
+        },
+        {
+          "slug": "hero_image",
+          "label": "Hero image",
+          "type": "image"
+        },
+        {
+          "slug": "sections",
+          "label": "Sections",
+          "type": "blocks",
+          "validation": {
+            "allowedTypes": [
+              "hero",
+              "intro",
+              "services",
+              "feature",
+              "steps",
+              "team",
+              "reviews",
+              "cases",
+              "faq",
+              "stats",
+              "badges",
+              "insurance",
+              "financing",
+              "plans",
+              "contact",
+              "location",
+              "cta",
+              "gallery",
+              "video",
+              "technologies",
+              "brands",
+              "offer",
+              "conditions",
+              "downloads",
+              "policies",
+              "posts",
+              "locations",
+              "related",
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
+            ],
+            "maxItems": 40
+          }
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        },
+        {
+          "slug": "custom_css",
+          "label": "Custom CSS",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "service_categories",
+      "label": "Service categories",
+      "labelSingular": "Service category",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "icon",
+          "label": "Icon",
+          "type": "string"
+        },
+        {
+          "slug": "featured_image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "sections",
+          "label": "Sections",
+          "type": "blocks",
+          "validation": {
+            "allowedTypes": [
+              "hero",
+              "intro",
+              "services",
+              "feature",
+              "steps",
+              "team",
+              "reviews",
+              "cases",
+              "faq",
+              "stats",
+              "badges",
+              "insurance",
+              "financing",
+              "plans",
+              "contact",
+              "location",
+              "cta",
+              "gallery",
+              "video",
+              "technologies",
+              "brands",
+              "offer",
+              "conditions",
+              "downloads",
+              "policies",
+              "posts",
+              "locations",
+              "related",
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
+            ],
+            "maxItems": 40
+          }
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "services",
+      "label": "Services",
+      "labelSingular": "Service",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "category",
+          "label": "Category",
+          "type": "reference"
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "icon",
+          "label": "Icon",
+          "type": "string"
+        },
+        {
+          "slug": "featured_image",
+          "label": "Featured image",
+          "type": "image"
+        },
+        {
+          "slug": "headline",
+          "label": "Page headline",
+          "type": "string"
+        },
+        {
+          "slug": "tagline",
+          "label": "Tagline",
+          "type": "string"
+        },
+        {
+          "slug": "cta_label",
+          "label": "Call to action label",
+          "type": "string"
+        },
+        {
+          "slug": "cta_kind",
+          "label": "Call to action kind (book, call, consult, form)",
+          "type": "string"
+        },
+        {
+          "slug": "price_from",
+          "label": "Price from",
+          "type": "string"
+        },
+        {
+          "slug": "duration",
+          "label": "Typical visit length",
+          "type": "string"
+        },
+        {
+          "slug": "free_consult",
+          "label": "Free consultation offered",
+          "type": "boolean"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "active_now",
+          "label": "In season or active right now",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        },
+        {
+          "slug": "sections",
+          "label": "Sections",
+          "type": "blocks",
+          "validation": {
+            "allowedTypes": [
+              "hero",
+              "intro",
+              "services",
+              "feature",
+              "steps",
+              "team",
+              "reviews",
+              "cases",
+              "faq",
+              "stats",
+              "badges",
+              "insurance",
+              "financing",
+              "plans",
+              "contact",
+              "location",
+              "cta",
+              "gallery",
+              "video",
+              "technologies",
+              "brands",
+              "offer",
+              "conditions",
+              "downloads",
+              "policies",
+              "posts",
+              "locations",
+              "related",
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
+            ],
+            "maxItems": 40
+          }
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        },
+        {
+          "slug": "custom_css",
+          "label": "Custom CSS",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "service_areas",
+      "label": "Service areas",
+      "labelSingular": "Service area",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Place",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "featured_image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "headline",
+          "label": "Page headline",
+          "type": "string"
+        },
+        {
+          "slug": "intro",
+          "label": "Intro",
+          "type": "text"
+        },
+        {
+          "slug": "neighbourhoods",
+          "label": "Neighbourhoods, one per line",
+          "type": "text"
+        },
+        {
+          "slug": "region",
+          "label": "Province or state",
+          "type": "string"
+        },
+        {
+          "slug": "lat",
+          "label": "Latitude",
+          "type": "number"
+        },
+        {
+          "slug": "lng",
+          "label": "Longitude",
+          "type": "number"
+        },
+        {
+          "slug": "distance_line",
+          "label": "Distance or drive time from the business",
+          "type": "string"
+        },
+        {
+          "slug": "is_home_base",
+          "label": "Home base",
+          "type": "boolean"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        },
+        {
+          "slug": "sections",
+          "label": "Sections",
+          "type": "blocks",
+          "validation": {
+            "allowedTypes": [
+              "hero",
+              "intro",
+              "services",
+              "feature",
+              "steps",
+              "team",
+              "reviews",
+              "cases",
+              "faq",
+              "stats",
+              "badges",
+              "insurance",
+              "financing",
+              "plans",
+              "contact",
+              "location",
+              "cta",
+              "gallery",
+              "video",
+              "technologies",
+              "brands",
+              "offer",
+              "conditions",
+              "downloads",
+              "policies",
+              "posts",
+              "locations",
+              "related",
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
+            ],
+            "maxItems": 40
+          }
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "conditions",
+      "label": "Conditions and symptoms",
+      "labelSingular": "Condition",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "service",
+          "label": "Service that treats it",
+          "type": "reference"
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "people",
+      "label": "People",
+      "labelSingular": "Person",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "display_name",
+          "label": "How the name shows (first name only, with credentials)",
+          "type": "string"
+        },
+        {
+          "slug": "role",
+          "label": "Role",
+          "type": "string"
+        },
+        {
+          "slug": "group",
+          "label": "Group or department",
+          "type": "string"
+        },
+        {
+          "slug": "credentials",
+          "label": "Credentials",
+          "type": "string"
+        },
+        {
+          "slug": "license",
+          "label": "Licence or registration number",
+          "type": "string"
+        },
+        {
+          "slug": "photo",
+          "label": "Photo",
+          "type": "image"
+        },
+        {
+          "slug": "bio",
+          "label": "Short bio",
+          "type": "text"
+        },
+        {
+          "slug": "content",
+          "label": "Full bio",
+          "type": "portableText"
+        },
+        {
+          "slug": "education",
+          "label": "Education",
+          "type": "text"
+        },
+        {
+          "slug": "memberships",
+          "label": "Memberships and certifications",
+          "type": "text"
+        },
+        {
+          "slug": "awards",
+          "label": "Awards",
+          "type": "text"
+        },
+        {
+          "slug": "languages",
+          "label": "Languages",
+          "type": "string"
+        },
+        {
+          "slug": "pronouns",
+          "label": "Pronouns",
+          "type": "string"
+        },
+        {
+          "slug": "video_url",
+          "label": "Video",
+          "type": "string"
+        },
+        {
+          "slug": "start_year",
+          "label": "With the practice since",
+          "type": "string"
+        },
+        {
+          "slug": "status_note",
+          "label": "Status note",
+          "type": "string"
+        },
+        {
+          "slug": "personal",
+          "label": "Outside the office",
+          "type": "text"
+        },
+        {
+          "slug": "social_url",
+          "label": "Social link",
+          "type": "string"
+        },
+        {
+          "slug": "is_owner",
+          "label": "Owner or founder",
+          "type": "boolean"
+        },
+        {
+          "slug": "has_profile",
+          "label": "Has their own page",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "reviews",
+      "label": "Reviews",
+      "labelSingular": "Review",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Reviewer",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "display_name",
+          "label": "How the name shows",
+          "type": "string"
+        },
+        {
+          "slug": "quote",
+          "label": "Quote",
+          "type": "text",
+          "required": true,
+          "searchable": true
+        },
+        {
+          "slug": "rating",
+          "label": "Rating",
+          "type": "integer"
+        },
+        {
+          "slug": "date",
+          "label": "Date",
+          "type": "datetime"
+        },
+        {
+          "slug": "source",
+          "label": "Source",
+          "type": "string"
+        },
+        {
+          "slug": "source_url",
+          "label": "Link to the review",
+          "type": "string"
+        },
+        {
+          "slug": "photo",
+          "label": "Reviewer photo",
+          "type": "image"
+        },
+        {
+          "slug": "service",
+          "label": "Service",
+          "type": "reference"
+        },
+        {
+          "slug": "service_area",
+          "label": "Service area",
+          "type": "reference"
+        },
+        {
+          "slug": "person",
+          "label": "Provider named",
+          "type": "reference"
+        },
+        {
+          "slug": "video_url",
+          "label": "Video testimonial",
+          "type": "string"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "cases",
+      "label": "Results",
+      "labelSingular": "Case",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Case title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "service",
+          "label": "Service",
+          "type": "reference"
+        },
+        {
+          "slug": "service_area",
+          "label": "Service area",
+          "type": "reference"
+        },
+        {
+          "slug": "category",
+          "label": "Category",
+          "type": "string"
+        },
+        {
+          "slug": "patient_name",
+          "label": "Patient first name",
+          "type": "string"
+        },
+        {
+          "slug": "problem",
+          "label": "What they came in with",
+          "type": "text"
+        },
+        {
+          "slug": "treatment",
+          "label": "What we did",
+          "type": "text"
+        },
+        {
+          "slug": "story",
+          "label": "Story",
+          "type": "text"
+        },
+        {
+          "slug": "before",
+          "label": "Before",
+          "type": "image"
+        },
+        {
+          "slug": "after",
+          "label": "After",
+          "type": "image"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "faqs",
+      "label": "FAQs",
+      "labelSingular": "FAQ",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Question",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "answer",
+          "label": "Answer",
+          "type": "text",
+          "required": true
+        },
+        {
+          "slug": "group",
+          "label": "Group",
+          "type": "string"
+        },
+        {
+          "slug": "service",
+          "label": "Service",
+          "type": "reference"
+        },
+        {
+          "slug": "person",
+          "label": "Answered by",
+          "type": "reference"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "plans",
+      "label": "Plans and packages",
+      "labelSingular": "Plan",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "kind",
+          "label": "Kind (membership, package, banked credit)",
+          "type": "string"
+        },
+        {
+          "slug": "tag",
+          "label": "Tag",
+          "type": "string"
+        },
+        {
+          "slug": "price",
+          "label": "Price",
+          "type": "string"
+        },
+        {
+          "slug": "cadence",
+          "label": "Per",
+          "type": "string"
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "includes",
+          "label": "What is included, one per line",
+          "type": "text"
+        },
+        {
+          "slug": "eligibility",
+          "label": "Who it is for",
+          "type": "string"
+        },
+        {
+          "slug": "cta_label",
+          "label": "Button label",
+          "type": "string"
+        },
+        {
+          "slug": "cta_url",
+          "label": "Button link",
+          "type": "string"
+        },
+        {
+          "slug": "note",
+          "label": "Note (for example: this is not insurance)",
+          "type": "string"
+        },
+        {
+          "slug": "vendor",
+          "label": "Plan vendor",
+          "type": "string"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "insurers",
+      "label": "Insurers",
+      "labelSingular": "Insurer",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "logo",
+          "label": "Logo",
+          "type": "image"
+        },
+        {
+          "slug": "network",
+          "label": "In network or out of network",
+          "type": "string"
+        },
+        {
+          "slug": "note",
+          "label": "Note",
+          "type": "string"
+        },
+        {
+          "slug": "services",
+          "label": "Which services it applies to",
+          "type": "string"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "financing_providers",
+      "label": "Financing providers",
+      "labelSingular": "Financing provider",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "logo",
+          "label": "Logo",
+          "type": "image"
+        },
+        {
+          "slug": "apply_url",
+          "label": "Apply link",
+          "type": "string"
+        },
+        {
+          "slug": "rate_line",
+          "label": "Rate or terms line",
+          "type": "string"
+        },
+        {
+          "slug": "note",
+          "label": "Note",
+          "type": "text"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "downloads",
+      "label": "Forms and instructions",
+      "labelSingular": "Download",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "group",
+          "label": "Group (intake, consent, pre-op, post-op, policy)",
+          "type": "string"
+        },
+        {
+          "slug": "file_url",
+          "label": "File or page link",
+          "type": "string"
+        },
+        {
+          "slug": "service",
+          "label": "Service",
+          "type": "reference"
+        },
+        {
+          "slug": "note",
+          "label": "Note",
+          "type": "text"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "technologies",
+      "label": "Technology",
+      "labelSingular": "Technology",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "brand",
+          "label": "Brand",
+          "type": "string"
+        },
+        {
+          "slug": "summary",
+          "label": "What it does for the patient",
+          "type": "text"
+        },
+        {
+          "slug": "image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText"
+        },
+        {
+          "slug": "has_page",
+          "label": "Has its own page",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "offers",
+      "label": "Offers",
+      "labelSingular": "Offer",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "summary",
+          "label": "Details",
+          "type": "text"
+        },
+        {
+          "slug": "value",
+          "label": "Discount or price",
+          "type": "string"
+        },
+        {
+          "slug": "how_to_claim",
+          "label": "How to claim (book online, call, form)",
+          "type": "string"
+        },
+        {
+          "slug": "cta_label",
+          "label": "Button label",
+          "type": "string"
+        },
+        {
+          "slug": "cta_url",
+          "label": "Button link",
+          "type": "string"
+        },
+        {
+          "slug": "service",
+          "label": "Service",
+          "type": "reference"
+        },
+        {
+          "slug": "ends",
+          "label": "Ends",
+          "type": "datetime"
+        },
+        {
+          "slug": "active",
+          "label": "Active",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "brands",
+      "label": "Brands carried",
+      "labelSingular": "Brand",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "logo",
+          "label": "Logo",
+          "type": "image"
+        },
+        {
+          "slug": "url",
+          "label": "Link",
+          "type": "string"
+        },
+        {
+          "slug": "group",
+          "label": "Group",
+          "type": "string"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "policies",
+      "label": "Policies",
+      "labelSingular": "Policy",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Policy",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "body",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "slug": "group",
+          "label": "Group (cancellation, late, referral, accessibility, what to wear)",
+          "type": "string"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "products",
+      "label": "Products",
+      "labelSingular": "Product",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "category",
+          "label": "Category",
+          "type": "string"
+        },
+        {
+          "slug": "brand",
+          "label": "Brand",
+          "type": "reference"
+        },
+        {
+          "slug": "sku",
+          "label": "SKU",
+          "type": "string"
+        },
+        {
+          "slug": "price",
+          "label": "Price",
+          "type": "string"
+        },
+        {
+          "slug": "compare_price",
+          "label": "Was price",
+          "type": "string"
+        },
+        {
+          "slug": "unit",
+          "label": "Per (each, hour, kit)",
+          "type": "string"
+        },
+        {
+          "slug": "image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "image_2",
+          "label": "Second image",
+          "type": "image"
+        },
+        {
+          "slug": "image_3",
+          "label": "Third image",
+          "type": "image"
+        },
+        {
+          "slug": "variants",
+          "label": "Variants, one per line",
+          "type": "text"
+        },
+        {
+          "slug": "in_stock",
+          "label": "In stock",
+          "type": "boolean"
+        },
+        {
+          "slug": "availability_line",
+          "label": "Availability (in store only, ships, pickup)",
+          "type": "string"
+        },
+        {
+          "slug": "buy_url",
+          "label": "Buy or enquire link",
+          "type": "string"
+        },
+        {
+          "slug": "buy_label",
+          "label": "Button label",
+          "type": "string"
+        },
+        {
+          "slug": "service",
+          "label": "Related service",
+          "type": "reference"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        },
+        {
+          "slug": "content",
+          "label": "Details",
+          "type": "portableText"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "case_studies",
+      "label": "Case studies",
+      "labelSingular": "Case study",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "client",
+          "label": "Client",
+          "type": "string"
+        },
+        {
+          "slug": "industry",
+          "label": "Industry",
+          "type": "string"
+        },
+        {
+          "slug": "logo",
+          "label": "Client logo",
+          "type": "image"
+        },
+        {
+          "slug": "featured_image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "challenge",
+          "label": "The situation",
+          "type": "text"
+        },
+        {
+          "slug": "approach",
+          "label": "What was done",
+          "type": "text"
+        },
+        {
+          "slug": "outcome",
+          "label": "The result",
+          "type": "text"
+        },
+        {
+          "slug": "result_1_value",
+          "label": "Result 1 value",
+          "type": "string"
+        },
+        {
+          "slug": "result_1_label",
+          "label": "Result 1 label",
+          "type": "string"
+        },
+        {
+          "slug": "result_2_value",
+          "label": "Result 2 value",
+          "type": "string"
+        },
+        {
+          "slug": "result_2_label",
+          "label": "Result 2 label",
+          "type": "string"
+        },
+        {
+          "slug": "result_3_value",
+          "label": "Result 3 value",
+          "type": "string"
+        },
+        {
+          "slug": "result_3_label",
+          "label": "Result 3 label",
+          "type": "string"
+        },
+        {
+          "slug": "quote",
+          "label": "Client quote",
+          "type": "text"
+        },
+        {
+          "slug": "quote_by",
+          "label": "Quote by",
+          "type": "string"
+        },
+        {
+          "slug": "service",
+          "label": "Service",
+          "type": "reference"
+        },
+        {
+          "slug": "url",
+          "label": "Live link",
+          "type": "string"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        },
+        {
+          "slug": "sections",
+          "label": "Sections",
+          "type": "blocks",
+          "validation": {
+            "allowedTypes": [
+              "hero",
+              "intro",
+              "services",
+              "feature",
+              "steps",
+              "team",
+              "reviews",
+              "cases",
+              "faq",
+              "stats",
+              "badges",
+              "insurance",
+              "financing",
+              "plans",
+              "contact",
+              "location",
+              "cta",
+              "gallery",
+              "video",
+              "technologies",
+              "brands",
+              "offer",
+              "conditions",
+              "downloads",
+              "policies",
+              "posts",
+              "locations",
+              "related",
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
+            ],
+            "maxItems": 40
+          }
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "clients",
+      "label": "Clients",
+      "labelSingular": "Client",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "logo",
+          "label": "Logo",
+          "type": "image"
+        },
+        {
+          "slug": "url",
+          "label": "Link",
+          "type": "string"
+        },
+        {
+          "slug": "industry",
+          "label": "Industry",
+          "type": "string"
+        },
+        {
+          "slug": "case_study",
+          "label": "Case study",
+          "type": "reference"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "badges",
+      "label": "Badges and credentials",
+      "labelSingular": "Badge",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "issuer",
+          "label": "Issuer",
+          "type": "string"
+        },
+        {
+          "slug": "image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "url",
+          "label": "Link",
+          "type": "string"
+        },
+        {
+          "slug": "group",
+          "label": "Group (association, certification, award, seal)",
+          "type": "string"
+        },
+        {
+          "slug": "year",
+          "label": "Year",
+          "type": "string"
+        },
+        {
+          "slug": "person",
+          "label": "Person it belongs to",
+          "type": "reference"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "posts",
+      "label": "Posts",
+      "labelSingular": "Post",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "featured_image",
+          "label": "Featured image",
+          "type": "image"
+        },
+        {
+          "slug": "category",
+          "label": "Category",
+          "type": "string"
+        },
+        {
+          "slug": "author",
+          "label": "Author",
+          "type": "reference"
+        },
+        {
+          "slug": "read_minutes",
+          "label": "Read time",
+          "type": "integer"
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText"
+        }
+      ]
+    }
+  ],
+  "menus": [
+    {
+      "name": "primary",
+      "label": "Main navigation",
+      "items": [
+        {
+          "type": "custom",
+          "label": "Services",
+          "url": "/services"
+        },
+        {
+          "type": "custom",
+          "label": "About",
+          "url": "/about"
+        },
+        {
+          "type": "custom",
+          "label": "Reviews",
+          "url": "/reviews"
+        },
+        {
+          "type": "custom",
+          "label": "Contact",
+          "url": "/contact"
+        }
+      ]
+    },
+    {
+      "name": "footer",
+      "label": "Footer",
+      "items": [
+        {
+          "type": "custom",
+          "label": "Blog",
+          "url": "/blog"
+        },
+        {
+          "type": "custom",
+          "label": "Privacy",
+          "url": "/privacy"
+        }
+      ]
+    }
+  ]
+}
