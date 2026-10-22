@@ -2,8 +2,8 @@
   "$schema": "https://emdashcms.com/seed.schema.json",
   "version": "1",
   "meta": {
-    "name": "Tidysites profile: local service",
-    "description": "Structure for businesses the customer visits: clinics, dental, chiropractic, physiotherapy, optometry, med spa, salons. Collections, fields, section types. No content.",
+    "name": "Tidysites template",
+    "description": "The one data shape every Tidysites theme renders: collections, fields, section types and menus for local businesses, service-area businesses, shops and agencies. Every collection and every section is optional; nothing here is content or design.",
     "author": "Tidysites"
   },
   "blockTypes": [
@@ -26,7 +26,8 @@
                   "headline and photo",
                   "headline and booking card",
                   "headline and form",
-                  "photo with headline over"
+                  "photo with headline over",
+                  "headline and picker"
                 ]
               },
               "defaultValue": "headline and photo"
@@ -99,6 +100,21 @@
             {
               "slug": "show_form",
               "label": "Show the request form",
+              "type": "boolean"
+            },
+            {
+              "slug": "picker_title",
+              "label": "Picker title",
+              "type": "string"
+            },
+            {
+              "slug": "picker_note",
+              "label": "Picker note",
+              "type": "string"
+            },
+            {
+              "slug": "show_trust",
+              "label": "Show the trust strip",
               "type": "boolean"
             }
           ]
@@ -299,6 +315,28 @@
               "slug": "button_url",
               "label": "Button link",
               "type": "string"
+            },
+            {
+              "slug": "bullets",
+              "label": "Bullets, one per line",
+              "type": "text"
+            },
+            {
+              "slug": "steps",
+              "label": "Numbered steps, one per line",
+              "type": "text"
+            },
+            {
+              "slug": "image_side",
+              "label": "Photo side",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "left",
+                  "right"
+                ]
+              },
+              "defaultValue": "left"
             }
           ]
         }
@@ -513,6 +551,11 @@
               "slug": "show_review_links",
               "label": "Show the leave-a-review links",
               "type": "boolean"
+            },
+            {
+              "slug": "service_area",
+              "label": "Only reviews from this service area (slug)",
+              "type": "string"
             }
           ]
         }
@@ -570,6 +613,11 @@
               "slug": "show_names",
               "label": "Show patient first names",
               "type": "boolean"
+            },
+            {
+              "slug": "service_area",
+              "label": "Only this service area (slug)",
+              "type": "string"
             }
           ]
         }
@@ -697,6 +745,18 @@
           "version": 1,
           "fields": [
             {
+              "slug": "source",
+              "label": "Show",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "badges from the badges records",
+                  "badges written here"
+                ]
+              },
+              "defaultValue": "badges from the badges records"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -734,6 +794,11 @@
                   }
                 ]
               }
+            },
+            {
+              "slug": "group",
+              "label": "Only this group",
+              "type": "string"
             }
           ]
         }
@@ -976,6 +1041,11 @@
               "slug": "promise",
               "label": "What happens next, one line",
               "type": "string"
+            },
+            {
+              "slug": "show_business_details",
+              "label": "Show address, phone and hours beside the form",
+              "type": "boolean"
             }
           ]
         }
@@ -1582,6 +1652,356 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "areas",
+      "label": "Service areas",
+      "description": "Places served, from the service area records",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "link list",
+                  "cards",
+                  "grouped by region",
+                  "map"
+                ]
+              },
+              "defaultValue": "link list"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "featured_only",
+              "label": "Featured only",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_all",
+              "label": "Show the All areas button",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "products",
+      "label": "Products",
+      "description": "Products from the product records",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "grid",
+                  "list",
+                  "featured"
+                ]
+              },
+              "defaultValue": "grid"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "category",
+              "label": "Only this category",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "show_prices",
+              "label": "Show prices",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_store_button",
+              "label": "Show the store button",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "case_studies",
+      "label": "Case studies",
+      "description": "Case studies from the records",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "cards",
+                  "one featured",
+                  "results strip"
+                ]
+              },
+              "defaultValue": "cards"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "service",
+              "label": "Only this service (slug)",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "show_results",
+              "label": "Show the result numbers",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "clients",
+      "label": "Clients",
+      "description": "Logo wall from the client records",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "logo wall",
+                  "logo strip",
+                  "with industries"
+                ]
+              },
+              "defaultValue": "logo wall"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "featured_only",
+              "label": "Featured only",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "signs",
+      "label": "Signs",
+      "description": "Short titled notes in a grid: signs you need it, what to watch for",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "items",
+              "label": "Items",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Title",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "text",
+                    "label": "Text",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "icon",
+                    "label": "Icon",
+                    "type": "string"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "options",
+      "label": "Options",
+      "description": "Two or three choices side by side",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "items",
+              "label": "Options",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "tag",
+                    "label": "Tag",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "title",
+                    "label": "Name",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "summary",
+                    "label": "Summary",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "facts",
+                    "label": "Facts, one per line as Label: value",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "price",
+                    "label": "Price",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "price_note",
+                    "label": "Price note",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "button_label",
+                    "label": "Button",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "button_url",
+                    "label": "Button link",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "featured",
+                    "label": "Featured",
+                    "type": "boolean"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "collections": [
@@ -1715,6 +2135,16 @@
           "type": "string"
         },
         {
+          "slug": "store_url",
+          "label": "Online store link",
+          "type": "string"
+        },
+        {
+          "slug": "store_label",
+          "label": "Store button label",
+          "type": "string"
+        },
+        {
           "slug": "languages",
           "label": "Languages spoken",
           "type": "string"
@@ -1727,6 +2157,26 @@
         {
           "slug": "neighbourhoods",
           "label": "Neighbourhoods or communities served",
+          "type": "string"
+        },
+        {
+          "slug": "is_service_area_business",
+          "label": "Serves customers at their location (no walk-in address)",
+          "type": "boolean"
+        },
+        {
+          "slug": "hide_address",
+          "label": "Keep the street address off the site",
+          "type": "boolean"
+        },
+        {
+          "slug": "service_area_line",
+          "label": "Service area, one line",
+          "type": "string"
+        },
+        {
+          "slug": "same_day_line",
+          "label": "Same-day or emergency line",
           "type": "string"
         },
         {
@@ -1747,6 +2197,16 @@
         {
           "slug": "license_line",
           "label": "Licence or registration line",
+          "type": "string"
+        },
+        {
+          "slug": "insured_line",
+          "label": "Insured and bonded line",
+          "type": "string"
+        },
+        {
+          "slug": "warranty_line",
+          "label": "Guarantee or warranty line",
           "type": "string"
         },
         {
@@ -2052,7 +2512,13 @@
               "posts",
               "locations",
               "related",
-              "custom"
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
             ],
             "maxItems": 40
           }
@@ -2143,7 +2609,13 @@
               "posts",
               "locations",
               "related",
-              "custom"
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
             ],
             "maxItems": 40
           }
@@ -2231,6 +2703,11 @@
           "type": "boolean"
         },
         {
+          "slug": "active_now",
+          "label": "In season or active right now",
+          "type": "boolean"
+        },
+        {
           "slug": "sort",
           "label": "Order",
           "type": "integer"
@@ -2269,7 +2746,13 @@
               "posts",
               "locations",
               "related",
-              "custom"
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
             ],
             "maxItems": 40
           }
@@ -2292,6 +2775,143 @@
         {
           "slug": "custom_css",
           "label": "Custom CSS",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "service_areas",
+      "label": "Service areas",
+      "labelSingular": "Service area",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Place",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "featured_image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "headline",
+          "label": "Page headline",
+          "type": "string"
+        },
+        {
+          "slug": "intro",
+          "label": "Intro",
+          "type": "text"
+        },
+        {
+          "slug": "neighbourhoods",
+          "label": "Neighbourhoods, one per line",
+          "type": "text"
+        },
+        {
+          "slug": "region",
+          "label": "Province or state",
+          "type": "string"
+        },
+        {
+          "slug": "lat",
+          "label": "Latitude",
+          "type": "number"
+        },
+        {
+          "slug": "lng",
+          "label": "Longitude",
+          "type": "number"
+        },
+        {
+          "slug": "distance_line",
+          "label": "Distance or drive time from the business",
+          "type": "string"
+        },
+        {
+          "slug": "is_home_base",
+          "label": "Home base",
+          "type": "boolean"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        },
+        {
+          "slug": "sections",
+          "label": "Sections",
+          "type": "blocks",
+          "validation": {
+            "allowedTypes": [
+              "hero",
+              "intro",
+              "services",
+              "feature",
+              "steps",
+              "team",
+              "reviews",
+              "cases",
+              "faq",
+              "stats",
+              "badges",
+              "insurance",
+              "financing",
+              "plans",
+              "contact",
+              "location",
+              "cta",
+              "gallery",
+              "video",
+              "technologies",
+              "brands",
+              "offer",
+              "conditions",
+              "downloads",
+              "policies",
+              "posts",
+              "locations",
+              "related",
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
+            ],
+            "maxItems": 40
+          }
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
           "type": "text"
         }
       ]
@@ -2513,6 +3133,11 @@
           "type": "reference"
         },
         {
+          "slug": "service_area",
+          "label": "Service area",
+          "type": "reference"
+        },
+        {
           "slug": "person",
           "label": "Provider named",
           "type": "reference"
@@ -2552,6 +3177,11 @@
         {
           "slug": "service",
           "label": "Service",
+          "type": "reference"
+        },
+        {
+          "slug": "service_area",
+          "label": "Service area",
           "type": "reference"
         },
         {
@@ -3032,6 +3662,404 @@
       ]
     },
     {
+      "slug": "products",
+      "label": "Products",
+      "labelSingular": "Product",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "category",
+          "label": "Category",
+          "type": "string"
+        },
+        {
+          "slug": "brand",
+          "label": "Brand",
+          "type": "reference"
+        },
+        {
+          "slug": "sku",
+          "label": "SKU",
+          "type": "string"
+        },
+        {
+          "slug": "price",
+          "label": "Price",
+          "type": "string"
+        },
+        {
+          "slug": "compare_price",
+          "label": "Was price",
+          "type": "string"
+        },
+        {
+          "slug": "unit",
+          "label": "Per (each, hour, kit)",
+          "type": "string"
+        },
+        {
+          "slug": "image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "image_2",
+          "label": "Second image",
+          "type": "image"
+        },
+        {
+          "slug": "image_3",
+          "label": "Third image",
+          "type": "image"
+        },
+        {
+          "slug": "variants",
+          "label": "Variants, one per line",
+          "type": "text"
+        },
+        {
+          "slug": "in_stock",
+          "label": "In stock",
+          "type": "boolean"
+        },
+        {
+          "slug": "availability_line",
+          "label": "Availability (in store only, ships, pickup)",
+          "type": "string"
+        },
+        {
+          "slug": "buy_url",
+          "label": "Buy or enquire link",
+          "type": "string"
+        },
+        {
+          "slug": "buy_label",
+          "label": "Button label",
+          "type": "string"
+        },
+        {
+          "slug": "service",
+          "label": "Related service",
+          "type": "reference"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        },
+        {
+          "slug": "content",
+          "label": "Details",
+          "type": "portableText"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "case_studies",
+      "label": "Case studies",
+      "labelSingular": "Case study",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "client",
+          "label": "Client",
+          "type": "string"
+        },
+        {
+          "slug": "industry",
+          "label": "Industry",
+          "type": "string"
+        },
+        {
+          "slug": "logo",
+          "label": "Client logo",
+          "type": "image"
+        },
+        {
+          "slug": "featured_image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "challenge",
+          "label": "The situation",
+          "type": "text"
+        },
+        {
+          "slug": "approach",
+          "label": "What was done",
+          "type": "text"
+        },
+        {
+          "slug": "outcome",
+          "label": "The result",
+          "type": "text"
+        },
+        {
+          "slug": "result_1_value",
+          "label": "Result 1 value",
+          "type": "string"
+        },
+        {
+          "slug": "result_1_label",
+          "label": "Result 1 label",
+          "type": "string"
+        },
+        {
+          "slug": "result_2_value",
+          "label": "Result 2 value",
+          "type": "string"
+        },
+        {
+          "slug": "result_2_label",
+          "label": "Result 2 label",
+          "type": "string"
+        },
+        {
+          "slug": "result_3_value",
+          "label": "Result 3 value",
+          "type": "string"
+        },
+        {
+          "slug": "result_3_label",
+          "label": "Result 3 label",
+          "type": "string"
+        },
+        {
+          "slug": "quote",
+          "label": "Client quote",
+          "type": "text"
+        },
+        {
+          "slug": "quote_by",
+          "label": "Quote by",
+          "type": "string"
+        },
+        {
+          "slug": "service",
+          "label": "Service",
+          "type": "reference"
+        },
+        {
+          "slug": "url",
+          "label": "Live link",
+          "type": "string"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        },
+        {
+          "slug": "sections",
+          "label": "Sections",
+          "type": "blocks",
+          "validation": {
+            "allowedTypes": [
+              "hero",
+              "intro",
+              "services",
+              "feature",
+              "steps",
+              "team",
+              "reviews",
+              "cases",
+              "faq",
+              "stats",
+              "badges",
+              "insurance",
+              "financing",
+              "plans",
+              "contact",
+              "location",
+              "cta",
+              "gallery",
+              "video",
+              "technologies",
+              "brands",
+              "offer",
+              "conditions",
+              "downloads",
+              "policies",
+              "posts",
+              "locations",
+              "related",
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
+            ],
+            "maxItems": 40
+          }
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "clients",
+      "label": "Clients",
+      "labelSingular": "Client",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "logo",
+          "label": "Logo",
+          "type": "image"
+        },
+        {
+          "slug": "url",
+          "label": "Link",
+          "type": "string"
+        },
+        {
+          "slug": "industry",
+          "label": "Industry",
+          "type": "string"
+        },
+        {
+          "slug": "case_study",
+          "label": "Case study",
+          "type": "reference"
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "badges",
+      "label": "Badges and credentials",
+      "labelSingular": "Badge",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "issuer",
+          "label": "Issuer",
+          "type": "string"
+        },
+        {
+          "slug": "image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "url",
+          "label": "Link",
+          "type": "string"
+        },
+        {
+          "slug": "group",
+          "label": "Group (association, certification, award, seal)",
+          "type": "string"
+        },
+        {
+          "slug": "year",
+          "label": "Year",
+          "type": "string"
+        },
+        {
+          "slug": "person",
+          "label": "Person it belongs to",
+          "type": "reference"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        }
+      ]
+    },
+    {
       "slug": "posts",
       "label": "Posts",
       "labelSingular": "Post",
@@ -3096,13 +4124,8 @@
         },
         {
           "type": "custom",
-          "label": "Team",
-          "url": "/team"
-        },
-        {
-          "type": "custom",
-          "label": "New patients",
-          "url": "/new-patients"
+          "label": "Reviews",
+          "url": "/reviews"
         },
         {
           "type": "custom",
@@ -3115,21 +4138,6 @@
       "name": "footer",
       "label": "Footer",
       "items": [
-        {
-          "type": "custom",
-          "label": "Insurance and payment",
-          "url": "/insurance"
-        },
-        {
-          "type": "custom",
-          "label": "Forms",
-          "url": "/forms"
-        },
-        {
-          "type": "custom",
-          "label": "Reviews",
-          "url": "/reviews"
-        },
         {
           "type": "custom",
           "label": "Blog",
