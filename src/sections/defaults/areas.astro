@@ -1,0 +1,20 @@
+---
+/** Places served from the service area records. */
+import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import Photo from "../Photo.astro";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const variant = str(n.variant, "link list");
+let items = await entries("service_areas", { limit: int(n.limit, 40) });
+if (bool(n.featured_only)) items = items.filter((a) => bool(a.data.featured) || bool(a.data.is_home_base));
+const href = (a: { slug?: string | null; id: string }) => `/service-areas/${a.slug ?? a.id}`;
+const regions = variant === "grouped by region" ? [...new Set(items.map((a) => str(a.data.region)))].map((r) => ({ title: r, items: items.filter((a) => str(a.data.region) === r) })) : [];
+---
+{items.length > 0 && (
+<section class="ts" id="areas"><div class="ts-wrap">
+	<Head n={n} action={bool(n.show_all, true) ? { href: "/service-areas", label: "All areas" } : null} />
+	{variant === "cards" ? <div class="ts-grid" style="--cols:3">{items.map((a) => { const p = pic(a.data.featured_image); return <a class="ts-card" href={href(a)} data-tidy-record="service_areas" data-tidy-record-id={a.id} data-tidy-record-label="Service area">{(p.image || p.url) && <Photo image={p.image} url={p.url} alt={str(a.data.title)} ratio="wide" />}<h3>{str(a.data.title)}</h3>{str(a.data.summary) && <p>{str(a.data.summary)}</p>}</a>; })}</div>
+	: variant === "grouped by region" ? regions.map((r) => <div>{r.title && <p class="ts-group">{r.title}</p>}<div class="ts-chips">{r.items.map((a) => <a class="ts-chip" href={href(a)}>{str(a.data.title)}</a>)}</div></div>)
+	: <div class="ts-chips">{items.map((a) => <a class="ts-chip" href={href(a)} data-tidy-record="service_areas" data-tidy-record-id={a.id} data-tidy-record-label="Service area">{str(a.data.title)}{bool(a.data.is_home_base) ? " · home base" : ""}</a>)}</div>}
+</div></section>
+)}

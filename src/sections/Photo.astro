@@ -1,0 +1,18 @@
+---
+/** A photo slot: the CMS image, a plain URL, or a labelled empty slot. Never a broken image. */
+import { Image } from "emdash/ui";
+interface Props {
+	image?: { id?: string; src?: string; alt?: string; width?: number; height?: number } | null;
+	url?: string | null;
+	alt: string;
+	ratio?: "wide" | "tall" | "square" | "video";
+	width?: number;
+	height?: number;
+	class?: string;
+}
+const { image, url, alt, ratio = "wide", width = 1200, height = 750, class: cls = "" } = Astro.props;
+const has = Boolean(image?.id || image?.src || url);
+---
+<div class={`ts-photo ts-photo-${ratio} ${has ? "ts-photo-has" : ""} ${cls}`.trim()}>
+	{image?.id || image?.src ? <Image image={image as never} width={width} height={height} alt={image?.alt ?? alt} /> : url ? <img src={url} alt={alt} loading="lazy" /> : <span>{alt}</span>}
+</div>

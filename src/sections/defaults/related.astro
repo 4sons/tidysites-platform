@@ -1,0 +1,17 @@
+---
+/** Other services in the same category as the service on the page. */
+import { entries, int, nodeOf, str } from "../lib";
+const props = Astro.props as Record<string, unknown>;
+const n = nodeOf(props);
+const ctx = (props.context as Record<string, unknown> | null) ?? null;
+const cat = ctx ? String(ctx.category ?? "") : "";
+const selfId = ctx ? String(ctx.id ?? "") : "";
+let items = await entries("services", { limit: 40 });
+items = items.filter((s) => s.id !== selfId && (!cat || String(s.data.category ?? "") === cat)).slice(0, int(n.limit, 4));
+---
+{items.length > 0 && (
+<section class="ts ts-tight ts-band"><div class="ts-wrap">
+	<h3 style="margin-bottom:14px">{str(n.headline) || "Related services"}</h3>
+	<div class="ts-grid" style="--cols:4">{items.map((s) => <a class="ts-card" href={`/services/${s.slug ?? s.id}`}><h4>{str(s.data.title)}</h4></a>)}</div>
+</div></section>
+)}

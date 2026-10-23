@@ -33,6 +33,11 @@
               "defaultValue": "headline and photo"
             },
             {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -513,6 +518,11 @@
               "defaultValue": "quotes"
             },
             {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -634,6 +644,11 @@
           "version": 1,
           "fields": [
             {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -697,6 +712,11 @@
           "version": 1,
           "fields": [
             {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -744,6 +764,11 @@
         {
           "version": 1,
           "fields": [
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
             {
               "slug": "source",
               "label": "Show",
@@ -1062,6 +1087,11 @@
           "version": 1,
           "fields": [
             {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -1129,6 +1159,11 @@
                 ]
               },
               "defaultValue": "band"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
             },
             {
               "slug": "headline",
@@ -1375,6 +1410,11 @@
           "version": 1,
           "fields": [
             {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
               "slug": "offer",
               "label": "Offer slug",
               "type": "string"
@@ -1499,6 +1539,11 @@
           "version": 1,
           "fields": [
             {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -1527,6 +1572,11 @@
         {
           "version": 1,
           "fields": [
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
             {
               "slug": "eyebrow",
               "label": "Small label above the headline",
@@ -1566,6 +1616,11 @@
         {
           "version": 1,
           "fields": [
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
             {
               "slug": "eyebrow",
               "label": "Small label above the headline",
@@ -1854,6 +1909,11 @@
               "defaultValue": "logo wall"
             },
             {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -1887,6 +1947,11 @@
         {
           "version": 1,
           "fields": [
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
             {
               "slug": "eyebrow",
               "label": "Small label above the headline",
@@ -1935,6 +2000,11 @@
         {
           "version": 1,
           "fields": [
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
             {
               "slug": "eyebrow",
               "label": "Small label above the headline",

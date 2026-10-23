@@ -1,0 +1,16 @@
+---
+import { bool, entries, int, lines, nodeOf, str } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+let items = await entries("plans", { limit: int(n.limit, 6) });
+if (str(n.kind)) items = items.filter((p) => str(p.data.kind) === str(n.kind));
+if (bool(n.featured_first, true)) items = [...items].sort((a, b) => Number(bool(b.data.featured)) - Number(bool(a.data.featured)));
+---
+{items.length > 0 && (
+<section class="ts" id="plans"><div class="ts-wrap">
+	<Head n={n} />
+	<div class="ts-grid" style={`--cols:${Math.min(3, items.length)}`}>
+		{items.map((p) => <div class="ts-card" data-tidy-record="plans" data-tidy-record-id={p.id} data-tidy-record-label="Plan" style={bool(p.data.featured) ? "border-color:var(--ts-primary)" : ""}>{str(p.data.tag) && <p class="ts-eyebrow" style="margin:0">{str(p.data.tag)}</p>}<h3>{str(p.data.title)}</h3>{str(p.data.price) && <p class="ts-price">{str(p.data.price)}{str(p.data.cadence) && <small>/ {str(p.data.cadence)}</small>}</p>}{str(p.data.summary) && <p>{str(p.data.summary)}</p>}{lines(p.data.includes).length > 0 && <ul class="ts-list">{lines(p.data.includes).map((l) => <li>{l}</li>)}</ul>}{str(p.data.eligibility) && <p class="ts-muted" style="font-size:13px">{str(p.data.eligibility)}</p>}{str(p.data.cta_label) && <div class="ts-actions" style="margin-top:12px"><a class="ts-btn ts-btn-accent" href={str(p.data.cta_url, "/contact")}>{str(p.data.cta_label)}</a></div>}{str(p.data.note) && <p class="ts-muted" style="font-size:12px">{str(p.data.note)}</p>}</div>)}
+	</div>
+</div></section>
+)}

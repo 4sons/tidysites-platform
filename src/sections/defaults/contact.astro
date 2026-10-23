@@ -1,0 +1,46 @@
+---
+/** A request or contact form, each extra question a switch, beside the business details. */
+import { bool, entries, getBusiness, nodeOf, str, addressLine } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const b = await getBusiness(Astro.request);
+const variant = str(n.variant, "appointment request");
+const services = bool(n.ask_service, variant !== "question only") ? await entries("services", { limit: 40 }) : [];
+const providers = bool(n.ask_provider) ? await entries("people", { limit: 20 }) : [];
+let turnstile: string | undefined;
+try { const m = (await import("cloudflare:workers")) as unknown as { env?: Record<string, unknown> }; turnstile = typeof m.env?.TURNSTILE_SITEKEY === "string" ? m.env.TURNSTILE_SITEKEY : undefined; } catch { turnstile = undefined; }
+const details = bool(n.show_business_details, true);
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+---
+<section class="ts" id="contact"><div class="ts-wrap">
+	<Head n={n} />
+	<div class={details ? "ts-split" : ""} style="align-items:start">
+		<form class="ts-form" action="/api/lead" method="post">
+			<label>Name<input name="name" autocomplete="name" required /></label>
+			<label>Phone<input name="phone" type="tel" autocomplete="tel" /></label>
+			<label class={variant === "short" ? "ts-full" : ""}>Email<input name="email" type="email" autocomplete="email" /></label>
+			{services.length > 0 && <label>What is it about?<select name="service"><option value="">Choose one</option>{services.map((s) => <option value={s.id}>{str(s.data.title)}</option>)}<option value="other">Something else</option></select></label>}
+			{providers.length > 0 && <label>Who would you like to see?<select name="provider"><option value="">No preference</option>{providers.map((p) => <option value={p.id}>{str(p.data.display_name) || str(p.data.title)}</option>)}</select></label>}
+			{bool(n.ask_patient_type) && <div class="ts-full"><span style="font-size:13px;font-weight:600;color:var(--ts-ink-2);display:block;margin-bottom:8px">Are you</span><div class="ts-choices"><label><input type="radio" name="patient_type" value="new" /> New</label><label><input type="radio" name="patient_type" value="existing" /> Existing</label></div></div>}
+			{bool(n.ask_day) && <div class="ts-full"><span style="font-size:13px;font-weight:600;color:var(--ts-ink-2);display:block;margin-bottom:8px">Days that work</span><div class="ts-choices">{DAYS.map((d) => <label><input type="checkbox" name="days" value={d} /> {d}</label>)}</div></div>}
+			{bool(n.ask_time) && <label>Preferred time<select name="time"><option>Any</option><option>Morning</option><option>Afternoon</option><option>Evening</option></select></label>}
+			{bool(n.ask_contact_method) && <label>How should we reply?<select name="contact_method"><option>Phone</option><option>Text</option><option>Email</option></select></label>}
+			{bool(n.ask_referrer) && <label class="ts-full">How did you hear about us?<input name="referrer" /></label>}
+			{variant !== "short" && <label class="ts-full">{variant === "question only" ? "Your question" : "Anything we should know?"}<textarea name="message"></textarea></label>}
+			<input class="ts-hp" type="text" name="website_hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+			{turnstile && <div class="cf-turnstile ts-full" data-sitekey={turnstile} data-size="flexible"></div>}
+			<div class="ts-full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="ts-btn ts-btn-accent" type="submit">{str(n.submit_label) || (variant === "question only" ? "Send question" : "Send request")}</button>{str(n.promise) && <span class="ts-muted" style="font-size:13px">{str(n.promise)}</span>}</div>
+		</form>
+		{details && (
+			<dl class="ts-kv ts-card">
+				{b.phone && <><dt>Call or text</dt><dd><a href={b.phoneHref}>{b.phone}</a></dd></>}
+				{b.email && <><dt>Email</dt><dd><a href={`mailto:${b.email}`}>{b.email}</a></dd></>}
+				{b.hours && <><dt>Hours</dt><dd>{b.hours}</dd></>}
+				{addressLine(b) && <><dt>{b.isServiceArea ? "Based in" : "Address"}</dt><dd>{addressLine(b)}</dd></>}
+				{b.sameDayLine && <><dt>Same day</dt><dd>{b.sameDayLine}</dd></>}
+				{b.parkingLine && <><dt>Parking</dt><dd>{b.parkingLine}</dd></>}
+			</dl>
+		)}
+	</div>
+</div></section>
+{turnstile && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}

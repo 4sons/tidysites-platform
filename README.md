@@ -12,6 +12,19 @@ npm install @tideworthy/tidysites-platform
 
 Peer dependencies: `astro` 7, `emdash` and `@emdash-cms/auth` 1.x, `kysely`. Published on npm as `@tideworthy/tidysites-platform`; GitHub tags `vX.Y.Z` match each version.
 
+## The template and the sections
+
+Since 0.11.0 the package carries the Tidysites template: the collections, fields, section types and menus every theme renders (`template/README.md` has the rules). A theme installs the package, writes the template's structure into its seed with `npx tidysites-seed`, renders pages with `@tideworthy/tidysites-platform/sections`, and overrides the section types it has an opinion about in `src/sections/<type>.astro`. Everything else renders with the package default, so a section an owner adds later still shows up.
+
+```astro
+---
+import Sections from "@tideworthy/tidysites-platform/sections";
+import { sectionTypes } from "@tideworthy/tidysites-platform/template";
+---
+<Sections value={page.data.sections} />
+<TidyEditor blocks={sectionTypes} ... />
+```
+
 ## Wire it up
 
 ```js

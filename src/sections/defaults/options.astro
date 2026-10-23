@@ -1,0 +1,12 @@
+---
+import { bool, facts, list, nodeOf, str } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const items = list<Record<string, unknown>>(n.items).filter((i) => str(i.title));
+---
+{items.length > 0 && (
+<section class="ts"><div class="ts-wrap">
+	<Head n={n} />
+	<div class="ts-grid" style={`--cols:${Math.min(3, items.length)}`}>{items.map((o) => <div class="ts-card" style={bool(o.featured) ? "border-color:var(--ts-primary)" : ""}>{str(o.tag) && <p class="ts-eyebrow" style="margin:0">{str(o.tag)}</p>}<h3>{str(o.title)}</h3>{str(o.price) && <p class="ts-price" style="font-size:30px">{str(o.price)}{str(o.price_note) && <small>{str(o.price_note)}</small>}</p>}{str(o.summary) && <p>{str(o.summary)}</p>}{facts(o.facts).length > 0 && <dl class="ts-kv" style="font-size:14px">{facts(o.facts).map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}</dl>}{str(o.button_label) && <div class="ts-actions" style="margin-top:8px"><a class="ts-btn" href={str(o.button_url, "/contact")}>{str(o.button_label)}</a></div>}</div>)}</div>
+</div></section>
+)}

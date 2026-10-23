@@ -1,0 +1,22 @@
+---
+/** Insurers accepted, as logos, names or one line, with network status and government programs. */
+import { bool, entries, getBusiness, nodeOf, pic, str } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const b = await getBusiness(Astro.request);
+const variant = str(n.variant, "logos");
+const items = variant === "one line" ? [] : await entries("insurers", { limit: 60 });
+const inNet = items.filter((i) => !/out/i.test(str(i.data.network))), outNet = items.filter((i) => /out/i.test(str(i.data.network)));
+const groups = bool(n.show_network) && outNet.length ? [{ title: "In network", list: inNet }, { title: "Out of network", list: outNet }] : [{ title: "", list: items }];
+---
+{(items.length > 0 || b.insuranceLine) && (
+<section class="ts" id="insurance"><div class="ts-wrap">
+	<Head n={n} action={str(n.button_label) ? { href: str(n.button_url, "/contact"), label: str(n.button_label) } : null} />
+	{variant === "one line" || !items.length ? <p class="ts-lede" style="margin:0">{b.insuranceLine}</p> : groups.map((g) => (
+		<div>{g.title && <p class="ts-group">{g.title}</p>}
+			{variant === "logos" ? <div class="ts-logos">{g.list.map((i) => { const p = pic(i.data.logo); return <div class="ts-logo" data-tidy-record="insurers" data-tidy-record-id={i.id} data-tidy-record-label="Insurer">{(p.image?.src || p.url) && <img src={p.image?.src ?? p.url ?? ""} alt="" />}<span>{str(i.data.title)}</span></div>; })}</div> : <div class="ts-chips">{g.list.map((i) => <span class="ts-chip" data-tidy-record="insurers" data-tidy-record-id={i.id} data-tidy-record-label="Insurer">{str(i.data.title)}</span>)}</div>}
+		</div>
+	))}
+	{bool(n.show_programs, true) && b.governmentPrograms && <p class="ts-muted" style="margin-top:14px;font-size:14px">{b.governmentPrograms}</p>}
+</div></section>
+)}

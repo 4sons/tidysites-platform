@@ -1,0 +1,13 @@
+---
+import { entries, nodeOf, str } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+let items = await entries("policies", { limit: 20 });
+if (str(n.group)) items = items.filter((p) => str(p.data.group) === str(n.group));
+---
+{items.length > 0 && (
+<section class="ts ts-band" id="policies"><div class="ts-wrap">
+	<Head n={n} />
+	<div class="ts-grid" style="--cols:3">{items.map((p) => <div class="ts-card" data-tidy-record="policies" data-tidy-record-id={p.id} data-tidy-record-label="Policy"><h3>{str(p.data.title)}</h3><p style="white-space:pre-line">{str(p.data.body)}</p></div>)}</div>
+</div></section>
+)}

@@ -1,0 +1,49 @@
+---
+/** Services or categories from the records, in one of five layouts. */
+import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import Photo from "../Photo.astro";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const variant = str(n.variant, "cards with summary");
+const source = str(n.source, "services");
+const limit = int(n.limit, 12);
+let items: Array<{ id: string; slug?: string | null; data: Record<string, unknown>; href: string }> = [];
+let groups: Array<{ title: string; items: typeof items }> = [];
+const svc = (e: { id: string; slug?: string | null; data: Record<string, unknown> }) => ({ ...e, href: `/services/${e.slug ?? e.id}` });
+if (source === "categories") items = (await entries("service_categories", { limit })).map((e) => ({ ...e, href: `/services/category/${e.slug ?? e.id}` }));
+else if (source === "featured services") items = (await entries("services", { limit, where: { featured: "1" } })).map(svc);
+else if (source === "services in one category" && str(n.category)) {
+	const cats = await entries("service_categories");
+	const cat = cats.find((c) => (c.slug ?? c.id) === str(n.category));
+	items = (cat ? await entries("services", { limit, where: { category: String(cat.id) } }) : []).map(svc);
+} else items = (await entries("services", { limit })).map(svc);
+if (variant === "grouped by category") {
+	const cats = await entries("service_categories");
+	const all = (await entries("services", { limit: 100 })).map(svc);
+	groups = cats.map((c) => ({ title: str(c.data.title), items: all.filter((s) => String(s.data.category ?? "") === String(c.id)) })).filter((g) => g.items.length);
+	if (!groups.length) groups = [{ title: "", items: all }];
+}
+const showAll = bool(n.show_all, true);
+---
+{(items.length > 0 || groups.length > 0) && (
+<section class="ts ts-band" id="services"><div class="ts-wrap">
+	<Head n={n} action={showAll ? { href: "/services", label: "All services" } : null} />
+	{variant === "checklist" ? (
+		<ul class="ts-list" style="columns:2;gap:28px">{items.map((s) => <li><a href={s.href}>{str(s.data.title)}</a></li>)}</ul>
+	) : variant === "grouped by category" ? (
+		groups.map((g) => <div>{g.title && <p class="ts-group">{g.title}</p>}<div class="ts-chips">{g.items.map((s) => <a class="ts-chip" href={s.href} data-tidy-record="services" data-tidy-record-id={s.id} data-tidy-record-label="Service details">{str(s.data.title)}</a>)}</div></div>)
+	) : (
+		<div class="ts-grid" style={`--cols:${variant === "image tiles" ? 3 : 3}`}>
+			{items.map((s) => (
+				<a class="ts-card" href={s.href} data-tidy-record={source === "categories" ? "service_categories" : "services"} data-tidy-record-id={s.id} data-tidy-record-label={source === "categories" ? "Category details" : "Service details"}>
+					{variant === "image tiles" && (() => { const p = pic(s.data.featured_image); return <Photo image={p.image} url={p.url} alt={str(s.data.title)} ratio="wide" />; })()}
+					{variant === "icon cards" && str(s.data.icon) && <span class="ts-eyebrow" style="margin:0">{str(s.data.icon)}</span>}
+					<h3>{str(s.data.title)}</h3>
+					{variant !== "image tiles" && str(s.data.summary) && <p>{str(s.data.summary)}</p>}
+					{str(s.data.price_from) && <p class="ts-muted" style="font-size:13px">From {str(s.data.price_from)}</p>}
+				</a>
+			))}
+		</div>
+	)}
+</div></section>
+)}

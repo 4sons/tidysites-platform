@@ -1,6 +1,6 @@
 {
 	"name": "@tideworthy/tidysites-platform",
-	"version": "0.10.15",
+	"version": "0.11.0",
 	"description": "The Tidysites platform integration for EmDash sites: bootstrap, sessions, maintenance, health, and publish hooks under /_tidy/*.",
 	"license": "MIT",
 	"type": "module",
@@ -11,6 +11,8 @@
 	"homepage": "https://github.com/4sons/tidysites-platform#readme",
 	"files": [
 		"src",
+		"template",
+		"bin",
 		"README.md",
 		"LICENSE",
 		"CHANGELOG.md"
@@ -32,7 +34,14 @@
 		"./routes/schema": "./src/routes/schema.ts",
 		"./routes/maintenance": "./src/routes/maintenance.ts",
 		"./routes/revisions": "./src/routes/revisions.ts",
-		"./routes/change": "./src/routes/change.ts"
+		"./routes/change": "./src/routes/change.ts",
+		"./template": "./src/template/index.ts",
+		"./template/structure.json": "./template/structure.json",
+		"./sections": "./src/sections/Sections.astro",
+		"./sections/lib": "./src/sections/lib.ts",
+		"./sections/photo": "./src/sections/Photo.astro",
+		"./sections/defaults.css": "./src/sections/defaults.css",
+		"./sections/defaults/*": "./src/sections/defaults/*"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.editor.json",
@@ -61,5 +70,8 @@
 	"publishConfig": {
 		"access": "public",
 		"provenance": true
+	},
+	"bin": {
+		"tidysites-seed": "./bin/tidysites-seed.mjs"
 	}
 }

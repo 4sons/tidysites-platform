@@ -1,0 +1,13 @@
+---
+import { entries, int, nodeOf, str } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const items = await entries("conditions", { limit: int(n.limit, 24) });
+const cards = str(n.variant) === "cards";
+---
+{items.length > 0 && (
+<section class="ts ts-band" id="conditions"><div class="ts-wrap">
+	<Head n={n} />
+	{cards ? <div class="ts-grid" style="--cols:3">{items.map((c) => <a class="ts-card" href={`/conditions/${c.slug ?? c.id}`} data-tidy-record="conditions" data-tidy-record-id={c.id} data-tidy-record-label="Condition"><h3>{str(c.data.title)}</h3>{str(c.data.summary) && <p>{str(c.data.summary)}</p>}</a>)}</div> : <div class="ts-chips">{items.map((c) => <a class="ts-chip" href={`/conditions/${c.slug ?? c.id}`} data-tidy-record="conditions" data-tidy-record-id={c.id} data-tidy-record-label="Condition">{str(c.data.title)}</a>)}</div>}
+</div></section>
+)}

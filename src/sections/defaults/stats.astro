@@ -1,0 +1,13 @@
+---
+/** Value and label tiles. A tile with no value is left out, never shown as a zero. */
+import { list, nodeOf, str } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const tiles = list<Record<string, unknown>>(n.tiles).filter((t) => str(t.value) && str(t.value) !== "0");
+---
+{tiles.length > 0 && (
+<section class="ts ts-tight"><div class="ts-wrap">
+	<Head n={n} />
+	<div class="ts-grid" style={`--cols:${Math.min(4, tiles.length)}`}>{tiles.map((t) => <div class="ts-card ts-stat"><b>{str(t.value)}</b><span>{str(t.label)}{str(t.source) ? ` · ${str(t.source)}` : ""}</span></div>)}</div>
+</div></section>
+)}

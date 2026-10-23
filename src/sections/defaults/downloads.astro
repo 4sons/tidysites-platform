@@ -1,0 +1,14 @@
+---
+import { entries, nodeOf, str } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+let items = await entries("downloads", { limit: 40 });
+if (str(n.group)) items = items.filter((d) => str(d.data.group) === str(n.group));
+const groups = [...new Set(items.map((d) => str(d.data.group)))].map((g) => ({ title: g, items: items.filter((d) => str(d.data.group) === g) }));
+---
+{items.length > 0 && (
+<section class="ts" id="forms"><div class="ts-wrap">
+	<Head n={n} />
+	<div class="ts-grid" style={`--cols:${Math.min(2, groups.length)}`}>{groups.map((g) => <div>{g.title && <p class="ts-group" style="margin-top:0">{g.title}</p>}<div style="display:grid;gap:8px">{g.items.map((d) => <a class="ts-card" href={str(d.data.file_url, "#")} style="flex-direction:row;justify-content:space-between;align-items:center;padding:12px 14px" data-tidy-record="downloads" data-tidy-record-id={d.id} data-tidy-record-label="Form"><span style="font-weight:600">{str(d.data.title)}</span>{str(d.data.note) && <span class="ts-muted" style="font-size:12.5px">{str(d.data.note)}</span>}</a>)}</div></div>)}</div>
+</div></section>
+)}

@@ -1,0 +1,32 @@
+---
+/** A real sequence: a first visit, a treatment, aftercare. */
+import { bool, entries, lines, list, nodeOf, pic, str } from "../lib";
+import Photo from "../Photo.astro";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const items = list<Record<string, unknown>>(n.steps).filter((s) => str(s.title));
+const prep = lines(n.prep);
+const forms = bool(n.show_forms) ? await entries("downloads", { limit: 6 }) : [];
+const aside = bool(n.show_prep) && (prep.length > 0 || forms.length > 0);
+---
+{items.length > 0 && (
+<section class="ts"><div class="ts-wrap">
+	<Head n={n} />
+	<div class={aside ? "ts-split" : ""}>
+		<div class="ts-steps">
+			{items.map((s, i) => (
+				<div class="ts-step">
+					<span class="ts-n">{str(s.duration) || String(i + 1).padStart(2, "0")}</span>
+					<div><h3>{str(s.title)}</h3>{str(s.body) && <p>{str(s.body)}</p>}{(() => { const p = pic(s.image); return p.image || p.url ? <Photo image={p.image} url={p.url} alt={str(s.title)} ratio="wide" class="ts-step-photo" /> : null; })()}</div>
+				</div>
+			))}
+		</div>
+		{aside && (
+			<aside class="ts-card">
+				{prep.length > 0 && <><h3>Bring with you</h3><ul class="ts-list" style="margin-top:10px">{prep.map((p) => <li>{p}</li>)}</ul></>}
+				{forms.length > 0 && <div class="ts-chips" style="margin-top:14px">{forms.map((f) => <a class="ts-chip" href={str(f.data.file_url, "#")}>{str(f.data.title)}</a>)}</div>}
+			</aside>
+		)}
+	</div>
+</div></section>
+)}

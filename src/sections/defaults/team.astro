@@ -1,0 +1,42 @@
+---
+/** People from the records: cards, grouped by department, a photo grid, or one person featured. */
+import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import Photo from "../Photo.astro";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const variant = str(n.variant, "cards");
+const limit = int(n.limit, 24);
+const group = str(n.group);
+let people = await entries("people", { limit: 100 });
+if (group) people = people.filter((p) => str(p.data.group) === group);
+if (bool(n.featured_only)) people = people.filter((p) => bool(p.data.is_owner) || str(p.data.credentials));
+people = people.slice(0, limit);
+const showCred = bool(n.show_credentials, true), showBio = bool(n.show_bio, true);
+const name = (p: { data: Record<string, unknown> }) => str(p.data.display_name) || str(p.data.title);
+const groups = variant === "grouped by department" ? [...new Set(people.map((p) => str(p.data.group)))].map((g) => ({ title: g, items: people.filter((p) => str(p.data.group) === g) })) : [];
+const href = (p: { slug?: string | null; id: string; data: Record<string, unknown> }) => (bool(p.data.has_profile) ? `/team/${p.slug ?? p.id}` : null);
+---
+{people.length > 0 && (
+<section class="ts ts-band" id="team"><div class="ts-wrap">
+	<Head n={n} action={bool(n.show_all, true) ? { href: "/team", label: "Meet the team" } : null} />
+	{variant === "one person featured" ? (() => { const p = people[0]!; const ph = pic(p.data.photo); return (
+		<div class="ts-split"><Photo image={ph.image} url={ph.url} alt={name(p)} ratio="tall" /><div data-tidy-record="people" data-tidy-record-id={p.id} data-tidy-record-label="Team member"><p class="ts-role">{str(p.data.role)}{showCred && str(p.data.credentials) ? ` · ${str(p.data.credentials)}` : ""}</p><h3 style="font-size:28px;margin-top:6px">{name(p)}</h3>{str(p.data.bio) && <p class="ts-prose" style="margin-top:12px">{str(p.data.bio)}</p>}{href(p) && <div class="ts-actions"><a class="ts-btn ts-btn-outline" href={href(p)!}>Full bio</a></div>}</div></div>
+	); })() : variant === "photo grid" ? (
+		<div class="ts-gallery">{people.map((p) => { const ph = pic(p.data.photo); return <div data-tidy-record="people" data-tidy-record-id={p.id} data-tidy-record-label="Team member"><Photo image={ph.image} url={ph.url} alt={name(p)} ratio="square" /><p style="margin-top:6px;font-weight:600;font-size:14px">{name(p)}</p></div>; })}</div>
+	) : (groups.length ? groups : [{ title: "", items: people }]).map((g) => (
+		<div>{g.title && <p class="ts-group">{g.title}</p>}
+		<div class="ts-grid" style="--cols:3">
+			{g.items.map((p) => { const ph = pic(p.data.photo); const h = href(p); return (
+				<div class="ts-card" data-tidy-record="people" data-tidy-record-id={p.id} data-tidy-record-label="Team member">
+					{(ph.image || ph.url) && <Photo image={ph.image} url={ph.url} alt={name(p)} ratio="tall" />}
+					<div><span class="ts-person-name">{name(p)}</span>{showCred && str(p.data.credentials) && <span class="ts-muted" style="font-size:13px"> · {str(p.data.credentials)}</span>}</div>
+					{str(p.data.role) && <p class="ts-role">{str(p.data.role)}</p>}
+					{showBio && str(p.data.bio) && <p>{str(p.data.bio)}</p>}
+					{str(p.data.languages) && <p class="ts-muted" style="font-size:13px">{str(p.data.languages)}</p>}
+					{h && <a href={h} style="font-weight:700;font-size:14px;color:var(--ts-primary)">Full bio</a>}
+				</div>
+			); })}
+		</div></div>
+	))}
+</div></section>
+)}
