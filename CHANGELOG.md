@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.0
+
+The package carries the template.
+
+- `@tideworthy/tidysites-platform/template`: the one data shape every theme renders (24 collections, 35 section types, menus), typed, with `mergeStructure()`; `template/structure.json` is the source and `template/README.md` the rules and the evidence.
+- `npx tidysites-seed [seed.json] [--check]`: writes the template's structure into a theme's seed and keeps its menus, settings and content; refuses a seed whose section values use fields their block type does not declare.
+- `@tideworthy/tidysites-platform/sections`: the section dispatcher. A site's `src/custom/blocks/<type>.astro`, then the theme's `src/sections/<type>.astro` (or its `components` prop), then the package default. Every block framed for the on-site editor.
+- `@tideworthy/tidysites-platform/sections/defaults/<type>.astro`: a plain default rendering of every section type, driven by the brand tokens; `sections/lib` has the helpers and the normalized business record; `sections/photo` the photo slot.
+
 ## 0.10.14
 
 - Editor bar: Edit, Done and Sign in to edit show a spinner and what they are doing until the page comes back.
