@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.2
+
+- Portrait and square photo slots crop from the top of the image, so a headshot in a shorter frame keeps the face and loses the shoulders, never the other way round.
+
 ## 0.11.1
 
 - `mediaUrl()` in `sections/lib`: a plain URL for an image field from the stored value (its storage key), for avatars and logos; the defaults and the business logo use it. Before this, a stored image with no `src` rendered as an empty circle.
