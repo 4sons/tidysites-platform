@@ -1,6 +1,6 @@
 ---
 /** Services or categories from the records, in one of five layouts. */
-import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import { bool, entries, int, nodeOf, pic, refersTo, str } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
@@ -15,12 +15,12 @@ else if (source === "featured services") items = (await entries("services", { li
 else if (source === "services in one category" && str(n.category)) {
 	const cats = await entries("service_categories");
 	const cat = cats.find((c) => (c.slug ?? c.id) === str(n.category));
-	items = (cat ? await entries("services", { limit, where: { category: String(cat.id) } }) : []).map(svc);
+	items = (cat ? (await entries("services", { limit: 100 })).filter((s) => refersTo(s.data.category, cat)).slice(0, limit) : []).map(svc);
 } else items = (await entries("services", { limit })).map(svc);
 if (variant === "grouped by category") {
 	const cats = await entries("service_categories");
 	const all = (await entries("services", { limit: 100 })).map(svc);
-	groups = cats.map((c) => ({ title: str(c.data.title), items: all.filter((s) => String(s.data.category ?? "") === String(c.id)) })).filter((g) => g.items.length);
+	groups = cats.map((c) => ({ title: str(c.data.title), items: all.filter((s) => refersTo(s.data.category, c)) })).filter((g) => g.items.length);
 	if (!groups.length) groups = [{ title: "", items: all }];
 }
 const showAll = bool(n.show_all, true);
