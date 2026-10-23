@@ -1,0 +1,12 @@
+---
+import { list, nodeOf, str } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const items = list<Record<string, unknown>>(n.items).filter((i) => str(i.title));
+---
+{items.length > 0 && (
+<section class="ts ts-band"><div class="ts-wrap">
+	<Head n={n} />
+	<div class="ts-grid" style="--cols:3">{items.map((i) => <div class="ts-card">{str(i.icon) && <span class="ts-eyebrow" style="margin:0">{str(i.icon)}</span>}<h3>{str(i.title)}</h3>{str(i.text) && <p>{str(i.text)}</p>}</div>)}</div>
+</div></section>
+)}

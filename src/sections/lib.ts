@@ -1,0 +1,157 @@
+/** Helpers every section component shares: reading a stored block, images, lists, and the business record. */
+import { getEmDashCollection, getSiteSettings } from "emdash";
+
+export type Node = Record<string, unknown>;
+
+/** A section component receives the stored block as `value`; a Portable Text renderer passes `node`; accept both or the props themselves. */
+export function nodeOf(props: Record<string, unknown>): Node {
+	return (props.value as Node | undefined) ?? (props.node as Node | undefined) ?? props;
+}
+export const str = (v: unknown, fallback = ""): string => (typeof v === "string" ? v : fallback);
+export const bool = (v: unknown, fallback = false): boolean => (typeof v === "boolean" ? v : typeof v === "number" ? v !== 0 : fallback);
+export const int = (v: unknown, fallback: number): number => (typeof v === "number" && Number.isFinite(v) ? Math.floor(v) : fallback);
+export const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && v.trim() && Number.isFinite(Number(v)) ? Number(v) : null);
+export const lines = (v: unknown): string[] => str(v).split("\n").map((s) => s.trim()).filter(Boolean);
+export const list = <T = Record<string, unknown>>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+export const slugify = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+/** An image field's value: a media value, or a plain URL left from an older site. */
+export type Pic = { image: { id?: string; src?: string; alt?: string; width?: number; height?: number } | null; url: string | null };
+export function pic(v: unknown): Pic {
+	if (typeof v === "string") return { image: null, url: v || null };
+	if (v && typeof v === "object") {
+		const o = v as { id?: string; src?: string; url?: string; alt?: string; width?: number; height?: number; meta?: { storageKey?: string } };
+		if (o.id || o.src) return { image: o, url: null };
+		const url = o.url ?? (o.meta?.storageKey ? `/_emdash/api/media/file/${o.meta.storageKey}` : null);
+		return { image: null, url };
+	}
+	return { image: null, url: null };
+}
+export const hasPic = (v: unknown): boolean => { const p = pic(v); return Boolean(p.image || p.url); };
+
+/** "Label: value" lines into pairs. */
+export function facts(v: unknown): Array<[string, string]> {
+	return lines(v).map((l) => { const i = l.indexOf(":"); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] : ["", l]; });
+}
+/** "Title|Text" lines into steps. */
+export function steps(v: unknown): Array<{ title: string; text: string }> {
+	return lines(v).map((l) => { const i = l.indexOf("|"); return i > 0 ? { title: l.slice(0, i).trim(), text: l.slice(i + 1).trim() } : { title: l, text: "" }; });
+}
+export function telHref(phone: string): string {
+	const digits = phone.replace(/[^\d+]/g, "");
+	if (!digits) return "";
+	return `tel:${digits.startsWith("+") ? digits : digits.length === 10 ? `+1${digits}` : digits}`;
+}
+
+/** An entry from a collection read, as the sections see it. */
+export interface Entry { id: string; slug?: string | null; data: Record<string, unknown> }
+type Query = { status?: "published" | "draft"; limit?: number; orderBy?: Record<string, "asc" | "desc">; where?: Record<string, string> };
+
+/** Published entries of a collection, sorted by `sort` when the collection has it; empty when the collection is missing on an older site. */
+export async function entries(collection: string, q: Query = {}): Promise<Entry[]> {
+	try {
+		const r = await getEmDashCollection(collection, { status: "published", orderBy: { sort: "asc" }, ...q } as never);
+		return ((r as { entries?: Entry[] }).entries ?? []) as Entry[];
+	} catch {
+		return [];
+	}
+}
+/** Entries that pass a where filter plus an in-memory predicate (EmDash filters take strings only). */
+export async function entriesWhere(collection: string, where: Record<string, string>, q: Query = {}): Promise<Entry[]> {
+	return entries(collection, Object.keys(where).length ? { ...q, where } : q);
+}
+export const field = (e: Entry, k: string): string => str(e.data[k]);
+
+/** The business record, normalized to what sections and layouts read. Field names follow the template; older pest-era names are read too. */
+export interface Business {
+	id: string | null;
+	title: string; tagline: string;
+	phone: string; phoneHref: string; phoneText: string; phoneTextHref: string; fax: string; email: string;
+	address: string; city: string; region: string; postal: string; country: string; hideAddress: boolean; isServiceArea: boolean;
+	hours: string; hoursNote: string;
+	foundedYear: number | null; yearsLine: string; sinceLine: string | null;
+	rating: number | null; reviewCount: number | null; ratingSource: string; reviewsUrl: string;
+	bookingUrl: string; bookingLabel: string; portalUrl: string; formsUrl: string; storeUrl: string; storeLabel: string; ctaLabel: string;
+	languages: string; newPatientsLine: string; neighbourhoods: string; serviceAreaLine: string; sameDayLine: string; emergencyLine: string;
+	insuranceLine: string; governmentPrograms: string; hsaFsaLine: string; licenseLine: string; insuredLine: string; warrantyLine: string; accessibilityLine: string; parkingLine: string; directionsLine: string;
+	social: Array<{ network: string; url: string }>;
+	brandPrimary: string; brandAccent: string; fontDisplay: string; fontBody: string;
+	logo: { src: string; alt?: string; width?: number; height?: number } | null;
+	ga4Id: string; gtmId: string; customCss: string;
+	raw: Record<string, unknown>;
+}
+const NETWORKS = ["facebook", "instagram", "google", "youtube", "linkedin", "tiktok", "yelp"];
+function mediaSrc(v: unknown): Business["logo"] {
+	const p = pic(v);
+	if (p.image?.src) return { src: p.image.src, alt: p.image.alt, width: p.image.width, height: p.image.height };
+	if (p.image && (p.image as { meta?: { storageKey?: string } }).meta?.storageKey) return { src: `/_emdash/api/media/file/${(p.image as { meta: { storageKey: string } }).meta.storageKey}`, alt: p.image.alt };
+	if (p.url) return { src: p.url };
+	return null;
+}
+async function readBusiness(): Promise<Business> {
+	let d: Record<string, unknown> = {}; let id: string | null = null; let siteTitle = "";
+	try { const s = (await getSiteSettings()) as { title?: string } | null; siteTitle = s?.title ?? ""; } catch { /* no settings yet */ }
+	try {
+		const r = await getEmDashCollection("business", { status: "published", limit: 1 } as never);
+		const e = ((r as { entries?: Entry[] }).entries ?? [])[0];
+		if (e) { d = e.data; id = e.id; }
+	} catch { /* collection missing on an older site */ }
+	const s = (k: string, alt?: string) => str(d[k]) || (alt ? str(d[alt]) : "");
+	const phone = s("phone"); const phoneText = s("phone_text");
+	const founded = num(d.founded_year);
+	const city = s("city");
+	const primary = s("brand_primary") || "#1e5a46"; const accent = s("brand_accent") || "#e8b23a";
+	return {
+		id, title: s("title") || siteTitle || "Our business", tagline: s("tagline"),
+		phone, phoneHref: telHref(phone), phoneText, phoneTextHref: phoneText ? `sms:${phoneText.replace(/[^\d+]/g, "")}` : "", fax: s("fax"), email: s("email"),
+		address: s("address"), city, region: s("region"), postal: s("postal"), country: s("country"), hideAddress: bool(d.hide_address), isServiceArea: bool(d.is_service_area_business),
+		hours: s("hours"), hoursNote: s("hours_note"),
+		foundedYear: founded, yearsLine: s("years_line"), sinceLine: city && founded ? `${city} since ${founded}` : city || null,
+		rating: num(d.rating), reviewCount: num(d.review_count), ratingSource: s("rating_source") || "Google", reviewsUrl: s("reviews_url"),
+		bookingUrl: s("booking_url"), bookingLabel: s("booking_label") || "Book online", portalUrl: s("portal_url"), formsUrl: s("forms_url"), storeUrl: s("store_url"), storeLabel: s("store_label") || "Shop", ctaLabel: s("cta_label") || "Get in touch",
+		languages: s("languages"), newPatientsLine: s("new_patients_line"), neighbourhoods: s("neighbourhoods"), serviceAreaLine: s("service_area_line"), sameDayLine: s("same_day_line", "same_day_note"), emergencyLine: s("emergency_line"),
+		insuranceLine: s("insurance_line"), governmentPrograms: s("government_programs"), hsaFsaLine: s("hsa_fsa_line"), licenseLine: s("license_line"), insuredLine: s("insured_line"), warrantyLine: s("warranty_line"), accessibilityLine: s("accessibility_line"), parkingLine: s("parking_line"), directionsLine: s("directions_line"),
+		social: NETWORKS.map((n) => ({ network: n, url: s(n) })).filter((x) => x.url),
+		brandPrimary: primary, brandAccent: accent, fontDisplay: s("font_display") || "Bricolage Grotesque", fontBody: s("font_body") || "Public Sans",
+		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), customCss: s("custom_css"), raw: d,
+	};
+}
+const memo = new WeakMap<Request, Promise<Business>>();
+/** One read per request, however many sections ask. */
+export function getBusiness(request: Request): Promise<Business> {
+	let p = memo.get(request);
+	if (!p) { p = readBusiness(); memo.set(request, p); }
+	return p;
+}
+/** Text contrast for a background colour. */
+export function inkFor(hex: string): string {
+	const m = /^#?([0-9a-f]{6})$/i.exec(hex); if (!m) return "#ffffff";
+	const n = parseInt(m[1]!, 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+	return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? "#111111" : "#ffffff";
+}
+/** Inline style for <html>: the brand tokens from the business record. */
+export function brandStyle(b: Business): string {
+	const font = (name: string, fallback: string) => `"${name.replace(/"/g, "")}", ${fallback}`;
+	return [`--brand-primary:${b.brandPrimary}`, `--brand-primary-ink:${inkFor(b.brandPrimary)}`, `--brand-accent:${b.brandAccent}`, `--brand-accent-ink:${inkFor(b.brandAccent)}`, `--brand-font-display:${font(b.fontDisplay, "Arial, sans-serif")}`, `--brand-font-body:${font(b.fontBody, '"Helvetica Neue", Arial, sans-serif')}`].join(";");
+}
+/** Google Fonts stylesheet for the two brand families. */
+export function fontsHref(b: Business): string {
+	const fam = (name: string, axes: string) => `family=${encodeURIComponent(name).replace(/%20/g, "+")}:${axes}`;
+	return `https://fonts.googleapis.com/css2?${fam(b.fontDisplay, "wght@600;700;800")}&${fam(b.fontBody, "wght@400;500;600;700")}&display=swap`;
+}
+/** The one line of address a section prints. */
+export function addressLine(b: { address: string; city: string; region: string; postal: string; hideAddress?: boolean }): string {
+	if (b.hideAddress) return [b.city, b.region].filter(Boolean).join(", ");
+	return [b.address, [b.city, b.region].filter(Boolean).join(", "), b.postal].filter(Boolean).join(", ");
+}
+/** Hours rows of a location record (hours_mon..hours_sun), grouped when identical days follow each other. */
+export const DAYS: Array<[string, string]> = [["hours_mon", "Monday"], ["hours_tue", "Tuesday"], ["hours_wed", "Wednesday"], ["hours_thu", "Thursday"], ["hours_fri", "Friday"], ["hours_sat", "Saturday"], ["hours_sun", "Sunday"]];
+export function hoursRows(d: Record<string, unknown>): Array<{ day: string; value: string }> {
+	return DAYS.map(([k, day]) => ({ day, value: str(d[k]) })).filter((r) => r.value);
+}
+export function hoursGrouped(d: Record<string, unknown>): Array<{ days: string; value: string }> {
+	const rows = hoursRows(d); const out: Array<{ days: string[]; value: string }> = [];
+	for (const r of rows) { const last = out[out.length - 1]; if (last && last.value === r.value) last.days.push(r.day); else out.push({ days: [r.day], value: r.value }); }
+	return out.map((g) => ({ days: g.days.length > 2 ? `${g.days[0]} to ${g.days[g.days.length - 1]}` : g.days.join(" and "), value: g.value }));
+}
+export const todayKey = (): string => DAYS[(new Date().getDay() + 6) % 7]![0];

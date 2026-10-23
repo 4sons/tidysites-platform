@@ -1,0 +1,16 @@
+---
+import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import Photo from "../Photo.astro";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const items = await entries("case_studies", { limit: int(n.limit, 3) });
+const results = (d: Record<string, unknown>) => [1, 2, 3].map((i) => ({ v: str(d[`result_${i}_value`]), l: str(d[`result_${i}_label`]) })).filter((r) => r.v);
+const variant = str(n.variant, "cards");
+---
+{items.length > 0 && (
+<section class="ts" id="case-studies"><div class="ts-wrap">
+	<Head n={n} />
+	{variant === "results strip" ? <div class="ts-grid" style="--cols:3">{items.flatMap((c) => results(c.data).slice(0, 1).map((r) => <div class="ts-card ts-stat"><b>{r.v}</b><span>{r.l} · {str(c.data.client) || str(c.data.title)}</span></div>))}</div>
+	: <div class="ts-grid" style={`--cols:${variant === "one featured" ? 1 : 3}`}>{items.slice(0, variant === "one featured" ? 1 : undefined).map((c) => { const p = pic(c.data.featured_image); return <a class="ts-card" href={`/case-studies/${c.slug ?? c.id}`} data-tidy-record="case_studies" data-tidy-record-id={c.id} data-tidy-record-label="Case study">{(p.image || p.url) && <Photo image={p.image} url={p.url} alt={str(c.data.title)} ratio="wide" />}{(str(c.data.client) || str(c.data.industry)) && <p class="ts-eyebrow" style="margin:0">{[str(c.data.client), str(c.data.industry)].filter(Boolean).join(" · ")}</p>}<h3>{str(c.data.title)}</h3>{str(c.data.summary) && <p>{str(c.data.summary)}</p>}{bool(n.show_results, true) && results(c.data).length > 0 && <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:6px">{results(c.data).map((r) => <div class="ts-stat"><b style="font-size:28px">{r.v}</b><span>{r.l}</span></div>)}</div>}</a>; })}</div>}
+</div></section>
+)}

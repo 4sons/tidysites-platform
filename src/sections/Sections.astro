@@ -1,0 +1,42 @@
+---
+/**
+ * Renders a page's `sections` field. For each block, the component comes from
+ * the first of: the site's own folder (src/custom/blocks/<type>.astro), the
+ * theme (src/sections/<type>.astro, or the `components` prop for a theme that
+ * keeps its own map), then this package's default for the type. Every block is
+ * framed for the on-site editor (`data-tidy-block`, `data-tidy-type`).
+ */
+import type { Node } from "./lib";
+import "./defaults.css";
+import { SECTION_TYPES } from "../template/index";
+
+export type Section = { _type: string; _key?: string; _version?: number } & Record<string, unknown>;
+type Comp = (props: Record<string, unknown>) => unknown;
+const byName = (mods: Record<string, unknown>): Record<string, Comp> =>
+	Object.fromEntries(Object.entries(mods).map(([path, mod]) => [path.split("/").pop()!.replace(/\.astro$/, ""), (mod as { default: Comp }).default]));
+
+// Root-relative globs resolve against the consuming site, not this package.
+const site = byName(import.meta.glob("/src/custom/blocks/*.astro", { eager: true }));
+const theme = byName(import.meta.glob("/src/sections/*.astro", { eager: true }));
+const defaults = byName(import.meta.glob("./defaults/*.astro", { eager: true }));
+
+interface Props {
+	value?: Section[] | null;
+	/** A theme's own components by type, for themes that keep their own map. */
+	components?: Record<string, Comp>;
+	/** The entry the page shows (its data), for sections that depend on it, such as related services. */
+	context?: Node | null;
+	/** Set false to leave out this package's defaults and render only what the theme and site provide. */
+	fallback?: boolean;
+}
+const { value, components = {}, context = null, fallback = true } = Astro.props;
+const sections = Array.isArray(value) ? value : [];
+const pick = (type: string): Comp | undefined => site[type] ?? components[type] ?? theme[type] ?? (fallback ? defaults[type] : undefined);
+---
+<div data-tidy-blocks>
+	{sections.map((s, index) => {
+		const Component = pick(s._type);
+		if (!Component) return import.meta.env.DEV ? <div role="alert" class="ts-missing">No component for section type “{s._type}”{SECTION_TYPES.includes(s._type) ? "" : " (not a template section type)"}.</div> : null;
+		return <div data-tidy-block={String(s._key ?? "")} data-tidy-type={s._type}><Component value={s} index={index} blockKey={String(s._key ?? "")} context={context} /></div>;
+	})}
+</div>

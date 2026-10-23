@@ -1,0 +1,18 @@
+---
+/** Insurers accepted, as logos, names or one line, with network status and government programs. */
+import { bool, entries, getBusiness, nodeOf, pic, str } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const b = await getBusiness(Astro.request);
+const variant = str(n.variant, "logos");
+const items = variant === "one line" ? [] : await entries("insurers", { limit: 60 });
+const inNet = items.filter((i) => !/out/i.test(str(i.data.network))), outNet = items.filter((i) => /out/i.test(str(i.data.network)));
+const render = (list: typeof items) => variant === "logos" ? <div class="ts-logos">{list.map((i) => { const p = pic(i.data.logo); return <div class="ts-logo" data-tidy-record="insurers" data-tidy-record-id={i.id} data-tidy-record-label="Insurer">{(p.image?.src || p.url) && <img src={p.image?.src ?? p.url ?? ""} alt="" />}<span>{str(i.data.title)}</span></div>; })}</div> : <div class="ts-chips">{list.map((i) => <span class="ts-chip">{str(i.data.title)}</span>)}</div>;
+---
+{(items.length > 0 || b.insuranceLine) && (
+<section class="ts" id="insurance"><div class="ts-wrap">
+	<Head n={n} action={str(n.button_label) ? { href: str(n.button_url, "/contact"), label: str(n.button_label) } : null} />
+	{variant === "one line" || !items.length ? <p class="ts-lede" style="margin:0">{b.insuranceLine}</p> : bool(n.show_network) && outNet.length ? (<><p class="ts-group">In network</p>{render(inNet)}<p class="ts-group">Out of network</p>{render(outNet)}</>) : render(items)}
+	{bool(n.show_programs, true) && b.governmentPrograms && <p class="ts-muted" style="margin-top:14px;font-size:14px">{b.governmentPrograms}</p>}
+</div></section>
+)}

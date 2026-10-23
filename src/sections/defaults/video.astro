@@ -1,0 +1,15 @@
+---
+import { nodeOf, str } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const url = str(n.video_url);
+const embed = url.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/").replace("vimeo.com/", "player.vimeo.com/video/");
+const isFile = /\.(mp4|webm|mov)(\?|$)/i.test(url);
+---
+{url && (
+<section class="ts"><div class="ts-wrap">
+	<Head n={n} />
+	<div class="ts-video">{isFile ? <video src={url} controls playsinline></video> : <iframe src={embed} title={str(n.headline) || "Video"} loading="lazy" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>}</div>
+	{str(n.caption) && <p class="ts-muted" style="margin-top:10px;font-size:14px">{str(n.caption)}</p>}
+</div></section>
+)}

@@ -1,0 +1,14 @@
+---
+import { addressLine, bool, entries, getBusiness, hoursGrouped, nodeOf, pic, str } from "../lib";
+import Photo from "../Photo.astro";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const b = await getBusiness(Astro.request);
+const items = await entries("locations", { limit: 20 });
+---
+{items.length > 0 && (
+<section class="ts" id="locations"><div class="ts-wrap">
+	<Head n={n} />
+	<div class="ts-grid" style={`--cols:${Math.min(3, items.length)}`}>{items.map((l) => { const p = pic(l.data.photo); const d = l.data; return <div class="ts-card" data-tidy-record="locations" data-tidy-record-id={l.id} data-tidy-record-label="Location">{(p.image || p.url) && <Photo image={p.image} url={p.url} alt={str(d.title)} ratio="wide" />}<h3>{str(d.title)}</h3><p>{addressLine({ address: str(d.address), city: str(d.city), region: str(d.region), postal: str(d.postal) })}</p>{str(d.phone) && <p><a href={`tel:${str(d.phone).replace(/[^\d+]/g, "")}`}>{str(d.phone)}</a></p>}{bool(n.show_hours, true) && hoursGrouped(d).length > 0 && <table class="ts-table" style="font-size:13px">{hoursGrouped(d).map((g) => <tr><td>{g.days}</td><td>{g.value}</td></tr>)}</table>}{bool(n.show_booking, true) && (str(d.booking_url) || b.bookingUrl) && <div class="ts-actions" style="margin-top:8px"><a class="ts-btn ts-btn-accent" href={str(d.booking_url) || b.bookingUrl}>{b.bookingLabel}</a></div>}</div>; })}</div>
+</div></section>
+)}

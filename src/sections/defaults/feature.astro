@@ -1,0 +1,36 @@
+---
+/** Why choose us: points as cards, a checklist, beside an image, or one mission statement. */
+import { lines, list, nodeOf, pic, str, steps } from "../lib";
+import Photo from "../Photo.astro";
+const n = nodeOf(Astro.props);
+const variant = str(n.variant, "cards");
+const points = list<Record<string, unknown>>(n.points).filter((p) => str(p.title) || str(p.body));
+const bullets = lines(n.bullets);
+const stepList = steps(n.steps);
+const photo = pic(n.image);
+const hasPhoto = Boolean(photo.image || photo.url);
+const side = str(n.image_side, "left");
+---
+<section class="ts"><div class="ts-wrap">
+	{variant === "mission statement" ? (
+		<div style="max-width:62ch">{str(n.eyebrow) && <p class="ts-eyebrow">{str(n.eyebrow)}</p>}<p style="font-family:var(--ts-display);font-size:clamp(22px,2.6vw,32px);line-height:1.25">{str(n.headline) || str(n.body)}</p>{str(n.headline) && str(n.body) && <p class="ts-muted" style="margin-top:12px">{str(n.body)}</p>}</div>
+	) : (
+	<div class={hasPhoto || variant === "image beside points" ? `ts-split ${side === "right" ? "ts-rev" : ""}` : ""}>
+		{hasPhoto && side === "left" && <Photo image={photo.image} url={photo.url} alt={str(n.headline)} ratio="wide" />}
+		<div>
+			{str(n.eyebrow) && <p class="ts-eyebrow">{str(n.eyebrow)}</p>}
+			{str(n.headline) && <h2>{str(n.headline)}</h2>}
+			{str(n.body) && <p class="ts-lede">{str(n.body)}</p>}
+			{variant === "cards" && points.length > 0 && !hasPhoto ? (
+				<div class="ts-grid" style="margin-top:24px;--cols:3">{points.map((p) => <div class="ts-card">{str(p.icon) && <span class="ts-eyebrow" style="margin:0">{str(p.icon)}</span>}<h3>{str(p.title)}</h3>{str(p.body) && <p>{str(p.body)}</p>}</div>)}</div>
+			) : points.length > 0 ? (
+				<ul class="ts-list" style="margin-top:18px">{points.map((p) => <li><span><b>{str(p.title)}</b>{str(p.body) && <> {str(p.body)}</>}</span></li>)}</ul>
+			) : null}
+			{bullets.length > 0 && <ul class="ts-list" style="margin-top:18px">{bullets.map((t) => <li>{t}</li>)}</ul>}
+			{stepList.length > 0 && <ol style="margin:18px 0 0;padding-left:20px;color:var(--ts-ink-2)">{stepList.map((s) => <li style="margin-bottom:8px"><b>{s.title}</b>{s.text && <> {s.text}</>}</li>)}</ol>}
+			{str(n.button_label) && <div class="ts-actions"><a class="ts-btn" href={str(n.button_url, "#")}>{str(n.button_label)}</a></div>}
+		</div>
+		{hasPhoto && side === "right" && <Photo image={photo.image} url={photo.url} alt={str(n.headline)} ratio="wide" />}
+	</div>
+	)}
+</div></section>
