@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.3
+
+- `refId()` and `refersTo()` in `sections/lib`: a reference field stores the entry's internal id, not its slug, and the services default now groups by category with that. Before this a category never matched its services.
+
 ## 0.11.2
 
 - Portrait and square photo slots crop from the top of the image, so a headshot in a shorter frame keeps the face and loses the shoulders, never the other way round.

@@ -70,6 +70,10 @@ export async function entriesWhere(collection: string, where: Record<string, str
 	return entries(collection, Object.keys(where).length ? { ...q, where } : q);
 }
 export const field = (e: Entry, k: string): string => str(e.data[k]);
+/** The id a reference field points at: the entry's internal id, which differs from its slug (what `entry.id` carries on a collection read). */
+export const refId = (e: Entry): string => String(e.data.id ?? e.id);
+/** Whether a reference field's stored value points at this entry. */
+export const refersTo = (value: unknown, e: Entry): boolean => value !== undefined && value !== null && (String(value) === refId(e) || String(value) === String(e.id));
 
 /** The business record, normalized to what sections and layouts read. Field names follow the template; older pest-era names are read too. */
 export interface Business {
