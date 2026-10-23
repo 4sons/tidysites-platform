@@ -1,6 +1,6 @@
 ---
 /** Associations, certifications, awards and seals: from the badge records or written into the section. */
-import { entries, list, nodeOf, pic, str } from "../lib";
+import { entries, list, nodeOf, pic, str, mediaUrl } from "../lib";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
 const fromRecords = str(n.source, "badges from the badges records").startsWith("badges from");
@@ -12,6 +12,6 @@ const items = [...recs, ...inline].filter((b) => b.title);
 {items.length > 0 && (
 <section class="ts ts-tight"><div class="ts-wrap">
 	<Head n={n} />
-	<div class="ts-logos">{items.map((b) => { const Tag = b.url ? "a" : "div"; return <Tag class="ts-logo" href={b.url || undefined} {...(b.id ? { "data-tidy-record": "badges", "data-tidy-record-id": b.id, "data-tidy-record-label": "Badge" } : {})}>{(b.image.image?.src || b.image.url) && <img src={b.image.image?.src ?? b.image.url ?? ""} alt="" />}<span>{b.title}{b.issuer && <span class="ts-muted" style="font-weight:400"> · {b.issuer}</span>}</span></Tag>; })}</div>
+	<div class="ts-logos">{items.map((b) => { const Tag = b.url ? "a" : "div"; return <Tag class="ts-logo" href={b.url || undefined} {...(b.id ? { "data-tidy-record": "badges", "data-tidy-record-id": b.id, "data-tidy-record-label": "Badge" } : {})}>{mediaUrl(b.image) && <img src={mediaUrl(b.image) ?? ""} alt="" />}<span>{b.title}{b.issuer && <span class="ts-muted" style="font-weight:400"> · {b.issuer}</span>}</span></Tag>; })}</div>
 </div></section>
 )}

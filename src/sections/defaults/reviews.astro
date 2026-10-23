@@ -1,6 +1,6 @@
 ---
 /** Reviews from the records, with the business's rating and count beside them. */
-import { bool, entries, getBusiness, int, nodeOf, pic, str } from "../lib";
+import { bool, entries, getBusiness, int, nodeOf, pic, str, mediaUrl } from "../lib";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
 const b = await getBusiness(Astro.request);
@@ -34,7 +34,7 @@ const when = (r: { data: Record<string, unknown> }) => { const d = str(r.data.da
 				<article class="ts-card ts-review" data-tidy-record="reviews" data-tidy-record-id={r.id} data-tidy-record-label="Review">
 					<span class="ts-stars" aria-label={`${stars(r.data.rating).length} stars`}>{stars(r.data.rating)}</span>
 					<blockquote>{str(r.data.quote)}</blockquote>
-					<div class="ts-who">{(ph.image || ph.url) && <span class="ts-avatar"><img src={ph.image?.src ?? ph.url ?? ""} alt="" /></span>}<div><b>{who(r)}</b><span>{[bool(n.show_source, true) ? str(r.data.source) : "", when(r)].filter(Boolean).join(" · ")}</span></div></div>
+					<div class="ts-who">{(ph.image || ph.url) && <span class="ts-avatar"><img src={mediaUrl(ph) ?? ""} alt="" /></span>}<div><b>{who(r)}</b><span>{[bool(n.show_source, true) ? str(r.data.source) : "", when(r)].filter(Boolean).join(" · ")}</span></div></div>
 				</article>
 			); })}
 		</div>
