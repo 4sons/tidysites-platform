@@ -1,5 +1,5 @@
 ---
-import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import { bool, entries, int, nodeOf, pic, str, mediaUrl } from "../lib";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
 let items = await entries("clients", { limit: int(n.limit, 24) });
@@ -9,6 +9,6 @@ const industries = str(n.variant) === "with industries";
 {items.length > 0 && (
 <section class="ts ts-tight"><div class="ts-wrap">
 	<Head n={n} />
-	<div class="ts-logos" style={str(n.variant) === "logo strip" ? "justify-content:space-between" : ""}>{items.map((c) => { const p = pic(c.data.logo); const Tag = str(c.data.url) ? "a" : "div"; return <Tag class="ts-logo" href={str(c.data.url) || undefined} data-tidy-record="clients" data-tidy-record-id={c.id} data-tidy-record-label="Client">{(p.image?.src || p.url) ? <img src={p.image?.src ?? p.url ?? ""} alt={str(c.data.title)} /> : <span>{str(c.data.title)}</span>}{industries && str(c.data.industry) && <span class="ts-muted" style="font-weight:400">{str(c.data.industry)}</span>}</Tag>; })}</div>
+	<div class="ts-logos" style={str(n.variant) === "logo strip" ? "justify-content:space-between" : ""}>{items.map((c) => { const p = pic(c.data.logo); const Tag = str(c.data.url) ? "a" : "div"; return <Tag class="ts-logo" href={str(c.data.url) || undefined} data-tidy-record="clients" data-tidy-record-id={c.id} data-tidy-record-label="Client">{(p.image?.src || p.url) ? <img src={mediaUrl(p) ?? ""} alt={str(c.data.title)} /> : <span>{str(c.data.title)}</span>}{industries && str(c.data.industry) && <span class="ts-muted" style="font-weight:400">{str(c.data.industry)}</span>}</Tag>; })}</div>
 </div></section>
 )}

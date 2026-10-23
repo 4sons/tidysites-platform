@@ -28,6 +28,15 @@ export function pic(v: unknown): Pic {
 	return { image: null, url: null };
 }
 export const hasPic = (v: unknown): boolean => { const p = pic(v); return Boolean(p.image || p.url); };
+/** A plain URL for an image field, for <img> tags: the stored file (by its storage key), a `src` when one is set, or a plain URL left from an older site. */
+export function mediaUrl(v: unknown): string | null {
+	const p = v && typeof v === "object" && "image" in (v as object) && "url" in (v as object) ? (v as Pic) : pic(v);
+	if (p.url) return p.url;
+	const img = p.image as ({ src?: string; meta?: { storageKey?: string } } | null);
+	if (img?.src) return img.src;
+	if (img?.meta?.storageKey) return `/_emdash/api/media/file/${img.meta.storageKey}`;
+	return null;
+}
 
 /** "Label: value" lines into pairs. */
 export function facts(v: unknown): Array<[string, string]> {
@@ -82,11 +91,9 @@ export interface Business {
 }
 const NETWORKS = ["facebook", "instagram", "google", "youtube", "linkedin", "tiktok", "yelp"];
 function mediaSrc(v: unknown): Business["logo"] {
-	const p = pic(v);
-	if (p.image?.src) return { src: p.image.src, alt: p.image.alt, width: p.image.width, height: p.image.height };
-	if (p.image && (p.image as { meta?: { storageKey?: string } }).meta?.storageKey) return { src: `/_emdash/api/media/file/${(p.image as { meta: { storageKey: string } }).meta.storageKey}`, alt: p.image.alt };
-	if (p.url) return { src: p.url };
-	return null;
+	const src = mediaUrl(v); if (!src) return null;
+	const img = pic(v).image;
+	return { src, alt: img?.alt, width: img?.width, height: img?.height };
 }
 async function readBusiness(): Promise<Business> {
 	let d: Record<string, unknown> = {}; let id: string | null = null; let siteTitle = "";

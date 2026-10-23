@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.1
+
+- `mediaUrl()` in `sections/lib`: a plain URL for an image field from the stored value (its storage key), for avatars and logos; the defaults and the business logo use it. Before this, a stored image with no `src` rendered as an empty circle.
+- The photo slot (`sections/photo`) styles itself anywhere on a page, not only inside package sections, so a theme's own section can place it without a band of empty space.
+
 ## 0.11.0
 
 The package carries the template.
