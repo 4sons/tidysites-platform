@@ -1,0 +1,21 @@
+---
+/** A scroll-snap carousel around whatever is slotted in: one `.ts-carousel-item` per child the caller wraps. Arrows scroll a page; no library. */
+interface Props { cols?: number; class?: string; label?: string }
+const { cols = 3, class: cls = "", label = "Carousel" } = Astro.props;
+---
+<div class={`ts-carousel ${cls}`} style={`--cols:${cols}`} role="region" aria-label={label}>
+	<button class="ts-carousel-btn ts-carousel-prev" type="button" aria-label="Previous"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+	<div class="ts-carousel-track"><slot /></div>
+	<button class="ts-carousel-btn ts-carousel-next" type="button" aria-label="Next"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+</div>
+<script is:inline>
+(function(){
+	if (window.__tidyCarousel) return; window.__tidyCarousel = true;
+	document.addEventListener("click", function (e) {
+		var t = e.target instanceof Element ? e.target.closest(".ts-carousel-btn") : null; if (!t) return;
+		var track = t.parentElement.querySelector(".ts-carousel-track"); if (!track) return;
+		var item = track.querySelector(".ts-carousel-item"); var step = item ? item.getBoundingClientRect().width + 18 : track.clientWidth;
+		track.scrollBy({ left: t.classList.contains("ts-carousel-prev") ? -step : step, behavior: "smooth" });
+	});
+})();
+</script>

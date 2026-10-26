@@ -1,0 +1,22 @@
+---
+/** Tabs over a list of panels: `items` carries a title per panel; the panels are slotted in order as `.ts-tab-panel`. */
+interface Props { items: string[]; class?: string }
+const { items, class: cls = "" } = Astro.props;
+const id = `t${Math.random().toString(36).slice(2, 8)}`;
+---
+<div class={`ts-tabs ${cls}`} data-tidy-tabs>
+	<div class="ts-tab-list" role="tablist">{items.map((t, i) => <button class={`ts-tab ${i === 0 ? "ts-tab-on" : ""}`} type="button" role="tab" id={`${id}-tab-${i}`} aria-selected={i === 0 ? "true" : "false"} aria-controls={`${id}-panel-${i}`} data-tab={i}>{t}</button>)}</div>
+	<div class="ts-tab-panels" data-tab-prefix={id}><slot /></div>
+</div>
+<script is:inline>
+(function(){
+	if (window.__tidyTabs) return; window.__tidyTabs = true;
+	document.addEventListener("click", function (e) {
+		var t = e.target instanceof Element ? e.target.closest(".ts-tab") : null; if (!t) return;
+		var root = t.closest("[data-tidy-tabs]"); var i = Number(t.dataset.tab);
+		root.querySelectorAll(".ts-tab").forEach(function (b, j) { b.classList.toggle("ts-tab-on", j === i); b.setAttribute("aria-selected", String(j === i)); });
+		root.querySelectorAll(".ts-tab-panel").forEach(function (p, j) { p.toggleAttribute("hidden", j !== i); });
+	});
+	document.querySelectorAll("[data-tidy-tabs]").forEach(function (root) { root.querySelectorAll(".ts-tab-panel").forEach(function (p, j) { p.toggleAttribute("hidden", j !== 0); }); });
+})();
+</script>

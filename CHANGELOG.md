@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.13.0
+
+- `chrome/*` is `frame/*` (`frame/header`, `frame/footer`, `frame/dialog`, `frame/scripts`, `frame/frame.css`) and the wrapper class is `ts-frame`: the header, footer, dialog and call bar are the frame around a page.
+- Third parties by id: live chat (Crisp, Tawk.to, Tidio, LiveChat, Podium), a reviews widget (Trustindex, Elfsight, Birdeye), a booking embed (Calendly, Pike13, Square Appointments, Acuity, Jobber) and the Meta and Google Ads pixels, each a provider and an id on the new one-record `integrations` collection, where the whole vendor embed may be pasted and the id is read out of it. `lib/providers` reads ids and renders the package's fixed snippets; `frame/scripts` places them. No free script field, by design (README, "Third parties").
+- The booking button can open the booking embed in the dialog; the new one-record `frame` collection carries the line above the header and the call bar at the bottom of small screens (call and book, call only, book only, off).
+- The column cap: D1 allows a table 100 columns and EmDash gives every field one. Business stays at 72 fields, a test refuses any collection over 75, and a new group of settings gets its own one-record collection.
+- Carousel layouts on reviews, team, services, brands, clients and gallery; tabs and two-column layouts on the FAQ; a "provider widget" layout on reviews.
+
 ## 0.12.0
 
 The look, the chrome and the forms come from data.

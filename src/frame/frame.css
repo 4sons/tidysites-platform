@@ -1,15 +1,15 @@
-/* The chrome contract: header, footer and dialog, styled from the same tokens
+/* The frame contract: header, footer and dialog, styled from the same tokens
    as the sections (see defaults.css). A theme restyles these class names in
    its own stylesheet; it never renames them, so a site's custom CSS written
    on one theme carries to the next. */
-.ts-chrome{font-family:var(--ts-body);color:var(--ts-ink);line-height:1.5}
-.ts-chrome *{box-sizing:border-box}
-.ts-chrome a{color:inherit;text-decoration:none}
-.ts-chrome ul{list-style:none;margin:0;padding:0}
-.ts-chrome .ts-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--ts-display);font-weight:700;font-size:15px;padding:11px 18px;border-radius:999px;border:1.5px solid transparent;cursor:pointer;line-height:1.2;white-space:nowrap}
-.ts-chrome .ts-btn-accent{background:var(--ts-accent);color:var(--ts-accent-ink)}
-.ts-chrome .ts-btn-outline{background:transparent;color:inherit;border-color:var(--ts-line)}
-.ts-chrome .ts-btn-outline:hover{border-color:currentColor}
+.ts-frame{font-family:var(--ts-body);color:var(--ts-ink);line-height:1.5}
+.ts-frame *{box-sizing:border-box}
+.ts-frame a{color:inherit;text-decoration:none}
+.ts-frame ul{list-style:none;margin:0;padding:0}
+.ts-frame .ts-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--ts-display);font-weight:700;font-size:15px;padding:11px 18px;border-radius:999px;border:1.5px solid transparent;cursor:pointer;line-height:1.2;white-space:nowrap}
+.ts-frame .ts-btn-accent{background:var(--ts-accent);color:var(--ts-accent-ink)}
+.ts-frame .ts-btn-outline{background:transparent;color:inherit;border-color:var(--ts-line)}
+.ts-frame .ts-btn-outline:hover{border-color:currentColor}
 
 /* Header */
 .ts-header{background:var(--ts-surface);border-bottom:1px solid var(--ts-line);z-index:30;position:relative}
@@ -49,6 +49,20 @@
 	.ts-header .ts-menu-btn{display:inline-flex}
 }
 @media (min-width:961px){.ts-mobile-menu{display:none !important}}
+
+/* Top bar and the phone call bar */
+.ts-topbar{background:var(--ts-primary);color:var(--ts-primary-ink);font-size:13.5px;font-weight:600}
+.ts-topbar-wrap{max-width:var(--ts-max);margin:0 auto;padding:7px var(--ts-gutter);text-align:center}
+.ts-topbar-link{text-decoration:underline;text-underline-offset:3px}
+.ts-callbar{display:none}
+@media (max-width:960px){
+	.ts-callbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--ts-surface) 92%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--ts-line)}
+	.ts-callbar .ts-btn{justify-content:center}
+	.ts-callbar:has(> :only-child){grid-template-columns:1fr}
+	body{padding-bottom:72px}
+}
+.ts-dialog-embed{max-width:min(960px,calc(100vw - 32px))}
+.ts-booking-embed{width:100%;height:min(720px,calc(100vh - 160px));border:0;border-radius:calc(var(--ts-radius) * .6)}
 
 /* Footer */
 .ts-footer{padding:48px 0 40px;border-top:1px solid var(--ts-line);font-size:14px;color:var(--ts-ink-2);background:var(--ts-ground)}

@@ -2,6 +2,7 @@
 import { list, nodeOf, pic, str } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
+import Carousel from "./_Carousel.astro";
 const n = nodeOf(Astro.props);
 const images = list<Record<string, unknown>>(n.images).map((i) => ({ p: pic(i.image), caption: str(i.caption) })).filter((i) => i.p.image || i.p.url);
 const captions = str(n.variant) === "with captions";
@@ -9,6 +10,8 @@ const captions = str(n.variant) === "with captions";
 {images.length > 0 && (
 <section class="ts"><div class="ts-wrap">
 	<Head n={n} />
-	<div class="ts-gallery" style={str(n.variant) === "strip" ? "grid-template-columns:repeat(6,1fr)" : ""}>{images.map((i) => <figure style="margin:0"><Photo image={i.p.image} url={i.p.url} alt={i.caption || ""} ratio="square" />{captions && i.caption && <figcaption class="ts-muted" style="font-size:13px;margin-top:6px">{i.caption}</figcaption>}</figure>)}</div>
+	{str(n.variant) === "carousel" ? (
+		<Carousel cols={3} label="Gallery">{images.map((i) => <figure class="ts-carousel-item" style="margin:0"><Photo image={i.p.image} url={i.p.url} alt={i.caption || ""} ratio="wide" />{i.caption && <figcaption class="ts-muted" style="font-size:13px;margin-top:6px">{i.caption}</figcaption>}</figure>)}</Carousel>
+	) : <div class="ts-gallery" style={str(n.variant) === "strip" ? "grid-template-columns:repeat(6,1fr)" : ""}>{images.map((i) => <figure style="margin:0"><Photo image={i.p.image} url={i.p.url} alt={i.caption || ""} ratio="square" />{captions && i.caption && <figcaption class="ts-muted" style="font-size:13px;margin-top:6px">{i.caption}</figcaption>}</figure>)}</div>}
 </div></section>
 )}

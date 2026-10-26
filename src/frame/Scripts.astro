@@ -1,0 +1,14 @@
+---
+/**
+ * The third parties a business record names, as the package's own snippets:
+ * pixels in the head slot, chat at the end of the body. Place <Scripts slot="head" />
+ * inside <head> and <Scripts /> before </body>; a theme never pastes vendor code.
+ */
+import type { Business } from "../sections/lib";
+import { providerSnippets } from "../lib/providers";
+interface Props { business: Business; where?: "head" | "body" }
+const { business: b, where = "body" } = Astro.props;
+const s = providerSnippets({ chatProvider: b.chatProvider, chatId: b.chatId, reviewsWidget: b.reviewsWidget, reviewsWidgetId: b.reviewsWidgetId, metaPixelId: b.metaPixelId, googleAdsId: b.googleAdsId });
+const html = (where === "head" ? s.head : s.body).join("");
+---
+{html && <Fragment set:html={html} />}

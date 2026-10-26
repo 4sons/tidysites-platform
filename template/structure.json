@@ -195,7 +195,8 @@
                   "image tiles",
                   "icon cards",
                   "grouped by category",
-                  "checklist"
+                  "checklist",
+                  "carousel"
                 ]
               },
               "defaultValue": "cards with summary"
@@ -444,7 +445,8 @@
                   "cards",
                   "grouped by department",
                   "photo grid",
-                  "one person featured"
+                  "one person featured",
+                  "carousel"
                 ]
               },
               "defaultValue": "cards"
@@ -517,7 +519,8 @@
                   "quotes",
                   "aggregate with quotes",
                   "video testimonials",
-                  "single quote band"
+                  "single quote band",
+                  "carousel"
                 ]
               },
               "defaultValue": "quotes"
@@ -648,6 +651,19 @@
         {
           "version": 1,
           "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "accordion",
+                  "tabs",
+                  "two columns"
+                ]
+              },
+              "defaultValue": "accordion"
+            },
             {
               "slug": "body",
               "label": "Text",
@@ -1299,7 +1315,8 @@
                 "options": [
                   "strip",
                   "grid",
-                  "with captions"
+                  "with captions",
+                  "carousel"
                 ]
               },
               "defaultValue": "strip"
@@ -1437,7 +1454,8 @@
               "validation": {
                 "options": [
                   "logos",
-                  "names"
+                  "names",
+                  "carousel"
                 ]
               },
               "defaultValue": "logos"
@@ -1970,7 +1988,8 @@
                 "options": [
                   "logo wall",
                   "logo strip",
-                  "with industries"
+                  "with industries",
+                  "carousel"
                 ]
               },
               "defaultValue": "logo wall"
@@ -2268,7 +2287,8 @@
           "validation": {
             "options": [
               "the booking link",
-              "a form on this site"
+              "a form on this site",
+              "the booking embed"
             ]
           }
         },
@@ -2545,6 +2565,126 @@
           "slug": "custom_css",
           "label": "Custom CSS",
           "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "frame",
+      "label": "Header and footer",
+      "labelSingular": "Header and footer",
+      "supports": [
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "call_bar",
+          "label": "Bar at the bottom of the phone screen",
+          "type": "select",
+          "validation": {
+            "options": [
+              "call and book",
+              "call only",
+              "book only",
+              "off"
+            ]
+          }
+        },
+        {
+          "slug": "top_bar_text",
+          "label": "Line above the header",
+          "type": "string"
+        },
+        {
+          "slug": "top_bar_link",
+          "label": "Where the line links",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "slug": "integrations",
+      "label": "Integrations",
+      "labelSingular": "Integrations",
+      "supports": [
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "chat_provider",
+          "label": "Live chat",
+          "type": "select",
+          "validation": {
+            "options": [
+              "Crisp",
+              "Tawk.to",
+              "Tidio",
+              "LiveChat",
+              "Podium"
+            ]
+          }
+        },
+        {
+          "slug": "chat_id",
+          "label": "Live chat id, or the whole embed code pasted",
+          "type": "text"
+        },
+        {
+          "slug": "reviews_widget",
+          "label": "Reviews widget",
+          "type": "select",
+          "validation": {
+            "options": [
+              "Trustindex",
+              "Elfsight",
+              "Birdeye"
+            ]
+          }
+        },
+        {
+          "slug": "reviews_widget_id",
+          "label": "Reviews widget id, or the whole embed code pasted",
+          "type": "text"
+        },
+        {
+          "slug": "booking_embed",
+          "label": "Booking embed",
+          "type": "select",
+          "validation": {
+            "options": [
+              "Calendly",
+              "Pike13",
+              "Square Appointments",
+              "Acuity",
+              "Jobber"
+            ]
+          }
+        },
+        {
+          "slug": "booking_embed_id",
+          "label": "Booking page link, or the whole embed code pasted",
+          "type": "text"
+        },
+        {
+          "slug": "meta_pixel_id",
+          "label": "Meta pixel id",
+          "type": "string"
+        },
+        {
+          "slug": "google_ads_id",
+          "label": "Google Ads tag id",
+          "type": "string"
         }
       ]
     },

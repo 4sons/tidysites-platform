@@ -54,7 +54,7 @@ export { default, PluginBridge } from "@emdash-cms/cloudflare/worker";
 
 ## Tokens
 
-The Business record sets the brand on `<html>` through `brandStyle(business)` (from `sections/lib`), and every package section, the chrome and a theme's own stylesheet read the same tokens with fallbacks, so a site changes its look in the admin and a theme never invents a second set.
+The Business record sets the brand on `<html>` through `brandStyle(business)` (from `sections/lib`), and every package section, the frame and a theme's own stylesheet read the same tokens with fallbacks, so a site changes its look in the admin and a theme never invents a second set.
 
 | Token | From the Business record | Set when |
 |---|---|---|
@@ -68,34 +68,55 @@ The Business record sets the brand on `<html>` through `brandStyle(business)` (f
 | `--brand-ground`, `--brand-surface` | Page background and card colour | when the record has them |
 | `--brand-ink`, `--brand-ink-2`, `--brand-ink-3`, `--brand-line` | Text colour, and the two quieter inks and the line colour derived from it | when the record has a text colour |
 
-A theme's `tokens.css` maps its own names onto these (`--ground: var(--brand-ground, #f6f7f7)`), so a site that leaves a field empty gets the theme's voice and one that fills it gets its own. `custom_css` on the Business record is the last word.
+One rule sits under all of this: D1 allows a table 100 columns and EmDash gives every field one, so the Business collection stays under 75 fields (a test holds the line) and a new group of settings gets its own one-record collection, as `frame` and `integrations` have. A theme's `tokens.css` maps its own names onto these (`--ground: var(--brand-ground, #f6f7f7)`), so a site that leaves a field empty gets the theme's voice and one that fills it gets its own. `custom_css` on the Business record is the last word.
 
-## The chrome and its classes
+## The frame and its classes
 
-`@tideworthy/tidysites-platform/chrome/header`, `chrome/footer` and `chrome/dialog` are the header, footer and modal every theme starts from. They render the primary menu with its children (a dropdown, or a mega panel when children carry a description in the admin's "title" box), the phone, the portal button and the booking button, which opens the booking form in the dialog when the Business record says "a form on this site". A theme uses them as they are and restyles the classes, or renders its own markup with the same class names. Either way the names are the contract, so a site's custom CSS written on one theme carries to the next.
+`@tideworthy/tidysites-platform/frame/header`, `frame/footer` and `frame/dialog` are the header, footer and modal every theme starts from. They render the primary menu with its children (a dropdown, or a mega panel when children carry a description in the admin's "title" box), the phone, the portal button and the booking button, which opens the booking form in the dialog when the Business record says "a form on this site". A theme uses them as they are and restyles the classes, or renders its own markup with the same class names. Either way the names are the contract, so a site's custom CSS written on one theme carries to the next.
 
 ```astro
 ---
-import Header from "@tideworthy/tidysites-platform/chrome/header";
-import Footer from "@tideworthy/tidysites-platform/chrome/footer";
+import Header from "@tideworthy/tidysites-platform/frame/header";
+import Footer from "@tideworthy/tidysites-platform/frame/footer";
+import Scripts from "@tideworthy/tidysites-platform/frame/scripts";
 ---
+<head>…<Scripts business={business} where="head" /></head>
 <Header business={business} menu={menu} siteTitle={siteTitle} isCurrent={isCurrent} />
 <main><slot /></main>
 <Footer business={business} footerMenu={footerMenu} siteTitle={siteTitle} />
+<Scripts business={business} />
 ```
 
 | Area | Classes |
 |---|---|
-| Header | `ts-header` (`ts-header-sticky`), `ts-header-wrap`, `ts-brand`, `ts-brand-logo`, `ts-brand-mark`, `ts-brand-name` |
+| Header | `ts-header` (`ts-header-sticky`), `ts-header-wrap`, `ts-brand`, `ts-brand-logo`, `ts-brand-mark`, `ts-brand-name`, `ts-topbar`, `ts-topbar-wrap`, `ts-topbar-link` |
 | Menu | `ts-nav`, `ts-nav-list`, `ts-nav-item` (`ts-nav-has-children`, `ts-nav-has-mega`, `ts-nav-open`), `ts-nav-link`, `ts-nav-caret`, `ts-nav-panel` (`ts-nav-mega`), `ts-nav-sub-list`, `ts-nav-sub-item`, `ts-nav-sub-link`, `ts-nav-sub-label`, `ts-nav-sub-desc`, `ts-nav-sub-sub`, `ts-nav-sub-sub-link` |
 | Actions | `ts-header-actions`, `ts-header-phone`, `ts-header-portal`, `ts-header-book`, `ts-menu-btn` |
 | Mobile menu | `ts-mobile-menu`, `ts-mobile-list`, `ts-mobile-item`, `ts-mobile-link`, `ts-mobile-sub`, `ts-mobile-sub-link`, `ts-mobile-actions` |
 | Footer | `ts-footer`, `ts-footer-wrap`, `ts-footer-brand`, `ts-footer-tagline`, `ts-footer-social`, `ts-footer-social-link`, `ts-footer-col`, `ts-footer-visit`, `ts-footer-heading`, `ts-footer-list`, `ts-footer-hours`, `ts-footer-legal` |
-| Dialog | `ts-dialog`, `ts-dialog-box`, `ts-dialog-title`, `ts-dialog-close`, `ts-dialog-body`; any element with `data-tidy-dialog="<id>"` opens the dialog with that id |
+| Call bar | `ts-callbar`, `ts-callbar-call`, `ts-callbar-book` (small screens only) |
+| Dialog | `ts-dialog` (`ts-dialog-embed`, `ts-booking-embed`), `ts-dialog-box`, `ts-dialog-title`, `ts-dialog-close`, `ts-dialog-body`; any element with `data-tidy-dialog="<id>"` opens the dialog with that id |
 | Buttons | `ts-btn`, `ts-btn-accent`, `ts-btn-outline`, `ts-btn-lg` |
 | Sections | `ts`, `ts-wrap`, `ts-head`, `ts-eyebrow`, `ts-lede`, `ts-grid`, `ts-split`, `ts-card`, `ts-chip`, `ts-form` and the rest of `sections/defaults.css` |
 
 A site's `src/custom/header.astro` still replaces the whole header when it must; the point of the contract is that it rarely must.
+
+## Third parties
+
+A site runs its live chat, reviews widget, booking embed and pixels by id, never by pasted code. The one-record `integrations` collection names the provider and holds the id, or the whole embed code the vendor handed over, from which `lib/providers` reads the id (`providerId`, `pixelId`); the frame renders the package's own fixed snippet for that provider with the id escaped (`frame/scripts`, placed once in `<head>` with `where="head"` and once before `</body>`). Nothing a person types becomes script, a provider not on the list has no door, and there is no free "paste your head code" field, on purpose: that would be arbitrary script into a client's live site for anyone holding an editor token or an agent that goes wrong. GTM and GA4 ids are the same shape and the same trust.
+
+| Kind | Providers | Where it renders |
+|---|---|---|
+| Live chat | Crisp, Tawk.to, Tidio, LiveChat, Podium | end of body |
+| Reviews widget | Trustindex, Elfsight, Birdeye | the reviews section's "provider widget" layout |
+| Booking embed | Calendly, Pike13, Square Appointments, Acuity, Jobber | the booking dialog, when the booking button opens "the booking embed"; only a URL on the provider's own host |
+| Pixels | Meta pixel, Google Ads tag | head |
+
+Adding a provider is a pull request here: its id pattern, its embed pattern and its snippet, with a test.
+
+## Layouts every section shares
+
+Reviews, team, services, brands, clients and gallery offer a `carousel` layout (a scroll-snap track with arrows, `ts-carousel-*`); the FAQ offers `tabs` and `two columns` (`ts-tabs`, `ts-tab`, `ts-tab-panel`). The header renders a top bar from the `frame` record's "line above the header" and the phone call bar at the bottom of small screens from its "bar at the bottom of the phone screen" setting (`ts-topbar-*`, `ts-callbar-*`).
 
 ## Forms
 
