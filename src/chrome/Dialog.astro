@@ -1,0 +1,30 @@
+---
+/**
+ * A dialog any element opens with data-tidy-dialog="<id>". Holds whatever is
+ * slotted in: a form, a map, a video. Closes on the close button, the
+ * backdrop or Escape. Styled through the chrome contract (ts-dialog-*).
+ */
+import "./chrome.css";
+interface Props { id: string; title?: string | null; class?: string }
+const { id, title = null, class: cls = "" } = Astro.props;
+---
+<dialog class={`ts-chrome ts-dialog ${cls}`} id={id} aria-labelledby={title ? `${id}-title` : undefined}>
+	<div class="ts-dialog-box">
+		<button class="ts-dialog-close" type="button" data-tidy-dialog-close aria-label="Close"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+		{title && <h2 class="ts-dialog-title" id={`${id}-title`}>{title}</h2>}
+		<div class="ts-dialog-body"><slot /></div>
+	</div>
+</dialog>
+<script is:inline>
+(function(){
+	if (window.__tidyDialog) return; window.__tidyDialog = true;
+	document.addEventListener("click", function (e) {
+		var t = e.target instanceof Element ? e.target : null; if (!t) return;
+		var opener = t.closest("[data-tidy-dialog]");
+		if (opener) { var d = document.getElementById(opener.getAttribute("data-tidy-dialog")); if (d && typeof d.showModal === "function") { e.preventDefault(); d.showModal(); var f = d.querySelector("input,select,textarea"); if (f) f.focus(); } return; }
+		var closer = t.closest("[data-tidy-dialog-close]");
+		if (closer) { var dc = closer.closest("dialog"); if (dc) dc.close(); return; }
+		if (t instanceof HTMLDialogElement && t.classList.contains("ts-dialog")) t.close();
+	});
+})();
+</script>

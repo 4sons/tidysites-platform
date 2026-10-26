@@ -1,0 +1,49 @@
+---
+/**
+ * The site footer: brand and tagline with the social links, a column of
+ * services, the footer menu, the visit details, and the legal line. Classes
+ * from the chrome contract (ts-footer-*).
+ */
+import type { Business } from "../sections/lib";
+import { addressLine, entries, mediaUrl } from "../sections/lib";
+import type { MenuItem } from "./Header.astro";
+import "../sections/defaults.css";
+import "./chrome.css";
+interface Props {
+	business: Business;
+	menu?: { items: MenuItem[] } | null;
+	footerMenu?: { items: MenuItem[] } | null;
+	siteTitle?: string;
+	/** Heading over the footer menu's column. */
+	footerMenuLabel?: string;
+	/** How many services to list; 0 leaves the column out. */
+	services?: number;
+	class?: string;
+}
+const { business: b, footerMenu = null, siteTitle = b.title, footerMenuLabel = "More", services: count = 6, class: cls = "" } = Astro.props;
+const services = count > 0 ? await entries("services", { limit: count }) : [];
+const logo = b.logo ? mediaUrl(b.logo) ?? b.logo.src : null;
+const initial = siteTitle.trim().charAt(0).toUpperCase();
+const year = new Date().getFullYear();
+---
+<footer class={`ts-chrome ts-footer ${cls}`} data-tidy-chrome="footer">
+	<div class="ts-footer-wrap">
+		<div class="ts-footer-brand">
+			<a class="ts-brand" href="/">{logo ? <img class="ts-brand-logo" src={logo} alt={b.logo?.alt || siteTitle} /> : <><span class="ts-brand-mark">{initial}</span><span class="ts-brand-name">{siteTitle}</span></>}</a>
+			{b.tagline && <p class="ts-footer-tagline">{b.tagline}</p>}
+			{b.social.length > 0 && <div class="ts-footer-social">{b.social.map((s) => <a class="ts-footer-social-link" href={s.url} aria-label={s.network} target="_blank" rel="noopener">{s.network.charAt(0).toUpperCase()}</a>)}</div>}
+		</div>
+		{services.length > 0 && <div class="ts-footer-col"><h4 class="ts-footer-heading">Services</h4><ul class="ts-footer-list">{services.map((s) => <li><a href={`/services/${s.slug ?? s.id}`}>{String(s.data.title)}</a></li>)}</ul></div>}
+		{footerMenu?.items.length ? <div class="ts-footer-col"><h4 class="ts-footer-heading">{footerMenuLabel}</h4><ul class="ts-footer-list">{footerMenu.items.map((i) => <li><a href={i.url} target={i.target}>{i.label}</a></li>)}</ul></div> : <div class="ts-footer-col"></div>}
+		<div class="ts-footer-col ts-footer-visit"><h4 class="ts-footer-heading">Visit</h4><ul class="ts-footer-list">
+			{addressLine(b) && <li>{addressLine(b)}</li>}
+			{b.phone && <li><a href={b.phoneHref}>{b.phone}</a></li>}
+			{b.email && <li><a href={`mailto:${b.email}`}>{b.email}</a></li>}
+			{b.hours && <li class="ts-footer-hours">{b.hours}</li>}
+		</ul></div>
+		<div class="ts-footer-legal">
+			<span>© {year} {siteTitle}{b.licenseLine ? ` · ${b.licenseLine}` : ""}</span>
+			<span>{b.accessibilityLine && <>{b.accessibilityLine} · </>}<a href="/privacy">Privacy</a></span>
+		</div>
+	</div>
+</footer>

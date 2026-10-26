@@ -1,0 +1,111 @@
+---
+/**
+ * The site header: brand, the primary menu with its children as dropdowns
+ * (a mega panel when the children carry descriptions), the phone, the portal
+ * button and the booking button, which opens the booking form in a dialog
+ * when the Business record says so. Every element carries a class from the
+ * chrome contract (README, "The chrome and its classes") so a theme styles
+ * it and a site's custom CSS carries between themes.
+ */
+import type { Business } from "../sections/lib";
+import { mediaUrl } from "../sections/lib";
+import Dialog from "./Dialog.astro";
+import Form from "../sections/Form.astro";
+import "../sections/defaults.css";
+import "./chrome.css";
+
+export interface MenuItem { id?: string; label: string; url: string; target?: string; titleAttr?: string; cssClasses?: string; children?: MenuItem[] }
+interface Props {
+	business: Business;
+	menu?: { items: MenuItem[] } | null;
+	siteTitle?: string;
+	isCurrent?: (url: string) => boolean;
+	/** Stays at the top while the page scrolls. */
+	sticky?: boolean;
+	class?: string;
+}
+const { business: b, menu = null, siteTitle = b.title, isCurrent = () => false, sticky = true, class: cls = "" } = Astro.props;
+const items = menu?.items ?? [];
+const kids = (i: MenuItem) => i.children ?? [];
+const mega = (i: MenuItem) => kids(i).some((c) => c.titleAttr);
+const logo = b.logo ? mediaUrl(b.logo) ?? b.logo.src : null;
+const initial = siteTitle.trim().charAt(0).toUpperCase();
+const bookHref = b.bookingUrl || "/contact";
+const bookInDialog = b.bookingOpens === "form";
+const portal = b.portalUrl ? { href: b.portalUrl, label: b.portalLabel } : null;
+---
+<header class={`ts-chrome ts-header ${sticky ? "ts-header-sticky" : ""} ${cls}`} data-tidy-chrome="header">
+	<div class="ts-header-wrap">
+		<a class="ts-brand" href="/">{logo ? <img class="ts-brand-logo" src={logo} alt={b.logo?.alt || siteTitle} width={b.logo?.width} height={b.logo?.height} /> : <><span class="ts-brand-mark">{initial}</span><span class="ts-brand-name">{siteTitle}</span></>}</a>
+		<nav class="ts-nav" aria-label="Main">
+			<ul class="ts-nav-list">
+				{items.map((i) => (
+					<li class={`ts-nav-item ${kids(i).length ? "ts-nav-has-children" : ""} ${mega(i) ? "ts-nav-has-mega" : ""} ${i.cssClasses ?? ""}`}>
+						<a class="ts-nav-link" href={i.url} target={i.target} title={i.titleAttr} aria-current={isCurrent(i.url) ? "page" : undefined}>{i.label}{kids(i).length > 0 && <svg class="ts-nav-caret" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>}</a>
+						{kids(i).length > 0 && (
+							<div class={`ts-nav-panel ${mega(i) ? "ts-nav-mega" : ""}`}>
+								<ul class="ts-nav-sub-list">
+									{kids(i).map((c) => (
+										<li class="ts-nav-sub-item">
+											<a class="ts-nav-sub-link" href={c.url} target={c.target} aria-current={isCurrent(c.url) ? "page" : undefined}><span class="ts-nav-sub-label">{c.label}</span>{c.titleAttr && <span class="ts-nav-sub-desc">{c.titleAttr}</span>}</a>
+											{kids(c).length > 0 && <ul class="ts-nav-sub-sub">{kids(c).map((g) => <li><a class="ts-nav-sub-sub-link" href={g.url} target={g.target}>{g.label}</a></li>)}</ul>}
+										</li>
+									))}
+								</ul>
+							</div>
+						)}
+					</li>
+				))}
+			</ul>
+		</nav>
+		<div class="ts-header-actions">
+			{b.headerPhone && b.phone && <a class="ts-header-phone" href={b.phoneHref}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z" fill="currentColor"/></svg><span>{b.phone}</span></a>}
+			{portal && <a class="ts-btn ts-btn-outline ts-header-portal" href={portal.href} target="_blank" rel="noopener">{portal.label}</a>}
+			{bookInDialog
+				? <button class="ts-btn ts-btn-accent ts-header-book" type="button" data-tidy-dialog="ts-booking">{b.bookingLabel}</button>
+				: <a class="ts-btn ts-btn-accent ts-header-book" href={bookHref}>{b.bookingLabel}</a>}
+			<button class="ts-menu-btn" type="button" aria-expanded="false" aria-controls="ts-mobile-menu"><span class="ts-menu-btn-label">Menu</span></button>
+		</div>
+	</div>
+	<nav class="ts-mobile-menu" id="ts-mobile-menu" hidden aria-label="Main">
+		<ul class="ts-mobile-list">
+			{items.map((i) => (
+				<li class="ts-mobile-item">
+					<a class="ts-mobile-link" href={i.url} target={i.target}>{i.label}</a>
+					{kids(i).length > 0 && <ul class="ts-mobile-sub">{kids(i).map((c) => <li><a class="ts-mobile-sub-link" href={c.url} target={c.target}>{c.label}</a>{kids(c).length > 0 && <ul class="ts-mobile-sub">{kids(c).map((g) => <li><a class="ts-mobile-sub-link" href={g.url}>{g.label}</a></li>)}</ul>}</li>)}</ul>}
+				</li>
+			))}
+		</ul>
+		<div class="ts-mobile-actions">
+			{b.phone && <a class="ts-btn ts-btn-outline" href={b.phoneHref}>{b.phone}</a>}
+			{portal && <a class="ts-btn ts-btn-outline" href={portal.href} target="_blank" rel="noopener">{portal.label}</a>}
+			{bookInDialog ? <button class="ts-btn ts-btn-accent" type="button" data-tidy-dialog="ts-booking">{b.bookingLabel}</button> : <a class="ts-btn ts-btn-accent" href={bookHref}>{b.bookingLabel}</a>}
+		</div>
+	</nav>
+</header>
+{bookInDialog && <Dialog id="ts-booking" title={b.bookingLabel}><Form name={b.bookingForm} hidden={{ section: "header" }} /></Dialog>}
+<script is:inline>
+(function(){
+	if (window.__tidyHeader) return; window.__tidyHeader = true;
+	document.addEventListener("click", function (e) {
+		var t = e.target instanceof Element ? e.target : null; if (!t) return;
+		var btn = t.closest(".ts-menu-btn");
+		if (btn) {
+			var id = btn.getAttribute("aria-controls"); var menu = id ? document.getElementById(id) : null; if (!menu) return;
+			var open = !menu.hasAttribute("hidden");
+			if (open) menu.setAttribute("hidden", ""); else menu.removeAttribute("hidden");
+			btn.setAttribute("aria-expanded", String(!open));
+			return;
+		}
+		// A tap on a parent link on a touch screen opens its panel first; a second tap follows the link.
+		var link = t.closest(".ts-nav-has-children > .ts-nav-link");
+		if (link && matchMedia("(hover: none)").matches) {
+			var item = link.parentElement;
+			if (!item.classList.contains("ts-nav-open")) { e.preventDefault(); document.querySelectorAll(".ts-nav-open").forEach(function (x) { x.classList.remove("ts-nav-open"); }); item.classList.add("ts-nav-open"); }
+			return;
+		}
+		if (!t.closest(".ts-nav-item")) document.querySelectorAll(".ts-nav-open").forEach(function (x) { x.classList.remove("ts-nav-open"); });
+	});
+	document.addEventListener("keydown", function (e) { if (e.key === "Escape") document.querySelectorAll(".ts-nav-open").forEach(function (x) { x.classList.remove("ts-nav-open"); }); });
+})();
+</script>

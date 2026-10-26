@@ -2,6 +2,7 @@
 /** Hero: headline, subhead, buttons, and a photo, a booking card, a form, or a picker of services. */
 import { bool, entries, getBusiness, nodeOf, pic, str } from "../lib";
 import Photo from "../Photo.astro";
+import Form from "../Form.astro";
 const n = nodeOf(Astro.props);
 const b = await getBusiness(Astro.request);
 const variant = str(n.variant, "headline and photo");
@@ -45,7 +46,7 @@ const over = variant === "photo with headline over";
 				<div class="ts-actions" style="margin-top:16px"><a class="ts-btn ts-btn-accent" href={button.href}>{button.label}</a>{b.phone && <a class="ts-btn ts-btn-outline" href={b.phoneHref}>Call us</a>}</div>
 			</div>
 		)}
-		{variant === "headline and form" && (
+		{variant === "headline and form" && (str(n.form) ? <Form name={str(n.form)} class="ts-card" submitLabel={str(n.button_label) || null} hidden={{ section: "hero" }} /> : (
 			<form class="ts-card ts-form" action="/api/lead" method="post">
 				<label class="ts-full">Name<input name="name" autocomplete="name" required /></label>
 				<label>Phone<input name="phone" type="tel" autocomplete="tel" /></label>
@@ -54,7 +55,7 @@ const over = variant === "photo with headline over";
 				<input class="ts-hp" type="text" name="website_hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
 				<div class="ts-full"><button class="ts-btn ts-btn-accent" type="submit">{button.label}</button></div>
 			</form>
-		)}
+		))}
 		{variant === "headline and picker" && services.length > 0 && (
 			<div class="ts-card" style="margin-top:28px">
 				<h3>{str(n.picker_title, "What do you need?")}</h3>

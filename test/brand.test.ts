@@ -1,0 +1,28 @@
+import { describe, expect, it } from "vitest";
+import { brandStyle, brandTokens, type Business } from "../src/sections/lib";
+
+const base = {
+	brandPrimary: "#1e5a46", brandAccent: "#e8b23a", fontDisplay: "Gabarito", fontBody: "Instrument Sans",
+	brandGround: "", brandSurface: "", brandInk: "", brandRadius: "", brandDensity: "", brandTypeScale: "", brandWidth: "",
+} as unknown as Business;
+
+describe("brand tokens", () => {
+	it("always sets the colour and font tokens, and leaves the rest to the theme when the record is silent", () => {
+		const t = brandTokens(base);
+		expect(t).toEqual({ "--brand-primary": "#1e5a46", "--brand-primary-ink": "#ffffff", "--brand-accent": "#e8b23a", "--brand-accent-ink": "#111111", "--brand-font-display": '"Gabarito", Arial, sans-serif', "--brand-font-body": '"Instrument Sans", "Helvetica Neue", Arial, sans-serif' });
+	});
+	it("sets radius, spacing, type and width when the record chooses them", () => {
+		const t = brandTokens({ ...base, brandRadius: "soft", brandDensity: "regular", brandTypeScale: "regular", brandWidth: "regular" });
+		expect(t).toMatchObject({ "--brand-radius": "10px", "--brand-type": "1", "--brand-max": "1180px" });
+		expect(t["--brand-space"]).toMatch(/^clamp/);
+	});
+	it("sets surface and ink tokens only when the record has them, deriving the secondary inks and the line", () => {
+		const t = brandTokens({ ...base, brandGround: "#fffdf7", brandSurface: "#ffffff", brandInk: "#1b1f3a", brandRadius: "pill", brandDensity: "airy", brandTypeScale: "large", brandWidth: "wide" });
+		expect(t).toMatchObject({ "--brand-ground": "#fffdf7", "--brand-surface": "#ffffff", "--brand-ink": "#1b1f3a", "--brand-radius": "28px", "--brand-type": "1.08", "--brand-max": "1320px" });
+		expect(t["--brand-ink-2"]).toBe("color-mix(in srgb, #1b1f3a 74%, #fffdf7)");
+		expect(t["--brand-line"]).toBe("color-mix(in srgb, #1b1f3a 16%, #fffdf7)");
+	});
+	it("renders as one inline style", () => {
+		expect(brandStyle(base)).toMatch(/^--brand-primary:#1e5a46;--brand-primary-ink:#ffffff;/);
+	});
+});

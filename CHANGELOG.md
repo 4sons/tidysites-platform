@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.0
+
+The look, the chrome and the forms come from data.
+
+- Tokens: the Business record carries page background, card colour, text colour, corner style, spacing, type size and content width beside the brand colours and fonts; `brandTokens()` and `brandStyle()` set them on `<html>` and the default sections read them with fallbacks (README, "Tokens").
+- The chrome: `chrome/header`, `chrome/footer` and `chrome/dialog`, with the class contract every theme styles. The header renders nested menu items as dropdowns or a mega panel, the phone, the portal button (`portal_label`) and the booking button, which opens a form in the dialog when `booking_opens` says so (README, "The chrome and its classes").
+- Forms as records: the `forms` collection, `sections/form` to render one anywhere by name, the `form` section, a Form field on the hero, contact and CTA sections, and `lead` (`handleLead`) as the one `/api/lead` route for staging and the live site, forwarding every answer under its question's label (README, "Forms").
+- `POST /_tidy/schema` applies only the structure items that changed since the last apply (each block type, collection and the relations is hashed and remembered in the `tidy:structure` option), one at a time within `budgetMs` (25 seconds by default), and answers `complete: false` when some are left for the next call; `force=1` applies everything. Before this a deploy that changed nothing structural re-applied 322 fields one query at a time and took minutes.
+
 ## 0.11.3
 
 - `refId()` and `refersTo()` in `sections/lib`: a reference field stores the entry's internal id, not its slug, and the services default now groups by category with that. Before this a category never matched its services.

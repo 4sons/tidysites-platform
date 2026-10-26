@@ -33,6 +33,11 @@
               "defaultValue": "headline and photo"
             },
             {
+              "slug": "form",
+              "label": "Form (its name)",
+              "type": "string"
+            },
+            {
               "slug": "body",
               "label": "Text",
               "type": "text"
@@ -1008,6 +1013,11 @@
               "defaultValue": "short"
             },
             {
+              "slug": "form",
+              "label": "Form (its name)",
+              "type": "string"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -1071,6 +1081,58 @@
               "slug": "show_business_details",
               "label": "Show address, phone and hours beside the form",
               "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "form",
+      "label": "Form",
+      "description": "One of the site's forms, on its own or beside the business details",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "card",
+                  "plain",
+                  "beside business details"
+                ]
+              },
+              "defaultValue": "card"
+            },
+            {
+              "slug": "form",
+              "label": "Form (its name)",
+              "type": "string"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "submit_label",
+              "label": "Button label (overrides the form's)",
+              "type": "string"
             }
           ]
         }
@@ -1159,6 +1221,11 @@
                 ]
               },
               "defaultValue": "band"
+            },
+            {
+              "slug": "form",
+              "label": "Form (its name)",
+              "type": "string"
             },
             {
               "slug": "eyebrow",
@@ -2195,8 +2262,29 @@
           "type": "string"
         },
         {
+          "slug": "booking_opens",
+          "label": "Booking button opens",
+          "type": "select",
+          "validation": {
+            "options": [
+              "the booking link",
+              "a form on this site"
+            ]
+          }
+        },
+        {
+          "slug": "booking_form",
+          "label": "Booking form (its name)",
+          "type": "string"
+        },
+        {
           "slug": "portal_url",
           "label": "Patient or client portal link",
+          "type": "string"
+        },
+        {
+          "slug": "portal_label",
+          "label": "Portal button label",
           "type": "string"
         },
         {
@@ -2305,6 +2393,11 @@
           "type": "string"
         },
         {
+          "slug": "header_phone",
+          "label": "Show the phone number in the header",
+          "type": "boolean"
+        },
+        {
           "slug": "facebook",
           "label": "Facebook",
           "type": "string"
@@ -2358,6 +2451,70 @@
           "slug": "font_body",
           "label": "Body font",
           "type": "string"
+        },
+        {
+          "slug": "brand_ground",
+          "label": "Page background colour",
+          "type": "string"
+        },
+        {
+          "slug": "brand_surface",
+          "label": "Card and panel colour",
+          "type": "string"
+        },
+        {
+          "slug": "brand_ink",
+          "label": "Text colour",
+          "type": "string"
+        },
+        {
+          "slug": "brand_radius",
+          "label": "Corner style",
+          "type": "select",
+          "validation": {
+            "options": [
+              "sharp",
+              "soft",
+              "rounded",
+              "pill"
+            ]
+          }
+        },
+        {
+          "slug": "brand_density",
+          "label": "Spacing",
+          "type": "select",
+          "validation": {
+            "options": [
+              "compact",
+              "regular",
+              "airy"
+            ]
+          }
+        },
+        {
+          "slug": "brand_type_scale",
+          "label": "Type size",
+          "type": "select",
+          "validation": {
+            "options": [
+              "compact",
+              "regular",
+              "large"
+            ]
+          }
+        },
+        {
+          "slug": "brand_width",
+          "label": "Content width",
+          "type": "select",
+          "validation": {
+            "options": [
+              "narrow",
+              "regular",
+              "wide"
+            ]
+          }
         },
         {
           "slug": "logo",
@@ -2569,6 +2726,7 @@
               "financing",
               "plans",
               "contact",
+              "form",
               "location",
               "cta",
               "gallery",
@@ -2666,6 +2824,7 @@
               "financing",
               "plans",
               "contact",
+              "form",
               "location",
               "cta",
               "gallery",
@@ -2803,6 +2962,7 @@
               "financing",
               "plans",
               "contact",
+              "form",
               "location",
               "cta",
               "gallery",
@@ -2945,6 +3105,7 @@
               "financing",
               "plans",
               "contact",
+              "form",
               "location",
               "cta",
               "gallery",
@@ -3341,6 +3502,105 @@
           "slug": "sort",
           "label": "Order",
           "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "forms",
+      "label": "Forms",
+      "labelSingular": "Form",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "intro",
+          "label": "Text above the questions",
+          "type": "text"
+        },
+        {
+          "slug": "contact_fields",
+          "label": "Contact details to ask for",
+          "type": "select",
+          "validation": {
+            "options": [
+              "name, phone and email",
+              "name and email",
+              "name and phone",
+              "name only"
+            ]
+          }
+        },
+        {
+          "slug": "questions",
+          "label": "Questions",
+          "type": "repeater",
+          "validation": {
+            "subFields": [
+              {
+                "slug": "label",
+                "label": "Question",
+                "type": "string"
+              },
+              {
+                "slug": "kind",
+                "label": "Answer",
+                "type": "select",
+                "validation": {
+                  "options": [
+                    "short answer",
+                    "long answer",
+                    "one choice",
+                    "several choices",
+                    "date",
+                    "number"
+                  ]
+                }
+              },
+              {
+                "slug": "options",
+                "label": "Choices, one per line",
+                "type": "text"
+              },
+              {
+                "slug": "required",
+                "label": "Required",
+                "type": "boolean"
+              },
+              {
+                "slug": "placeholder",
+                "label": "Hint inside the box",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        {
+          "slug": "submit_label",
+          "label": "Button label",
+          "type": "string"
+        },
+        {
+          "slug": "success_title",
+          "label": "Thank you headline",
+          "type": "string"
+        },
+        {
+          "slug": "success_message",
+          "label": "Thank you text",
+          "type": "text"
+        },
+        {
+          "slug": "consent_text",
+          "label": "Note under the button",
+          "type": "text"
         }
       ]
     },
@@ -3989,6 +4249,7 @@
               "financing",
               "plans",
               "contact",
+              "form",
               "location",
               "cta",
               "gallery",
