@@ -3,7 +3,7 @@
  * JSON in and returns plain data or throws HttpError. The route modules in
  * src/routes wire real dependencies; the tests wire an in-memory store.
  */
-import { HttpError, isEmail, isHttpUrl, isSafeLocalPath, randomToken } from "./http";
+import { HttpError, isEmail, isHttpUrl, isSafeLocalPath, randomToken, stableHash } from "./http";
 import type { PlatformStore, Role } from "./store";
 import { ROLE_LEVEL } from "./store";
 import { VERSION } from "../version";
@@ -131,30 +131,107 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 // Schema: bring an existing site's structure up to the template's
 // ---------------------------------------------------------------------------
 
-export interface SchemaResult {
-	ok: true;
-	applied: Record<string, unknown>;
-}
-
 /** The seed keys that describe structure; everything else is left out before applying. */
 const STRUCTURE_KEYS = ["$schema", "version", "defaultLocale", "blockTypes", "collections", "relations"] as const;
+/** Where a site remembers which structure items it has applied: { "bt:hero": "<hash>", "col:pages": "<hash>", "relations": "<hash>" }. */
+export const STRUCTURE_OPTION = "tidy:structure";
+
+export interface SchemaInput {
+	/** Stop after this long and report `complete: false`; the next call carries on. Default 25 seconds. */
+	budgetMs?: number;
+	/** Apply every item again, whether or not it changed. */
+	force?: boolean;
+}
+
+export interface SchemaResult {
+	ok: true;
+	/** Every changed item has been applied. False when the budget ran out first. */
+	complete: boolean;
+	/** Items applied on this call, in order. */
+	applied: string[];
+	/** Items left unchanged because the site already has this version of them. */
+	unchanged: number;
+	/** Items still waiting for a later call. */
+	remaining: number;
+	/** Counts from the seed apply, summed over this call. */
+	counts: Record<string, { created: number; updated: number; skipped: number }>;
+}
+
+type StructureItem = { key: string; seed: Record<string, unknown> };
+
+/** The structure as a list of independently applicable items: block types, then collections, then the relations as one. */
+function structureItems(structure: Record<string, unknown>): StructureItem[] {
+	const base: Record<string, unknown> = {};
+	for (const k of ["$schema", "version", "defaultLocale"] as const) if (structure[k] !== undefined) base[k] = structure[k];
+	const items: StructureItem[] = [];
+	for (const bt of Array.isArray(structure.blockTypes) ? (structure.blockTypes as Array<Record<string, unknown>>) : []) items.push({ key: `bt:${String(bt.slug)}`, seed: { ...base, blockTypes: [bt] } });
+	for (const col of orderCollections(Array.isArray(structure.collections) ? (structure.collections as Array<Record<string, unknown>>) : [])) items.push({ key: `col:${String(col.slug)}`, seed: { ...base, collections: [col] } });
+	if (Array.isArray(structure.relations) && structure.relations.length > 0) items.push({ key: "relations", seed: { ...base, collections: structure.collections ?? [], relations: structure.relations } });
+	return items;
+}
+
+/** Collections with the ones a reference field points at ahead of the ones pointing, so a new target exists before its referrer is applied; template order otherwise. */
+function orderCollections(cols: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+	const bySlug = new Map(cols.map((c) => [String(c.slug), c] as const));
+	const out: Array<Record<string, unknown>> = [];
+	const seen = new Set<string>();
+	const visit = (c: Record<string, unknown>, trail: Set<string>) => {
+		const slug = String(c.slug);
+		if (seen.has(slug) || trail.has(slug)) return;
+		trail.add(slug);
+		for (const f of Array.isArray(c.fields) ? (c.fields as Array<Record<string, unknown>>) : []) {
+			const target = (f.validation as { targetCollection?: unknown } | undefined)?.targetCollection;
+			if (typeof target === "string" && target !== slug && bySlug.has(target)) visit(bySlug.get(target)!, trail);
+		}
+		seen.add(slug);
+		out.push(c);
+	};
+	for (const c of cols) visit(c, new Set());
+	return out;
+}
+
+function addCounts(into: SchemaResult["counts"], r: Record<string, unknown>): void {
+	for (const [k, v] of Object.entries(r)) {
+		if (!v || typeof v !== "object") continue;
+		const c = v as { created?: number; updated?: number; skipped?: number };
+		const t = (into[k] ??= { created: 0, updated: 0, skipped: 0 });
+		t.created += c.created ?? 0; t.updated += c.updated ?? 0; t.skipped += c.skipped ?? 0;
+	}
+}
 
 /**
- * Apply the template seed's block types, collections, fields and relations to
- * a bootstrapped site. Existing definitions are updated to the template's,
- * missing ones are created, nothing is deleted, and entries, settings, menus,
- * taxonomies and sections are untouched. This is how a template schema change
- * reaches a site that was provisioned before it. Refuses before bootstrap.
+ * Put the template seed's block types, collections, fields and relations onto
+ * a bootstrapped site. Each item is hashed; one the site already holds at that
+ * hash is left alone, so a deploy that changed nothing structural is one read.
+ * Changed items are applied one at a time (existing definitions updated, new
+ * ones created, nothing deleted) and remembered as they land, so a call cut
+ * short by its budget is resumed by the next one. Entries, settings, menus,
+ * taxonomies and sections are never touched. Refuses before bootstrap.
  */
-export async function applySchema(deps: Deps): Promise<SchemaResult> {
+export async function applySchema(deps: Deps, input: SchemaInput = {}): Promise<SchemaResult> {
 	if ((await deps.store.getOption("emdash:setup_complete")) !== true) throw new HttpError(409, "site is not bootstrapped yet");
 	const full = await deps.seed.load();
 	const structure: Record<string, unknown> = {};
 	for (const k of STRUCTURE_KEYS) if (full[k] !== undefined) structure[k] = full[k];
 	const v = deps.seed.validate(structure);
 	if (!v.valid) throw new HttpError(500, "invalid seed", v.errors);
-	const applied = await deps.seed.applyStructure(structure);
-	return { ok: true, applied };
+	const budget = typeof input.budgetMs === "number" && input.budgetMs > 0 ? input.budgetMs : 25_000;
+	const started = (deps.now ?? Date.now)();
+	const known = ((await deps.store.getOption<Record<string, string>>(STRUCTURE_OPTION)) ?? {}) as Record<string, string>;
+	const items = structureItems(structure);
+	const hashes = await Promise.all(items.map((it) => stableHash(it.seed)));
+	const pending = items.map((it, i) => ({ ...it, hash: hashes[i]! })).filter((it) => input.force === true || known[it.key] !== it.hash);
+	const result: SchemaResult = { ok: true, complete: true, applied: [], unchanged: items.length - pending.length, remaining: 0, counts: {} };
+	let next = { ...known };
+	for (const it of pending) {
+		if ((deps.now ?? Date.now)() - started > budget) { result.complete = false; break; }
+		addCounts(result.counts, await deps.seed.applyStructure(it.seed));
+		next = { ...next, [it.key]: it.hash };
+		await deps.store.setOption(STRUCTURE_OPTION, next);
+		result.applied.push(it.key);
+	}
+	result.remaining = pending.length - result.applied.length;
+	return result;
 }
 
 // ---------------------------------------------------------------------------

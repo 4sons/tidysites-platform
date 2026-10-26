@@ -89,11 +89,22 @@ export interface Business {
 	insuranceLine: string; governmentPrograms: string; hsaFsaLine: string; licenseLine: string; insuredLine: string; warrantyLine: string; accessibilityLine: string; parkingLine: string; directionsLine: string;
 	social: Array<{ network: string; url: string }>;
 	brandPrimary: string; brandAccent: string; fontDisplay: string; fontBody: string;
+	/** Surface tokens, empty when the site leaves them to the theme. */
+	brandGround: string; brandSurface: string; brandInk: string;
+	brandRadius: BrandRadius; brandDensity: BrandScale; brandTypeScale: BrandScale; brandWidth: BrandWidth;
+	/** Header actions: the booking button, what it opens, the portal button, and whether the phone shows. */
+	bookingOpens: "link" | "form"; bookingForm: string; portalLabel: string; headerPhone: boolean;
 	logo: { src: string; alt?: string; width?: number; height?: number } | null;
 	ga4Id: string; gtmId: string; customCss: string;
 	raw: Record<string, unknown>;
 }
+/** Empty means the record leaves it to the theme. */
+export type BrandRadius = "" | "sharp" | "soft" | "rounded" | "pill";
+export type BrandScale = "" | "compact" | "regular" | "airy" | "large";
+export type BrandWidth = "" | "narrow" | "regular" | "wide";
 const NETWORKS = ["facebook", "instagram", "google", "youtube", "linkedin", "tiktok", "yelp"];
+const pickOne = <T extends string>(v: unknown, options: readonly T[], fallback: T): T => (options.includes(v as T) ? (v as T) : fallback);
+const hex = (v: unknown): string => (typeof v === "string" && /^#?[0-9a-f]{6}$/i.test(v.trim()) ? (v.trim().startsWith("#") ? v.trim() : `#${v.trim()}`) : "");
 function mediaSrc(v: unknown): Business["logo"] {
 	const src = mediaUrl(v); if (!src) return null;
 	const img = pic(v).image;
@@ -124,6 +135,9 @@ async function readBusiness(): Promise<Business> {
 		insuranceLine: s("insurance_line"), governmentPrograms: s("government_programs"), hsaFsaLine: s("hsa_fsa_line"), licenseLine: s("license_line"), insuredLine: s("insured_line"), warrantyLine: s("warranty_line"), accessibilityLine: s("accessibility_line"), parkingLine: s("parking_line"), directionsLine: s("directions_line"),
 		social: NETWORKS.map((n) => ({ network: n, url: s(n) })).filter((x) => x.url),
 		brandPrimary: primary, brandAccent: accent, fontDisplay: s("font_display") || "Bricolage Grotesque", fontBody: s("font_body") || "Public Sans",
+		brandGround: hex(d.brand_ground), brandSurface: hex(d.brand_surface), brandInk: hex(d.brand_ink),
+		brandRadius: pickOne(d.brand_radius, ["sharp", "soft", "rounded", "pill"], ""), brandDensity: pickOne(d.brand_density, ["compact", "regular", "airy"], ""), brandTypeScale: pickOne(d.brand_type_scale, ["compact", "regular", "large"], ""), brandWidth: pickOne(d.brand_width, ["narrow", "regular", "wide"], ""),
+		bookingOpens: s("booking_opens") === "a form on this site" ? "form" : "link", bookingForm: s("booking_form"), portalLabel: s("portal_label") || "Log in", headerPhone: bool(d.header_phone, true),
 		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), customCss: s("custom_css"), raw: d,
 	};
 }
@@ -140,10 +154,32 @@ export function inkFor(hex: string): string {
 	const n = parseInt(m[1]!, 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
 	return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? "#111111" : "#ffffff";
 }
+/** The brand tokens a business record sets on <html>; a theme's tokens.css reads them with fallbacks (see README, "Tokens"). */
+export function brandTokens(b: Business): Record<string, string> {
+	const font = (name: string, fallback: string) => `"${name.replace(/"/g, "")}", ${fallback}`;
+	const t: Record<string, string> = {
+		"--brand-primary": b.brandPrimary, "--brand-primary-ink": inkFor(b.brandPrimary),
+		"--brand-accent": b.brandAccent, "--brand-accent-ink": inkFor(b.brandAccent),
+		"--brand-font-display": font(b.fontDisplay, "Arial, sans-serif"), "--brand-font-body": font(b.fontBody, '"Helvetica Neue", Arial, sans-serif'),
+	};
+	if (b.brandRadius) t["--brand-radius"] = { sharp: "2px", soft: "10px", rounded: "18px", pill: "28px" }[b.brandRadius];
+	if (b.brandDensity) t["--brand-space"] = { compact: "clamp(36px,5vw,64px)", regular: "clamp(48px,7vw,96px)", airy: "clamp(64px,9vw,128px)", large: "clamp(64px,9vw,128px)" }[b.brandDensity];
+	if (b.brandTypeScale) t["--brand-type"] = { compact: "0.94", regular: "1", large: "1.08", airy: "1" }[b.brandTypeScale];
+	if (b.brandWidth) t["--brand-max"] = { narrow: "1040px", regular: "1180px", wide: "1320px" }[b.brandWidth];
+	if (b.brandGround) t["--brand-ground"] = b.brandGround;
+	if (b.brandSurface) t["--brand-surface"] = b.brandSurface;
+	if (b.brandInk) {
+		t["--brand-ink"] = b.brandInk;
+		const ground = b.brandGround || "#ffffff";
+		t["--brand-ink-2"] = `color-mix(in srgb, ${b.brandInk} 74%, ${ground})`;
+		t["--brand-ink-3"] = `color-mix(in srgb, ${b.brandInk} 52%, ${ground})`;
+		t["--brand-line"] = `color-mix(in srgb, ${b.brandInk} 16%, ${ground})`;
+	}
+	return t;
+}
 /** Inline style for <html>: the brand tokens from the business record. */
 export function brandStyle(b: Business): string {
-	const font = (name: string, fallback: string) => `"${name.replace(/"/g, "")}", ${fallback}`;
-	return [`--brand-primary:${b.brandPrimary}`, `--brand-primary-ink:${inkFor(b.brandPrimary)}`, `--brand-accent:${b.brandAccent}`, `--brand-accent-ink:${inkFor(b.brandAccent)}`, `--brand-font-display:${font(b.fontDisplay, "Arial, sans-serif")}`, `--brand-font-body:${font(b.fontBody, '"Helvetica Neue", Arial, sans-serif')}`].join(";");
+	return Object.entries(brandTokens(b)).map(([k, v]) => `${k}:${v}`).join(";");
 }
 /** Google Fonts stylesheet for the two brand families. */
 export function fontsHref(b: Business): string {
@@ -166,3 +202,14 @@ export function hoursGrouped(d: Record<string, unknown>): Array<{ days: string; 
 	return out.map((g) => ({ days: g.days.length > 2 ? `${g.days[0]} to ${g.days[g.days.length - 1]}` : g.days.join(" and "), value: g.value }));
 }
 export const todayKey = (): string => DAYS[(new Date().getDay() + 6) % 7]![0];
+
+/** A form record as the Form component renders it. */
+export interface FormRecord { id: string; slug: string | null; title: string; data: Record<string, unknown> }
+/** The form a section or the header names: by slug, by id, or by title, case-insensitively. Null when the site has no such form. */
+export async function getForm(name: string): Promise<FormRecord | null> {
+	const want = name.trim().toLowerCase();
+	if (!want) return null;
+	const all = await entries("forms", { limit: 100 });
+	const e = all.find((f) => [f.slug, f.id, refId(f), field(f, "title")].some((v) => typeof v === "string" && v.toLowerCase() === want));
+	return e ? { id: refId(e), slug: e.slug ?? null, title: field(e, "title"), data: e.data } : null;
+}

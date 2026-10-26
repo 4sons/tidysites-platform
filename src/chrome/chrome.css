@@ -1,0 +1,76 @@
+/* The chrome contract: header, footer and dialog, styled from the same tokens
+   as the sections (see defaults.css). A theme restyles these class names in
+   its own stylesheet; it never renames them, so a site's custom CSS written
+   on one theme carries to the next. */
+.ts-chrome{font-family:var(--ts-body);color:var(--ts-ink);line-height:1.5}
+.ts-chrome *{box-sizing:border-box}
+.ts-chrome a{color:inherit;text-decoration:none}
+.ts-chrome ul{list-style:none;margin:0;padding:0}
+.ts-chrome .ts-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--ts-display);font-weight:700;font-size:15px;padding:11px 18px;border-radius:999px;border:1.5px solid transparent;cursor:pointer;line-height:1.2;white-space:nowrap}
+.ts-chrome .ts-btn-accent{background:var(--ts-accent);color:var(--ts-accent-ink)}
+.ts-chrome .ts-btn-outline{background:transparent;color:inherit;border-color:var(--ts-line)}
+.ts-chrome .ts-btn-outline:hover{border-color:currentColor}
+
+/* Header */
+.ts-header{background:var(--ts-surface);border-bottom:1px solid var(--ts-line);z-index:30;position:relative}
+.ts-header-sticky{position:sticky;top:var(--tidy-bar,0px)}
+.ts-header-wrap{max-width:var(--ts-max);margin:0 auto;padding:0 var(--ts-gutter);display:flex;align-items:center;gap:24px;min-height:72px}
+.ts-brand{display:flex;align-items:center;gap:12px;font-family:var(--ts-display);font-weight:800;font-size:22px;letter-spacing:-.02em;flex-shrink:0}
+.ts-brand-logo{height:40px;width:auto;display:block}
+.ts-brand-mark{width:36px;height:36px;border-radius:calc(var(--ts-radius) * .7);background:var(--ts-primary);color:var(--ts-primary-ink);display:grid;place-items:center}
+.ts-nav{flex:1;min-width:0}
+.ts-nav-list{display:flex;gap:4px;align-items:center}
+.ts-nav-item{position:relative}
+.ts-nav-link{display:inline-flex;align-items:center;gap:6px;padding:10px 12px;border-radius:999px;font-weight:600;font-size:15px;color:var(--ts-ink-2)}
+.ts-nav-link:hover,.ts-nav-link[aria-current="page"]{color:var(--ts-ink);background:color-mix(in srgb,var(--ts-ink) 6%,transparent)}
+.ts-nav-caret{transition:transform .15s}
+.ts-nav-panel{position:absolute;top:100%;left:0;min-width:240px;padding:10px;background:var(--ts-surface);border:1px solid var(--ts-line);border-radius:var(--ts-radius);box-shadow:0 12px 32px -12px rgba(0,0,0,.25);opacity:0;visibility:hidden;transform:translateY(6px);transition:opacity .15s,transform .15s,visibility .15s;z-index:40}
+.ts-nav-item:hover>.ts-nav-panel,.ts-nav-item:focus-within>.ts-nav-panel,.ts-nav-item.ts-nav-open>.ts-nav-panel{opacity:1;visibility:visible;transform:none}
+.ts-nav-item:hover>.ts-nav-link .ts-nav-caret,.ts-nav-item.ts-nav-open>.ts-nav-link .ts-nav-caret{transform:rotate(180deg)}
+.ts-nav-sub-link{display:block;padding:9px 12px;border-radius:calc(var(--ts-radius) * .6);font-weight:600;font-size:14.5px;color:var(--ts-ink)}
+.ts-nav-sub-link:hover{background:color-mix(in srgb,var(--ts-primary) 8%,transparent)}
+.ts-nav-sub-desc{display:block;font-weight:400;font-size:13px;color:var(--ts-ink-3);margin-top:2px}
+.ts-nav-sub-sub{padding-left:12px}
+.ts-nav-sub-sub-link{display:block;padding:6px 12px;font-size:14px;color:var(--ts-ink-2)}
+.ts-nav-sub-sub-link:hover{color:var(--ts-ink)}
+.ts-nav-mega{min-width:min(720px,calc(100vw - 2 * var(--ts-gutter)));padding:18px}
+.ts-nav-mega .ts-nav-sub-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px 12px}
+.ts-header-actions{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.ts-header-phone{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:14px;padding:9px 12px;border-radius:999px;border:1.5px solid var(--ts-line);color:var(--ts-ink)}
+.ts-menu-btn{display:none;font:inherit;font-weight:700;background:none;border:1.5px solid var(--ts-line);border-radius:999px;padding:9px 14px;cursor:pointer;color:inherit}
+.ts-mobile-menu{border-top:1px solid var(--ts-line);background:var(--ts-surface);padding:8px var(--ts-gutter) 20px}
+.ts-mobile-menu[hidden]{display:none}
+.ts-mobile-link{display:block;padding:11px 0;font-weight:700;font-size:17px;border-bottom:1px solid var(--ts-line)}
+.ts-mobile-sub{padding:4px 0 8px 14px}
+.ts-mobile-sub-link{display:block;padding:8px 0;font-weight:500;color:var(--ts-ink-2)}
+.ts-mobile-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+@media (max-width:960px){
+	.ts-header .ts-nav,.ts-header .ts-header-phone,.ts-header .ts-header-portal,.ts-header .ts-header-book{display:none}
+	.ts-header .ts-menu-btn{display:inline-flex}
+}
+@media (min-width:961px){.ts-mobile-menu{display:none !important}}
+
+/* Footer */
+.ts-footer{padding:48px 0 40px;border-top:1px solid var(--ts-line);font-size:14px;color:var(--ts-ink-2);background:var(--ts-ground)}
+.ts-footer-wrap{max-width:var(--ts-max);margin:0 auto;padding:0 var(--ts-gutter);display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:28px}
+.ts-footer .ts-brand{font-size:19px;color:var(--ts-ink)}
+.ts-footer .ts-brand-logo{height:34px}
+.ts-footer-tagline{margin:14px 0 0;max-width:38ch}
+.ts-footer-heading{font-family:var(--ts-display);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ts-ink-3);font-weight:700;margin:0 0 12px}
+.ts-footer-list{display:grid;gap:7px}
+.ts-footer-list a:hover{color:var(--ts-ink)}
+.ts-footer-social{display:flex;gap:10px;margin-top:14px}
+.ts-footer-social-link{width:34px;height:34px;border-radius:50%;border:1px solid var(--ts-line);display:grid;place-items:center;font-weight:700;font-size:13px}
+.ts-footer-legal{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between;padding-top:22px;border-top:1px solid var(--ts-line);font-size:12.5px;color:var(--ts-ink-3)}
+@media (max-width:860px){.ts-footer-wrap{grid-template-columns:1fr 1fr}.ts-footer-brand{grid-column:1/-1}}
+@media (max-width:520px){.ts-footer-wrap{grid-template-columns:1fr}}
+
+/* Dialog */
+.ts-dialog{border:0;padding:0;background:transparent;max-width:min(560px,calc(100vw - 32px));width:100%;margin:auto}
+.ts-dialog::backdrop{background:rgba(10,14,12,.55);backdrop-filter:blur(2px)}
+.ts-dialog-box{position:relative;background:var(--ts-surface);color:var(--ts-ink);border-radius:var(--ts-radius);padding:28px;box-shadow:0 24px 64px -24px rgba(0,0,0,.5);max-height:calc(100vh - 48px);overflow:auto}
+.ts-dialog-title{font-family:var(--ts-display);font-size:24px;margin:0 36px 16px 0;line-height:1.15}
+.ts-dialog-close{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid var(--ts-line);background:var(--ts-surface);color:var(--ts-ink-2);display:grid;place-items:center;cursor:pointer}
+.ts-dialog-close:hover{color:var(--ts-ink)}
+.ts-dialog .ts-form{grid-template-columns:1fr 1fr}
+@media (max-width:600px){.ts-dialog .ts-form{grid-template-columns:1fr}}

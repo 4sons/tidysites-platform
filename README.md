@@ -52,6 +52,73 @@ The worker entry stays EmDash's own:
 export { default, PluginBridge } from "@emdash-cms/cloudflare/worker";
 ```
 
+## Tokens
+
+The Business record sets the brand on `<html>` through `brandStyle(business)` (from `sections/lib`), and every package section, the chrome and a theme's own stylesheet read the same tokens with fallbacks, so a site changes its look in the admin and a theme never invents a second set.
+
+| Token | From the Business record | Set when |
+|---|---|---|
+| `--brand-primary`, `--brand-primary-ink` | Brand colour, and the text colour that reads on it | always |
+| `--brand-accent`, `--brand-accent-ink` | Accent colour | always |
+| `--brand-font-display`, `--brand-font-body` | Display and body fonts | always |
+| `--brand-radius` | Corner style: sharp, soft, rounded, pill | when chosen |
+| `--brand-space` | Spacing: compact, regular, airy (the vertical rhythm between sections) | when chosen |
+| `--brand-type` | Type size: compact, regular, large (a multiplier on headings and ledes) | when chosen |
+| `--brand-max` | Content width: narrow, regular, wide | when chosen |
+| `--brand-ground`, `--brand-surface` | Page background and card colour | when the record has them |
+| `--brand-ink`, `--brand-ink-2`, `--brand-ink-3`, `--brand-line` | Text colour, and the two quieter inks and the line colour derived from it | when the record has a text colour |
+
+A theme's `tokens.css` maps its own names onto these (`--ground: var(--brand-ground, #f6f7f7)`), so a site that leaves a field empty gets the theme's voice and one that fills it gets its own. `custom_css` on the Business record is the last word.
+
+## The chrome and its classes
+
+`@tideworthy/tidysites-platform/chrome/header`, `chrome/footer` and `chrome/dialog` are the header, footer and modal every theme starts from. They render the primary menu with its children (a dropdown, or a mega panel when children carry a description in the admin's "title" box), the phone, the portal button and the booking button, which opens the booking form in the dialog when the Business record says "a form on this site". A theme uses them as they are and restyles the classes, or renders its own markup with the same class names. Either way the names are the contract, so a site's custom CSS written on one theme carries to the next.
+
+```astro
+---
+import Header from "@tideworthy/tidysites-platform/chrome/header";
+import Footer from "@tideworthy/tidysites-platform/chrome/footer";
+---
+<Header business={business} menu={menu} siteTitle={siteTitle} isCurrent={isCurrent} />
+<main><slot /></main>
+<Footer business={business} footerMenu={footerMenu} siteTitle={siteTitle} />
+```
+
+| Area | Classes |
+|---|---|
+| Header | `ts-header` (`ts-header-sticky`), `ts-header-wrap`, `ts-brand`, `ts-brand-logo`, `ts-brand-mark`, `ts-brand-name` |
+| Menu | `ts-nav`, `ts-nav-list`, `ts-nav-item` (`ts-nav-has-children`, `ts-nav-has-mega`, `ts-nav-open`), `ts-nav-link`, `ts-nav-caret`, `ts-nav-panel` (`ts-nav-mega`), `ts-nav-sub-list`, `ts-nav-sub-item`, `ts-nav-sub-link`, `ts-nav-sub-label`, `ts-nav-sub-desc`, `ts-nav-sub-sub`, `ts-nav-sub-sub-link` |
+| Actions | `ts-header-actions`, `ts-header-phone`, `ts-header-portal`, `ts-header-book`, `ts-menu-btn` |
+| Mobile menu | `ts-mobile-menu`, `ts-mobile-list`, `ts-mobile-item`, `ts-mobile-link`, `ts-mobile-sub`, `ts-mobile-sub-link`, `ts-mobile-actions` |
+| Footer | `ts-footer`, `ts-footer-wrap`, `ts-footer-brand`, `ts-footer-tagline`, `ts-footer-social`, `ts-footer-social-link`, `ts-footer-col`, `ts-footer-visit`, `ts-footer-heading`, `ts-footer-list`, `ts-footer-hours`, `ts-footer-legal` |
+| Dialog | `ts-dialog`, `ts-dialog-box`, `ts-dialog-title`, `ts-dialog-close`, `ts-dialog-body`; any element with `data-tidy-dialog="<id>"` opens the dialog with that id |
+| Buttons | `ts-btn`, `ts-btn-accent`, `ts-btn-outline`, `ts-btn-lg` |
+| Sections | `ts`, `ts-wrap`, `ts-head`, `ts-eyebrow`, `ts-lede`, `ts-grid`, `ts-split`, `ts-card`, `ts-chip`, `ts-form` and the rest of `sections/defaults.css` |
+
+A site's `src/custom/header.astro` still replaces the whole header when it must; the point of the contract is that it rarely must.
+
+## Forms
+
+A form is a record in the `forms` collection: a name, the contact details it asks for, its questions (short or long answer, one or several choices, a date, a number; each with its label, choices, whether it is required and a hint), the button label and the thank-you. `@tideworthy/tidysites-platform/sections/form` renders one anywhere by name:
+
+```astro
+---
+import Form from "@tideworthy/tidysites-platform/sections/form";
+---
+<Form name="Schedule a make up" class="ts-card" />
+```
+
+The `form` section places one on a page; the hero, contact and CTA sections take a form name in their Form field and render that instead of their built-in questions; the header's booking button opens the Business record's booking form in the dialog. Every form posts to `/api/lead` with the contact columns, the form's name and each answer under its question's label, and shows the form's thank-you in place (without JavaScript, the route redirects to `/thank-you`).
+
+The route is the package's too. A theme's server routes delegate to it, on staging and on the live site:
+
+```ts
+import { handleLead } from "@tideworthy/tidysites-platform/lead";
+if (path === "/lead") return handleLead(request, env);
+```
+
+It drops honeypot hits, checks Turnstile when `TURNSTILE_SECRET` is bound, and forwards the lead to the control plane with every answer (the platform stores it beside the site, emails the site's recipients and fires its webhooks).
+
 ## Framing the staging preview
 
 EmDash answers every page with `X-Frame-Options: SAMEORIGIN` unless a Content-Security-Policy is present. `tidyPlatform()` registers a middleware that, when the site carries a `TIDY_FRAME_ANCESTORS` variable (space-separated https origins), replaces that header with `Content-Security-Policy: frame-ancestors 'self' <origins>` so the platform's website page can embed the site. Without the variable nothing changes.
@@ -138,7 +205,7 @@ Writes real content over the template's sample content on a bootstrapped site. S
 
 Entries are upserted by slug (`slug` defaults to `id`). An existing entry keeps every field the document does not name, so a fill can send only what it knows and the template's images and blocks stay underneath. `remove` deletes the named sample entries; slugs written by the same call are never removed, and unknown slugs are reported back in `missing`. Refuses with 409 before bootstrap. Returns `{ ok, settings, content: { created, updated, media }, removed, missing }`. Re-running the same document is safe.
 
-### `POST /_tidy/schema`
+### `POST /_tidy/schema?budgetMs=25000&force=1`
 
 Applies the template seed's structure to a site that is already set up: block types (new ones created, compatible versions amended), collections and their fields (existing ones updated to the template's definition, missing ones added, nothing deleted) and relations. Entries, settings, menus, taxonomies and sections are untouched. Refuses with 409 before bootstrap. Returns `{ ok, applied }` with EmDash's counts. This is how a template schema change reaches a site provisioned before it; the platform calls it before deploying the new template artifact.
 

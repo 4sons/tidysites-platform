@@ -1,0 +1,25 @@
+---
+/** One of the site's forms as a section: on its own, in a card, or beside the business details. */
+import { bool, getBusiness, nodeOf, str, addressLine } from "../lib";
+import Head from "./_Head.astro";
+import Form from "../Form.astro";
+const n = nodeOf(Astro.props);
+const b = await getBusiness(Astro.request);
+const variant = str(n.variant, "card");
+const beside = variant === "beside business details";
+---
+<section class="ts" id="form"><div class="ts-wrap">
+	<Head n={n} />
+	<div class={beside ? "ts-split" : ""} style={beside ? "align-items:start" : "max-width:720px"}>
+		<Form name={str(n.form)} submitLabel={str(n.submit_label) || null} class={variant === "plain" ? "" : "ts-card"} hidden={{ section: str(n.headline) }} />
+		{beside && (
+			<dl class="ts-kv ts-card">
+				{b.phone && <><dt>Call or text</dt><dd><a href={b.phoneHref}>{b.phone}</a></dd></>}
+				{b.email && <><dt>Email</dt><dd><a href={`mailto:${b.email}`}>{b.email}</a></dd></>}
+				{b.hours && <><dt>Hours</dt><dd>{b.hours}</dd></>}
+				{addressLine(b) && <><dt>{b.isServiceArea ? "Based in" : "Address"}</dt><dd>{addressLine(b)}</dd></>}
+				{bool(n.show_parking) && b.parkingLine && <><dt>Parking</dt><dd>{b.parkingLine}</dd></>}
+			</dl>
+		)}
+	</div>
+</div></section>

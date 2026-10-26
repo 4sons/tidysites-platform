@@ -309,32 +309,91 @@ describe("fill", () => {
 });
 
 describe("applySchema", () => {
+	const seed = () => ({
+		version: "1",
+		settings: { title: "Seed Title" },
+		blockTypes: [{ slug: "hero", label: "Hero", currentVersion: 1, versions: [{ version: 1, fields: [] }] }],
+		collections: [{ slug: "pages", label: "Pages", fields: [] }],
+		relations: [],
+		menus: [{ name: "primary", items: [] }],
+		content: { pages: [{ id: "home", data: {} }] }
+	});
+
 	it("refuses before bootstrap", async () => {
 		const deps = createDeps();
 		await expect(applySchema(deps)).rejects.toMatchObject({ status: 409 });
 	});
 
-	it("applies only the structural parts of the seed and reports what changed", async () => {
+	it("applies each structural item on its own, remembers it, and leaves settings, menus and content alone", async () => {
 		const deps = createDeps();
-		deps.seed.load = async () => ({
-			version: "1",
-			settings: { title: "Seed Title" },
-			blockTypes: [{ slug: "hero", label: "Hero", currentVersion: 1, versions: [{ version: 1, fields: [] }] }],
-			collections: [{ slug: "pages", label: "Pages", fields: [] }],
-			relations: [],
-			menus: [{ name: "primary", items: [] }],
-			content: { pages: [{ id: "home", data: {} }] }
-		});
+		deps.seed.load = async () => seed();
+		const seen: unknown[] = [];
+		const inner = deps.seed.applyStructure;
+		deps.seed.applyStructure = async (s) => { seen.push(s); return inner(s); };
 		await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
 		const r = await applySchema(deps);
-		expect(r.ok).toBe(true);
-		expect(r.applied).toMatchObject({ blockTypes: { created: 1 }, fields: { created: 1, updated: 9 } });
-		expect(deps.store.state.structureApplied).toEqual({
-			version: "1",
-			blockTypes: [{ slug: "hero", label: "Hero", currentVersion: 1, versions: [{ version: 1, fields: [] }] }],
-			collections: [{ slug: "pages", label: "Pages", fields: [] }],
-			relations: []
-		});
+		expect(r).toMatchObject({ ok: true, complete: true, applied: ["bt:hero", "col:pages"], unchanged: 0, remaining: 0 });
+		expect(r.counts.fields).toEqual({ created: 2, updated: 18, skipped: 0 });
+		expect(seen).toEqual([
+			{ version: "1", blockTypes: [{ slug: "hero", label: "Hero", currentVersion: 1, versions: [{ version: 1, fields: [] }] }] },
+			{ version: "1", collections: [{ slug: "pages", label: "Pages", fields: [] }] }
+		]);
+		const remembered = deps.store.state.options.get("tidy:structure") as Record<string, string>;
+		expect(Object.keys(remembered).sort()).toEqual(["bt:hero", "col:pages"]);
+	});
+
+	it("a second call with nothing changed applies nothing", async () => {
+		const deps = createDeps();
+		deps.seed.load = async () => seed();
+		await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
+		await applySchema(deps);
+		let calls = 0;
+		deps.seed.applyStructure = async () => { calls++; return {}; };
+		const r = await applySchema(deps);
+		expect(r).toMatchObject({ complete: true, applied: [], unchanged: 2, remaining: 0 });
+		expect(calls).toBe(0);
+	});
+
+	it("applies only the items whose definition changed, and all of them with force", async () => {
+		const deps = createDeps();
+		deps.seed.load = async () => seed();
+		await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
+		await applySchema(deps);
+		deps.seed.load = async () => { const s = seed(); s.collections[0]!.fields = [{ slug: "title", label: "Title", type: "string" }] as never; return s; };
+		const r = await applySchema(deps);
+		expect(r.applied).toEqual(["col:pages"]);
+		expect(r.unchanged).toBe(1);
+		const f = await applySchema(deps, { force: true });
+		expect(f.applied).toEqual(["bt:hero", "col:pages"]);
+	});
+
+	it("applies a collection a reference field points at before the one pointing", async () => {
+		const deps = createDeps();
+		deps.seed.load = async () => {
+			const s = seed();
+			s.collections = [
+				{ slug: "business", label: "Business", fields: [{ slug: "booking_form", label: "Form", type: "reference", validation: { targetCollection: "forms" } }] },
+				{ slug: "pages", label: "Pages", fields: [] },
+				{ slug: "forms", label: "Forms", fields: [] }
+			] as never;
+			return s;
+		};
+		await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
+		const r = await applySchema(deps);
+		expect(r.applied).toEqual(["bt:hero", "col:forms", "col:business", "col:pages"]);
+	});
+
+	it("stops at its budget and the next call carries on where it left off", async () => {
+		let t = 0;
+		const deps = createDeps({ now: () => t });
+		deps.seed.load = async () => seed();
+		const inner = deps.seed.applyStructure;
+		deps.seed.applyStructure = async (s) => { t += 1000; return inner(s); };
+		await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
+		const first = await applySchema(deps, { budgetMs: 500 });
+		expect(first).toMatchObject({ complete: false, applied: ["bt:hero"], remaining: 1 });
+		const second = await applySchema(deps, { budgetMs: 500 });
+		expect(second).toMatchObject({ complete: true, applied: ["col:pages"], remaining: 0, unchanged: 1 });
 	});
 
 	it("refuses an invalid seed with 500 and the validator's details", async () => {

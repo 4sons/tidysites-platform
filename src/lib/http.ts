@@ -79,3 +79,20 @@ export function randomToken(bytes = 32): string {
 	for (const b of buf) s += String.fromCharCode(b);
 	return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
+
+/** JSON with object keys sorted at every level, so equal values hash equal. */
+export function stableJson(value: unknown): string {
+	if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+	if (value && typeof value === "object") {
+		const o = value as Record<string, unknown>;
+		return `{${Object.keys(o).sort().filter((k) => o[k] !== undefined).map((k) => `${JSON.stringify(k)}:${stableJson(o[k])}`).join(",")}}`;
+	}
+	return JSON.stringify(value) ?? "null";
+}
+
+/** SHA-256 of the stable JSON of a value, as hex. */
+export async function stableHash(value: unknown): Promise<string> {
+	const bytes = new TextEncoder().encode(stableJson(value));
+	const digest = await crypto.subtle.digest("SHA-256", bytes);
+	return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}

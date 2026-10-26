@@ -2,6 +2,7 @@
 /** A request or contact form, each extra question a switch, beside the business details. */
 import { bool, entries, getBusiness, nodeOf, str, addressLine } from "../lib";
 import Head from "./_Head.astro";
+import Form from "../Form.astro";
 const n = nodeOf(Astro.props);
 const b = await getBusiness(Astro.request);
 const variant = str(n.variant, "appointment request");
@@ -15,6 +16,7 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 <section class="ts" id="contact"><div class="ts-wrap">
 	<Head n={n} />
 	<div class={details ? "ts-split" : ""} style="align-items:start">
+		{str(n.form) ? <Form name={str(n.form)} submitLabel={str(n.submit_label) || null} hidden={{ section: "contact" }} /> : (
 		<form class="ts-form" action="/api/lead" method="post">
 			<label>Name<input name="name" autocomplete="name" required /></label>
 			<label>Phone<input name="phone" type="tel" autocomplete="tel" /></label>
@@ -31,6 +33,7 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 			{turnstile && <div class="cf-turnstile ts-full" data-sitekey={turnstile} data-size="flexible"></div>}
 			<div class="ts-full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="ts-btn ts-btn-accent" type="submit">{str(n.submit_label) || (variant === "question only" ? "Send question" : "Send request")}</button>{str(n.promise) && <span class="ts-muted" style="font-size:13px">{str(n.promise)}</span>}</div>
 		</form>
+		)}
 		{details && (
 			<dl class="ts-kv ts-card">
 				{b.phone && <><dt>Call or text</dt><dd><a href={b.phoneHref}>{b.phone}</a></dd></>}
