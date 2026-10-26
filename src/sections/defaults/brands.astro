@@ -1,6 +1,7 @@
 ---
 import { entries, nodeOf, pic, str, mediaUrl } from "../lib";
 import Head from "./_Head.astro";
+import Carousel from "./_Carousel.astro";
 const n = nodeOf(Astro.props);
 let items = await entries("brands", { limit: 40 });
 if (str(n.group)) items = items.filter((b) => str(b.data.group) === str(n.group));
@@ -9,6 +10,8 @@ const names = str(n.variant) === "names";
 {items.length > 0 && (
 <section class="ts ts-tight"><div class="ts-wrap">
 	<Head n={n} />
-	{names ? <p class="ts-lede" style="margin:0">{items.map((b) => str(b.data.title)).join(", ")}</p> : <div class="ts-logos">{items.map((b) => { const p = pic(b.data.logo); const Tag = str(b.data.url) ? "a" : "div"; return <Tag class="ts-logo" href={str(b.data.url) || undefined} data-tidy-record="brands" data-tidy-record-id={b.id} data-tidy-record-label="Brand">{mediaUrl(p) && <img src={mediaUrl(p) ?? ""} alt="" />}<span>{str(b.data.title)}</span></Tag>; })}</div>}
+	{str(n.variant) === "carousel" ? (
+		<Carousel cols={6} label="Brands" class="ts-carousel-logos">{items.map((b) => { const p = pic(b.data.logo); const Tag = str(b.data.url) ? "a" : "div"; return <Tag class="ts-logo ts-carousel-item" href={str(b.data.url) || undefined}>{mediaUrl(p) ? <img src={mediaUrl(p) ?? ""} alt={str(b.data.title)} loading="lazy" /> : <span>{str(b.data.title)}</span>}</Tag>; })}</Carousel>
+	) : names ? <p class="ts-lede" style="margin:0">{items.map((b) => str(b.data.title)).join(", ")}</p> : <div class="ts-logos">{items.map((b) => { const p = pic(b.data.logo); const Tag = str(b.data.url) ? "a" : "div"; return <Tag class="ts-logo" href={str(b.data.url) || undefined} data-tidy-record="brands" data-tidy-record-id={b.id} data-tidy-record-label="Brand">{mediaUrl(p) && <img src={mediaUrl(p) ?? ""} alt="" />}<span>{str(b.data.title)}</span></Tag>; })}</div>}
 </div></section>
 )}

@@ -93,7 +93,11 @@ export interface Business {
 	brandGround: string; brandSurface: string; brandInk: string;
 	brandRadius: BrandRadius; brandDensity: BrandScale; brandTypeScale: BrandScale; brandWidth: BrandWidth;
 	/** Header actions: the booking button, what it opens, the portal button, and whether the phone shows. */
-	bookingOpens: "link" | "form"; bookingForm: string; portalLabel: string; headerPhone: boolean;
+	bookingOpens: "link" | "form" | "embed"; bookingForm: string; portalLabel: string; headerPhone: boolean;
+	/** The bar at the bottom of a phone screen and the line above the header. */
+	callBar: "call and book" | "call only" | "book only" | "off"; topBarText: string; topBarLink: string;
+	/** Third parties by id (or the pasted embed the id is read from): see lib/providers. */
+	chatProvider: string; chatId: string; reviewsWidget: string; reviewsWidgetId: string; bookingEmbed: string; bookingEmbedId: string; metaPixelId: string; googleAdsId: string;
 	logo: { src: string; alt?: string; width?: number; height?: number } | null;
 	ga4Id: string; gtmId: string; customCss: string;
 	raw: Record<string, unknown>;
@@ -110,14 +114,26 @@ function mediaSrc(v: unknown): Business["logo"] {
 	const img = pic(v).image;
 	return { src, alt: img?.alt, width: img?.width, height: img?.height };
 }
+/** The one published record of a one-record collection, or nothing on a site that lacks it. */
+async function oneRecord(collection: string): Promise<Entry | null> {
+	try {
+		const r = await getEmDashCollection(collection, { status: "published", limit: 1 } as never);
+		return ((r as { entries?: Entry[] }).entries ?? [])[0] ?? null;
+	} catch { return null; }
+}
+/**
+ * The business record plus its two companions, read together. D1 allows a
+ * table 100 columns and EmDash gives every field one, so the Business
+ * collection stays under 75 fields (test/template.test.ts holds the line)
+ * and the header and footer settings and the third parties live in their
+ * own one-record collections, `frame` and `integrations`.
+ */
 async function readBusiness(): Promise<Business> {
 	let d: Record<string, unknown> = {}; let id: string | null = null; let siteTitle = "";
 	try { const s = (await getSiteSettings()) as { title?: string } | null; siteTitle = s?.title ?? ""; } catch { /* no settings yet */ }
-	try {
-		const r = await getEmDashCollection("business", { status: "published", limit: 1 } as never);
-		const e = ((r as { entries?: Entry[] }).entries ?? [])[0];
-		if (e) { d = e.data; id = e.id; }
-	} catch { /* collection missing on an older site */ }
+	const [biz, frame, integrations] = await Promise.all([oneRecord("business"), oneRecord("frame"), oneRecord("integrations")]);
+	if (biz) { d = biz.data; id = biz.id; }
+	const fr = frame?.data ?? {}; const ig = integrations?.data ?? {};
 	const s = (k: string, alt?: string) => str(d[k]) || (alt ? str(d[alt]) : "");
 	const phone = s("phone"); const phoneText = s("phone_text");
 	const founded = num(d.founded_year);
@@ -137,7 +153,9 @@ async function readBusiness(): Promise<Business> {
 		brandPrimary: primary, brandAccent: accent, fontDisplay: s("font_display") || "Bricolage Grotesque", fontBody: s("font_body") || "Public Sans",
 		brandGround: hex(d.brand_ground), brandSurface: hex(d.brand_surface), brandInk: hex(d.brand_ink),
 		brandRadius: pickOne(d.brand_radius, ["sharp", "soft", "rounded", "pill"], ""), brandDensity: pickOne(d.brand_density, ["compact", "regular", "airy"], ""), brandTypeScale: pickOne(d.brand_type_scale, ["compact", "regular", "large"], ""), brandWidth: pickOne(d.brand_width, ["narrow", "regular", "wide"], ""),
-		bookingOpens: s("booking_opens") === "a form on this site" ? "form" : "link", bookingForm: s("booking_form"), portalLabel: s("portal_label") || "Log in", headerPhone: bool(d.header_phone, true),
+		bookingOpens: s("booking_opens") === "a form on this site" ? "form" : s("booking_opens") === "the booking embed" ? "embed" : "link", bookingForm: s("booking_form"), portalLabel: s("portal_label") || "Log in", headerPhone: bool(d.header_phone, true),
+		callBar: pickOne(fr.call_bar, ["call and book", "call only", "book only", "off"], "call and book"), topBarText: str(fr.top_bar_text), topBarLink: str(fr.top_bar_link),
+		chatProvider: str(ig.chat_provider), chatId: str(ig.chat_id), reviewsWidget: str(ig.reviews_widget), reviewsWidgetId: str(ig.reviews_widget_id), bookingEmbed: str(ig.booking_embed), bookingEmbedId: str(ig.booking_embed_id), metaPixelId: str(ig.meta_pixel_id), googleAdsId: str(ig.google_ads_id),
 		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), customCss: s("custom_css"), raw: d,
 	};
 }

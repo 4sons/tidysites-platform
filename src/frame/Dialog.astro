@@ -2,13 +2,13 @@
 /**
  * A dialog any element opens with data-tidy-dialog="<id>". Holds whatever is
  * slotted in: a form, a map, a video. Closes on the close button, the
- * backdrop or Escape. Styled through the chrome contract (ts-dialog-*).
+ * backdrop or Escape. Styled through the frame contract (ts-dialog-*).
  */
-import "./chrome.css";
+import "./frame.css";
 interface Props { id: string; title?: string | null; class?: string }
 const { id, title = null, class: cls = "" } = Astro.props;
 ---
-<dialog class={`ts-chrome ts-dialog ${cls}`} id={id} aria-labelledby={title ? `${id}-title` : undefined}>
+<dialog class={`ts-frame ts-dialog ${cls}`} id={id} aria-labelledby={title ? `${id}-title` : undefined}>
 	<div class="ts-dialog-box">
 		<button class="ts-dialog-close" type="button" data-tidy-dialog-close aria-label="Close"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
 		{title && <h2 class="ts-dialog-title" id={`${id}-title`}>{title}</h2>}

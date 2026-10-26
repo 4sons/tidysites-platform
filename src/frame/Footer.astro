@@ -2,13 +2,13 @@
 /**
  * The site footer: brand and tagline with the social links, a column of
  * services, the footer menu, the visit details, and the legal line. Classes
- * from the chrome contract (ts-footer-*).
+ * from the frame contract (ts-footer-*).
  */
 import type { Business } from "../sections/lib";
 import { addressLine, entries, mediaUrl } from "../sections/lib";
 import type { MenuItem } from "./Header.astro";
 import "../sections/defaults.css";
-import "./chrome.css";
+import "./frame.css";
 interface Props {
 	business: Business;
 	menu?: { items: MenuItem[] } | null;
@@ -26,7 +26,7 @@ const logo = b.logo ? mediaUrl(b.logo) ?? b.logo.src : null;
 const initial = siteTitle.trim().charAt(0).toUpperCase();
 const year = new Date().getFullYear();
 ---
-<footer class={`ts-chrome ts-footer ${cls}`} data-tidy-chrome="footer">
+<footer class={`ts-frame ts-footer ${cls}`} data-tidy-frame="footer">
 	<div class="ts-footer-wrap">
 		<div class="ts-footer-brand">
 			<a class="ts-brand" href="/">{logo ? <img class="ts-brand-logo" src={logo} alt={b.logo?.alt || siteTitle} /> : <><span class="ts-brand-mark">{initial}</span><span class="ts-brand-name">{siteTitle}</span></>}</a>

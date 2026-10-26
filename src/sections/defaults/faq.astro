@@ -2,7 +2,9 @@
 /** Questions from the records, filtered by group or service, plus any written into the section. */
 import { bool, entries, int, list, nodeOf, str } from "../lib";
 import Head from "./_Head.astro";
+import Tabs from "./_Tabs.astro";
 const n = nodeOf(Astro.props);
+const variant = str(n.variant, "accordion");
 const group = str(n.group);
 let items = await entries("faqs", { limit: int(n.limit, 40), ...(group ? { where: { group } } : {}) });
 const extra = list<Record<string, unknown>>(n.items).filter((q) => str(q.question));
@@ -12,9 +14,15 @@ const groups = grouped ? [...new Set(items.map((q) => str(q.data.group)))].map((
 {(items.length > 0 || extra.length > 0) && (
 <section class="ts ts-band" id="faq"><div class="ts-wrap">
 	<Head n={n} />
-	<div style="max-width:820px">
+	{variant === "tabs" && (groups.length > 1 || items.length > 0) ? (
+		<Tabs items={groups.length > 1 ? groups.map((g) => g.title || "General") : [...items.map((q) => str(q.data.title)), ...extra.map((q) => str(q.question))]} class="ts-faq-tabs">
+			{groups.length > 1
+				? groups.map((g) => <div class="ts-tab-panel" role="tabpanel">{g.items.map((q) => <details data-tidy-record="faqs" data-tidy-record-id={q.id} data-tidy-record-label="Question"><summary>{str(q.data.title)}</summary><div class="ts-a">{str(q.data.answer)}</div></details>)}</div>)
+				: [...items.map((q) => <div class="ts-tab-panel ts-a" role="tabpanel" data-tidy-record="faqs" data-tidy-record-id={q.id} data-tidy-record-label="Question">{str(q.data.answer)}</div>), ...extra.map((q) => <div class="ts-tab-panel ts-a" role="tabpanel">{str(q.answer)}</div>)]}
+		</Tabs>
+	) : <div style={variant === "two columns" ? "columns:2;column-gap:32px" : "max-width:820px"}>
 		{groups.map((g) => <div>{g.title && <p class="ts-group">{g.title}</p>}{g.items.map((q) => <details data-tidy-record="faqs" data-tidy-record-id={q.id} data-tidy-record-label="Question"><summary>{str(q.data.title)}</summary><div class="ts-a">{str(q.data.answer)}</div></details>)}</div>)}
 		{extra.map((q) => <details><summary>{str(q.question)}</summary><div class="ts-a">{str(q.answer)}</div></details>)}
-	</div>
+	</div>}
 </div></section>
 )}

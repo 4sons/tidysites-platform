@@ -21,6 +21,9 @@ describe("the template", () => {
 			for (const t of SECTION_TYPES) expect(allowed, `${c.slug}.sections allows ${t}`).toContain(t);
 		}
 	});
+	it("keeps every collection under D1's column cap (100 columns a table, one per field plus EmDash's own)", () => {
+		for (const c of collections) expect(c.fields.length, `${c.slug} has ${c.fields.length} fields; a new group of fields gets its own one-record collection`).toBeLessThanOrEqual(75);
+	});
 	it("requires only names", () => {
 		for (const c of collections) {
 			const required = c.fields.filter((f) => f.required).map((f) => f.slug);

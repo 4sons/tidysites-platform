@@ -2,6 +2,8 @@
 /** Reviews from the records, with the business's rating and count beside them. */
 import { bool, entries, getBusiness, int, nodeOf, pic, str, mediaUrl } from "../lib";
 import Head from "./_Head.astro";
+import Carousel from "./_Carousel.astro";
+import { reviewsWidgetHtml } from "../../lib/providers";
 const n = nodeOf(Astro.props);
 const b = await getBusiness(Astro.request);
 const variant = str(n.variant, "aggregate with quotes");
@@ -12,15 +14,26 @@ const svc = str(n.service), area = str(n.service_area);
 if (svc) items = items.filter((r) => String(r.data.service ?? "") === svc || true);
 if (variant === "video testimonials") items = items.filter((r) => str(r.data.video_url));
 const rating = b.rating ? b.rating.toFixed(1) : null;
+const widget = variant === "provider widget" ? reviewsWidgetHtml(b.reviewsWidget, b.reviewsWidgetId) : null;
 const stars = (v: unknown) => { const r = typeof v === "number" ? Math.max(1, Math.min(5, Math.round(v))) : 5; return "★".repeat(r); };
 const embed = (u: string) => u.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/");
 const who = (r: { data: Record<string, unknown> }) => str(r.data.display_name) || str(r.data.title);
 const when = (r: { data: Record<string, unknown> }) => { const d = str(r.data.date); return d ? new Date(d).toLocaleDateString("en-CA", { month: "long", year: "numeric" }) : ""; };
 ---
-{(items.length > 0 || (bool(n.show_aggregate, true) && rating)) && (
+{(items.length > 0 || widget || (bool(n.show_aggregate, true) && rating)) && (
 <section class="ts" id="reviews"><div class="ts-wrap">
 	<Head n={n} action={bool(n.show_review_links) && b.reviewsUrl ? { href: b.reviewsUrl, label: "Read them all" } : null} />
-	{variant === "single quote band" && items[0] ? (
+	{widget ? (
+		<div class="ts-widget"><Fragment set:html={widget} /></div>
+	) : variant === "carousel" ? (
+		<Carousel cols={3} label="Reviews">{items.map((r) => { const ph = pic(r.data.photo); return (
+			<article class="ts-card ts-review ts-carousel-item" data-tidy-record="reviews" data-tidy-record-id={r.id} data-tidy-record-label="Review">
+				<span class="ts-stars" aria-label={`${stars(r.data.rating).length} stars`}>{stars(r.data.rating)}</span>
+				<blockquote>{str(r.data.quote)}</blockquote>
+				<div class="ts-who">{(ph.image || ph.url) && <span class="ts-avatar"><img src={mediaUrl(ph) ?? ""} alt="" /></span>}<div><b>{who(r)}</b><span>{[bool(n.show_source, true) ? str(r.data.source) : "", when(r)].filter(Boolean).join(" · ")}</span></div></div>
+			</article>
+		); })}</Carousel>
+	) : variant === "single quote band" && items[0] ? (
 		<div style="max-width:64ch"><p class="ts-stars">{stars(items[0].data.rating)}</p><p style="font-family:var(--ts-display);font-size:clamp(22px,2.4vw,30px);line-height:1.3;margin-top:12px">“{str(items[0].data.quote)}”</p><p class="ts-muted" style="margin-top:12px">{who(items[0])}{bool(n.show_source, true) && str(items[0].data.source) ? ` · ${str(items[0].data.source)}` : ""}</p></div>
 	) : variant === "video testimonials" ? (
 		<div class="ts-grid" style="--cols:3">{items.map((r) => <div><div class="ts-video"><iframe src={embed(str(r.data.video_url))} title={who(r)} loading="lazy" allowfullscreen></iframe></div><p style="margin-top:8px;font-weight:600">{who(r)}</p></div>)}</div>
