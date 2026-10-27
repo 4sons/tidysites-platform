@@ -1,10 +1,11 @@
 ---
 /** A request or contact form, each extra question a switch, beside the business details. */
-import { bool, entries, getBusiness, nodeOf, str, addressLine } from "../lib";
+import { bool, entries, getBusiness, nodeOf, str, addressLine, wording } from "../lib";
 import Head from "./_Head.astro";
 import Form from "../Form.astro";
 const n = nodeOf(Astro.props);
 const b = await getBusiness(Astro.request);
+const tx = await wording(Astro.request);
 const variant = str(n.variant, "appointment request");
 const services = bool(n.ask_service, variant !== "question only") ? await entries("services", { limit: 40 }) : [];
 const providers = bool(n.ask_provider) ? await entries("people", { limit: 20 }) : [];
@@ -18,30 +19,30 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 	<div class={details ? "ts-split" : ""} style="align-items:start">
 		{str(n.form) ? <Form name={str(n.form)} submitLabel={str(n.submit_label) || null} hidden={{ section: "contact" }} /> : (
 		<form class="ts-form" action="/api/lead" method="post">
-			<label>Name<input name="name" autocomplete="name" required /></label>
-			<label>Phone<input name="phone" type="tel" autocomplete="tel" /></label>
-			<label class={variant === "short" ? "ts-full" : ""}>Email<input name="email" type="email" autocomplete="email" /></label>
-			{services.length > 0 && <label>What is it about?<select name="service"><option value="">Choose one</option>{services.map((s) => <option value={s.id}>{str(s.data.title)}</option>)}<option value="other">Something else</option></select></label>}
-			{providers.length > 0 && <label>Who would you like to see?<select name="provider"><option value="">No preference</option>{providers.map((p) => <option value={p.id}>{str(p.data.display_name) || str(p.data.title)}</option>)}</select></label>}
-			{bool(n.ask_patient_type) && <div class="ts-full"><span style="font-size:13px;font-weight:600;color:var(--ts-ink-2);display:block;margin-bottom:8px">Are you</span><div class="ts-choices"><label><input type="radio" name="patient_type" value="new" /> New</label><label><input type="radio" name="patient_type" value="existing" /> Existing</label></div></div>}
-			{bool(n.ask_day) && <div class="ts-full"><span style="font-size:13px;font-weight:600;color:var(--ts-ink-2);display:block;margin-bottom:8px">Days that work</span><div class="ts-choices">{DAYS.map((d) => <label><input type="checkbox" name="days" value={d} /> {d}</label>)}</div></div>}
-			{bool(n.ask_time) && <label>Preferred time<select name="time"><option>Any</option><option>Morning</option><option>Afternoon</option><option>Evening</option></select></label>}
-			{bool(n.ask_contact_method) && <label>How should we reply?<select name="contact_method"><option>Phone</option><option>Text</option><option>Email</option></select></label>}
-			{bool(n.ask_referrer) && <label class="ts-full">How did you hear about us?<input name="referrer" /></label>}
-			{variant !== "short" && <label class="ts-full">{variant === "question only" ? "Your question" : "Anything we should know?"}<textarea name="message"></textarea></label>}
+			<label>{tx("Name")}<input name="name" autocomplete="name" required /></label>
+			<label>{tx("Phone")}<input name="phone" type="tel" autocomplete="tel" /></label>
+			<label class={variant === "short" ? "ts-full" : ""}>{tx("Email")}<input name="email" type="email" autocomplete="email" /></label>
+			{services.length > 0 && <label>{tx("What is it about?")}<select name="service"><option value="">{tx("Choose one")}</option>{services.map((s) => <option value={s.id}>{str(s.data.title)}</option>)}<option value="other">{tx("Something else")}</option></select></label>}
+			{providers.length > 0 && <label>{tx("Who would you like to see?")}<select name="provider"><option value="">{tx("No preference")}</option>{providers.map((p) => <option value={p.id}>{str(p.data.display_name) || str(p.data.title)}</option>)}</select></label>}
+			{bool(n.ask_patient_type) && <div class="ts-full"><span style="font-size:13px;font-weight:600;color:var(--ts-ink-2);display:block;margin-bottom:8px">{tx("Are you")}</span><div class="ts-choices"><label><input type="radio" name="patient_type" value="new" /> New</label><label><input type="radio" name="patient_type" value="existing" /> Existing</label></div></div>}
+			{bool(n.ask_day) && <div class="ts-full"><span style="font-size:13px;font-weight:600;color:var(--ts-ink-2);display:block;margin-bottom:8px">{tx("Days that work")}</span><div class="ts-choices">{DAYS.map((d) => <label><input type="checkbox" name="days" value={d} /> {d}</label>)}</div></div>}
+			{bool(n.ask_time) && <label>{tx("Preferred time")}<select name="time"><option>{tx("Any")}</option><option>{tx("Morning")}</option><option>{tx("Afternoon")}</option><option>{tx("Evening")}</option></select></label>}
+			{bool(n.ask_contact_method) && <label>{tx("How should we reply?")}<select name="contact_method"><option>{tx("Phone")}</option><option>{tx("Text")}</option><option>{tx("Email")}</option></select></label>}
+			{bool(n.ask_referrer) && <label class="ts-full">{tx("How did you hear about us?")}<input name="referrer" /></label>}
+			{variant !== "short" && <label class="ts-full">{variant === "question only" ? tx("Your question") : tx("Anything we should know?")}<textarea name="message"></textarea></label>}
 			<input class="ts-hp" type="text" name="website_hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
 			{turnstile && <div class="cf-turnstile ts-full" data-sitekey={turnstile} data-size="flexible"></div>}
-			<div class="ts-full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="ts-btn ts-btn-accent" type="submit">{str(n.submit_label) || (variant === "question only" ? "Send question" : "Send request")}</button>{str(n.promise) && <span class="ts-muted" style="font-size:13px">{str(n.promise)}</span>}</div>
+			<div class="ts-full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="ts-btn ts-btn-accent" type="submit">{str(n.submit_label) || (variant === "question only" ? tx("Send question") : tx("Send request"))}</button>{str(n.promise) && <span class="ts-muted" style="font-size:13px">{str(n.promise)}</span>}</div>
 		</form>
 		)}
 		{details && (
 			<dl class="ts-kv ts-card">
-				{b.phone && <><dt>Call or text</dt><dd><a href={b.phoneHref}>{b.phone}</a></dd></>}
-				{b.email && <><dt>Email</dt><dd><a href={`mailto:${b.email}`}>{b.email}</a></dd></>}
-				{b.hours && <><dt>Hours</dt><dd>{b.hours}</dd></>}
-				{addressLine(b) && <><dt>{b.isServiceArea ? "Based in" : "Address"}</dt><dd>{addressLine(b)}</dd></>}
-				{b.sameDayLine && <><dt>Same day</dt><dd>{b.sameDayLine}</dd></>}
-				{b.parkingLine && <><dt>Parking</dt><dd>{b.parkingLine}</dd></>}
+				{b.phone && <><dt>{tx("Call or text")}</dt><dd><a href={b.phoneHref}>{b.phone}</a></dd></>}
+				{b.email && <><dt>{tx("Email")}</dt><dd><a href={`mailto:${b.email}`}>{b.email}</a></dd></>}
+				{b.hours && <><dt>{tx("Hours")}</dt><dd>{b.hours}</dd></>}
+				{addressLine(b) && <><dt>{b.isServiceArea ? tx("Based in") : "Address"}</dt><dd>{addressLine(b)}</dd></>}
+				{b.sameDayLine && <><dt>{tx("Same day")}</dt><dd>{b.sameDayLine}</dd></>}
+				{b.parkingLine && <><dt>{tx("Parking")}</dt><dd>{b.parkingLine}</dd></>}
 			</dl>
 		)}
 	</div>

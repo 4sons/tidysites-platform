@@ -1,9 +1,10 @@
 ---
 /** Business details: name, address, phone, email, hours day by day, socials and the map, each on or off, as a row, a card or two columns. */
-import { addressLine, bool, getBusiness, getLocation, hoursRows, nodeOf, str, todayKey, DAYS } from "../lib";
+import { addressLine, bool, getBusiness, getLocation, hoursRows, nodeOf, str, todayKey, DAYS, wording } from "../lib";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
 const b = await getBusiness(Astro.request);
+const tx = await wording(Astro.request);
 const loc = await getLocation(str(n.location));
 const d = loc?.data ?? {};
 const variant = str(n.variant, "row");
@@ -19,11 +20,11 @@ const tel = (p: string) => `tel:${p.replace(/[^\d+]/g, "")}`;
 	<Head n={n} />
 	<div class="ts-details-body">
 		<dl class="ts-details-list">
-			{show.name && <div class="ts-details-item ts-details-name"><dt>Name</dt><dd>{b.title}</dd></div>}
-			{show.address && <div class="ts-details-item ts-details-address"><dt>Address</dt><dd>{address}</dd></div>}
-			{show.phone && <div class="ts-details-item ts-details-phone"><dt>Phone</dt><dd><a href={tel(phone)}>{phone}</a></dd></div>}
-			{show.email && <div class="ts-details-item ts-details-email"><dt>Email</dt><dd><a href={`mailto:${email}`}>{email}</a></dd></div>}
-			{show.socials && <div class="ts-details-item ts-details-socials"><dt>Follow</dt><dd>{b.social.map((s) => <a href={s.url} target="_blank" rel="noopener" style="margin-right:12px;text-transform:capitalize">{s.network}</a>)}</dd></div>}
+			{show.name && <div class="ts-details-item ts-details-name"><dt>{tx("Name")}</dt><dd>{b.title}</dd></div>}
+			{show.address && <div class="ts-details-item ts-details-address"><dt>{tx("Address")}</dt><dd>{address}</dd></div>}
+			{show.phone && <div class="ts-details-item ts-details-phone"><dt>{tx("Phone")}</dt><dd><a href={tel(phone)}>{phone}</a></dd></div>}
+			{show.email && <div class="ts-details-item ts-details-email"><dt>{tx("Email")}</dt><dd><a href={`mailto:${email}`}>{email}</a></dd></div>}
+			{show.socials && <div class="ts-details-item ts-details-socials"><dt>{tx("Follow")}</dt><dd>{b.social.map((s) => <a href={s.url} target="_blank" rel="noopener" style="margin-right:12px;text-transform:capitalize">{s.network}</a>)}</dd></div>}
 		</dl>
 		{show.hours && (
 			<div class="ts-details-hours">

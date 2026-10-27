@@ -1,8 +1,9 @@
 ---
 /** A real sequence: a first visit, a treatment, aftercare. */
-import { bool, entries, lines, list, nodeOf, pic, str } from "../lib";
+import { bool, entries, lines, list, nodeOf, pic, str, wording } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
+const tx = await wording(Astro.request);
 const n = nodeOf(Astro.props);
 const items = list<Record<string, unknown>>(n.steps).filter((s) => str(s.title));
 const prep = lines(n.prep);
@@ -23,7 +24,7 @@ const aside = bool(n.show_prep) && (prep.length > 0 || forms.length > 0);
 		</div>
 		{aside && (
 			<aside class="ts-card">
-				{prep.length > 0 && <><h3>Bring with you</h3><ul class="ts-list" style="margin-top:10px">{prep.map((p) => <li>{p}</li>)}</ul></>}
+				{prep.length > 0 && <><h3>{tx("Bring with you")}</h3><ul class="ts-list" style="margin-top:10px">{prep.map((p) => <li>{p}</li>)}</ul></>}
 				{forms.length > 0 && <div class="ts-chips" style="margin-top:14px">{forms.map((f) => <a class="ts-chip" href={str(f.data.file_url, "#")}>{str(f.data.title)}</a>)}</div>}
 			</aside>
 		)}

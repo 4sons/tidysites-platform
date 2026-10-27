@@ -1,8 +1,9 @@
 ---
 /** Before and after cases from the records. */
-import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import { bool, entries, int, nodeOf, pic, str, wording } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
+const tx = await wording(Astro.request);
 const n = nodeOf(Astro.props);
 const items = await entries("cases", { limit: int(n.limit, 3) });
 const names = bool(n.show_names);
@@ -13,7 +14,7 @@ const names = bool(n.show_names);
 	<div class="ts-grid" style={`--cols:${str(n.variant) === "slider" ? 1 : 3}`}>
 		{items.map((c) => { const bp = pic(c.data.before), ap = pic(c.data.after); return (
 			<article class="ts-card" data-tidy-record="cases" data-tidy-record-id={c.id} data-tidy-record-label="Case" style="padding:0;overflow:hidden">
-				<div class="ts-ba"><div style="position:relative"><span class="ts-tag">Before</span><Photo image={bp.image} url={bp.url} alt="Before" ratio="square" /></div><div style="position:relative"><span class="ts-tag">After</span><Photo image={ap.image} url={ap.url} alt="After" ratio="square" /></div></div>
+				<div class="ts-ba"><div style="position:relative"><span class="ts-tag">{tx("Before")}</span><Photo image={bp.image} url={bp.url} alt="Before" ratio="square" /></div><div style="position:relative"><span class="ts-tag">{tx("After")}</span><Photo image={ap.image} url={ap.url} alt="After" ratio="square" /></div></div>
 				<div style="padding:16px 18px 18px">{str(c.data.category) && <p class="ts-role">{str(c.data.category)}</p>}<h3 style="font-size:18px;margin-top:4px">{str(c.data.title)}{names && str(c.data.patient_name) ? ` · ${str(c.data.patient_name)}` : ""}</h3>{(str(c.data.story) || str(c.data.problem)) && <p style="margin-top:6px">{str(c.data.story) || [str(c.data.problem), str(c.data.treatment)].filter(Boolean).join(" ")}</p>}</div>
 			</article>
 		); })}

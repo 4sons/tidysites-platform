@@ -1,13 +1,14 @@
 ---
 /** Insurers accepted, as logos, names or one line, with network status and government programs. */
-import { bool, entries, getBusiness, nodeOf, pic, str, mediaUrl } from "../lib";
+import { bool, entries, getBusiness, nodeOf, pic, str, mediaUrl, wording } from "../lib";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
 const b = await getBusiness(Astro.request);
+const tx = await wording(Astro.request);
 const variant = str(n.variant, "logos");
 const items = variant === "one line" ? [] : await entries("insurers", { limit: 60 });
 const inNet = items.filter((i) => !/out/i.test(str(i.data.network))), outNet = items.filter((i) => /out/i.test(str(i.data.network)));
-const groups = bool(n.show_network) && outNet.length ? [{ title: "In network", list: inNet }, { title: "Out of network", list: outNet }] : [{ title: "", list: items }];
+const groups = bool(n.show_network) && outNet.length ? [{ title: tx("In network"), list: inNet }, { title: tx("Out of network"), list: outNet }] : [{ title: "", list: items }];
 ---
 {(items.length > 0 || b.insuranceLine) && (
 <section class="ts" id="insurance"><div class="ts-wrap">

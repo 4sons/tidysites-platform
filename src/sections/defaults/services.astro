@@ -1,9 +1,10 @@
 ---
 /** Services or categories from the records, in one of five layouts. */
-import { bool, collectionUrl, entries, entryUrl, int, nodeOf, pic, refersTo, str } from "../lib";
+import { bool, collectionUrl, entries, entryUrl, int, nodeOf, pic, refersTo, str, wording } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
 import Carousel from "./_Carousel.astro";
+const tx = await wording(Astro.request);
 const n = nodeOf(Astro.props);
 const variant = str(n.variant, "cards with summary");
 const source = str(n.source, "services");
@@ -30,7 +31,7 @@ const allHref = await collectionUrl("services");
 ---
 {(items.length > 0 || groups.length > 0) && (
 <section class="ts ts-band" id="services"><div class="ts-wrap">
-	<Head n={n} action={showAll && allHref ? { href: allHref, label: "All services" } : null} />
+	<Head n={n} action={showAll && allHref ? { href: allHref, label: tx("All services") } : null} />
 	{variant === "carousel" ? (
 		<Carousel cols={3} label="Services">{items.map((s) => { const p = pic(s.data.featured_image); return (
 			<a class="ts-card ts-carousel-item" href={s.href} data-tidy-record={source === "categories" ? "service_categories" : "services"} data-tidy-record-id={s.id} data-tidy-record-label={source === "categories" ? "Category details" : "Service details"}>

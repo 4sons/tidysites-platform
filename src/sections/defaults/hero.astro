@@ -1,10 +1,11 @@
 ---
 /** Hero: headline, subhead, buttons, and a photo, a booking card, a form, or a picker of services. */
-import { bool, entries, entryUrl, getBusiness, nodeOf, pic, str } from "../lib";
+import { bool, entries, entryUrl, getBusiness, nodeOf, pic, str, wording, mediaUrl } from "../lib";
 import Photo from "../Photo.astro";
 import Form from "../Form.astro";
 const n = nodeOf(Astro.props);
 const b = await getBusiness(Astro.request);
+const tx = await wording(Astro.request);
 const variant = str(n.variant, "headline and photo");
 const photo = pic(n.image);
 const button = { label: str(n.button_label) || b.ctaLabel, href: str(n.button_url) || b.bookingUrl || "/contact" };
@@ -15,7 +16,7 @@ const rating = b.rating ? b.rating.toFixed(1) : null;
 const showRating = bool(n.show_rating, true) && rating;
 const over = variant === "photo with headline over";
 ---
-<section class={`ts ts-hero ${over ? "ts-ink" : ""}`} style={over && photo.url ? `background-image:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.55)),url(${photo.url});background-size:cover;background-position:center` : undefined}>
+<section class={`ts ts-hero ${over ? "ts-ink" : ""}`} style={over && mediaUrl(photo) ? `background-image:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.55)),url(${mediaUrl(photo)});background-size:cover;background-position:center` : undefined}>
 	<div class={`ts-wrap ${over || variant === "headline and picker" ? "" : "ts-split"}`}>
 		<div>
 			{str(n.pill) && <p class="ts-chip" style="display:inline-flex;margin-bottom:16px">{str(n.pill)}</p>}
@@ -39,27 +40,27 @@ const over = variant === "photo with headline over";
 			<div class="ts-card" style="gap:0">
 				<Photo image={photo.image} url={photo.url} alt={b.title} ratio="wide" class="ts-hero-card-photo" />
 				<dl class="ts-kv" style="margin-top:16px">
-					{b.hours && <><dt>Hours</dt><dd>{b.hours}</dd></>}
-					{b.phone && <><dt>Call or text</dt><dd><a href={b.phoneHref}>{b.phone}</a></dd></>}
-					{b.insuranceLine && <><dt>Insurance</dt><dd>{b.insuranceLine}</dd></>}
+					{b.hours && <><dt>{tx("Hours")}</dt><dd>{b.hours}</dd></>}
+					{b.phone && <><dt>{tx("Call or text")}</dt><dd><a href={b.phoneHref}>{b.phone}</a></dd></>}
+					{b.insuranceLine && <><dt>{tx("Insurance")}</dt><dd>{b.insuranceLine}</dd></>}
 					{b.newPatientsLine && <><dt></dt><dd>{b.newPatientsLine}</dd></>}
 				</dl>
-				<div class="ts-actions" style="margin-top:16px"><a class="ts-btn ts-btn-accent" href={button.href}>{button.label}</a>{b.phone && <a class="ts-btn ts-btn-outline" href={b.phoneHref}>Call us</a>}</div>
+				<div class="ts-actions" style="margin-top:16px"><a class="ts-btn ts-btn-accent" href={button.href}>{button.label}</a>{b.phone && <a class="ts-btn ts-btn-outline" href={b.phoneHref}>{tx("Call us")}</a>}</div>
 			</div>
 		)}
 		{variant === "headline and form" && (str(n.form) ? <Form name={str(n.form)} class="ts-card" submitLabel={str(n.button_label) || null} hidden={{ section: "hero" }} /> : (
 			<form class="ts-card ts-form" action="/api/lead" method="post">
-				<label class="ts-full">Name<input name="name" autocomplete="name" required /></label>
-				<label>Phone<input name="phone" type="tel" autocomplete="tel" /></label>
-				<label>Email<input name="email" type="email" autocomplete="email" /></label>
-				<label class="ts-full">How can we help?<textarea name="message"></textarea></label>
+				<label class="ts-full">{tx("Name")}<input name="name" autocomplete="name" required /></label>
+				<label>{tx("Phone")}<input name="phone" type="tel" autocomplete="tel" /></label>
+				<label>{tx("Email")}<input name="email" type="email" autocomplete="email" /></label>
+				<label class="ts-full">{tx("How can we help?")}<textarea name="message"></textarea></label>
 				<input class="ts-hp" type="text" name="website_hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
 				<div class="ts-full"><button class="ts-btn ts-btn-accent" type="submit">{button.label}</button></div>
 			</form>
 		))}
 		{variant === "headline and picker" && services.length > 0 && (
 			<div class="ts-card" style="margin-top:28px">
-				<h3>{str(n.picker_title, "What do you need?")}</h3>
+				<h3>{str(n.picker_title, tx("What do you need?"))}</h3>
 				<div class="ts-chips" style="margin-top:10px">{services.map((s) => <a class="ts-chip" href={serviceLinks.get(s.id) ?? undefined}>{str(s.data.title)}</a>)}</div>
 				{str(n.picker_note) && <p class="ts-muted" style="margin-top:10px;font-size:14px">{str(n.picker_note)}</p>}
 			</div>

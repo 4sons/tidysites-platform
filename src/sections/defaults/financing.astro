@@ -1,17 +1,18 @@
 ---
-import { bool, entries, getBusiness, lines, nodeOf, pic, str, mediaUrl } from "../lib";
+import { bool, entries, getBusiness, lines, nodeOf, pic, str, mediaUrl, wording } from "../lib";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
 const b = await getBusiness(Astro.request);
+const tx = await wording(Astro.request);
 const providers = bool(n.show_providers, true) ? await entries("financing_providers", { limit: 8 }) : [];
 const methods = str(n.payment_methods).split(",").map((s) => s.trim()).filter(Boolean);
 ---
 {(providers.length > 0 || methods.length > 0 || b.hsaFsaLine) && (
 <section class="ts ts-band" id="financing"><div class="ts-wrap">
-	<Head n={n} action={bool(n.show_plans) ? { href: "/plans", label: "Membership plans" } : null} />
+	<Head n={n} action={bool(n.show_plans) ? { href: "/plans", label: tx("Membership plans") } : null} />
 	<div class="ts-grid" style="--cols:3">
-		{providers.map((p) => { const lg = pic(p.data.logo); return <div class="ts-card" data-tidy-record="financing_providers" data-tidy-record-id={p.id} data-tidy-record-label="Financing provider">{mediaUrl(lg) && <img src={mediaUrl(lg) ?? ""} alt="" style="max-height:28px;width:auto" />}<h3>{str(p.data.title)}</h3>{str(p.data.rate_line) && <p>{str(p.data.rate_line)}</p>}{str(p.data.note) && <p class="ts-muted" style="font-size:13px">{str(p.data.note)}</p>}{str(p.data.apply_url) && <a href={str(p.data.apply_url)} style="font-weight:700;color:var(--ts-primary);font-size:14px">Check your options</a>}</div>; })}
-		{(methods.length > 0 || (bool(n.show_hsa, true) && b.hsaFsaLine)) && <div class="ts-card"><h3>Paying directly</h3>{methods.length > 0 && <p>{methods.join(", ")}</p>}{bool(n.show_hsa, true) && b.hsaFsaLine && <p class="ts-muted" style="font-size:13px">{b.hsaFsaLine}</p>}</div>}
+		{providers.map((p) => { const lg = pic(p.data.logo); return <div class="ts-card" data-tidy-record="financing_providers" data-tidy-record-id={p.id} data-tidy-record-label="Financing provider">{mediaUrl(lg) && <img src={mediaUrl(lg) ?? ""} alt="" style="max-height:28px;width:auto" />}<h3>{str(p.data.title)}</h3>{str(p.data.rate_line) && <p>{str(p.data.rate_line)}</p>}{str(p.data.note) && <p class="ts-muted" style="font-size:13px">{str(p.data.note)}</p>}{str(p.data.apply_url) && <a href={str(p.data.apply_url)} style="font-weight:700;color:var(--ts-primary);font-size:14px">{tx("Check your options")}</a>}</div>; })}
+		{(methods.length > 0 || (bool(n.show_hsa, true) && b.hsaFsaLine)) && <div class="ts-card"><h3>{tx("Paying directly")}</h3>{methods.length > 0 && <p>{methods.join(", ")}</p>}{bool(n.show_hsa, true) && b.hsaFsaLine && <p class="ts-muted" style="font-size:13px">{b.hsaFsaLine}</p>}</div>}
 	</div>
 </div></section>
 )}

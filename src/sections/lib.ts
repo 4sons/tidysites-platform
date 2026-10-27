@@ -117,6 +117,8 @@ export interface Business {
 	ga4Id: string; gtmId: string; customCss: string;
 	/** Structured data: the business type (Dentist, Plumber...), the price range, and the frame record's own JSON-LD for the business when it replaces the generated one. */
 	schemaType: string; priceRange: string; siteSchema: string;
+	/** The frame record's wording lines (Original => Replacement): the site's own words for the fixed labels every theme prints. */
+	wording: Record<string, string>;
 	raw: Record<string, unknown>;
 }
 /** Empty means the record leaves it to the theme. */
@@ -180,8 +182,29 @@ async function readBusiness(): Promise<Business> {
 		footerServicesLabel: str(fr.footer_services_label), footerServices: fr.footer_services !== "off", footerMenuLabel: str(fr.footer_menu_label), siteLanguage: str(fr.site_language) || "en",
 		headerRow: str(fr.header_row), footerRow: str(fr.footer_row),
 		popupShows: pickOne(fr.popup_shows, ["nothing", "an offer", "a form"], "nothing"), popupTitle: str(fr.popup_title), popupOffer: str(fr.popup_offer), popupForm: str(fr.popup_form), popupTrigger: pickOne(fr.popup_trigger, ["on arrival", "after ten seconds", "after thirty seconds", "after scrolling halfway", "on leaving"], "after ten seconds"), popupEvery: pickOne(fr.popup_every, ["once a visit", "once a day", "every time"], "once a visit"),
-		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), customCss: s("custom_css"), schemaType: s("schema_type"), priceRange: s("price_range"), siteSchema: str(fr.site_schema), raw: d,
+		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), customCss: s("custom_css"), schemaType: s("schema_type"), priceRange: s("price_range"), siteSchema: str(fr.site_schema), wording: parseWording(fr.wording), raw: d,
 	};
+}
+/** "Original => Replacement" lines into a map; a line without the arrow, or with an empty side, is skipped. */
+export function parseWording(v: unknown): Record<string, string> {
+	const out: Record<string, string> = {};
+	for (const l of lines(v)) {
+		const i = l.indexOf("=>"); if (i <= 0) continue;
+		const from = l.slice(0, i).trim(), to = l.slice(i + 2).trim();
+		if (from && to) out[from] = to;
+	}
+	return out;
+}
+/**
+ * The site's own words for a fixed label: `const tx = await wording(Astro.request)`
+ * in a component, then `{tx("Call or text")}` in its markup. The frame record's
+ * `wording` lines replace a label everywhere it is printed; the original is the
+ * key, so a theme change never loses the site's words. Every label a component
+ * passes through here is listed in lib/strings (the catalog `/_tidy/strings` serves).
+ */
+export async function wording(request: Request): Promise<(label: string) => string> {
+	const b = await getBusiness(request);
+	return (label) => b.wording[label] ?? label;
 }
 const memo = new WeakMap<Request, Promise<Business>>();
 /** One read per request, however many sections ask. */

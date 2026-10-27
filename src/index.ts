@@ -33,7 +33,8 @@ export const PLATFORM_ROUTES = [
 	{ pattern: "/_tidy/maintenance", entrypoint: `${PACKAGE}/routes/maintenance` },
 	{ pattern: "/_tidy/revisions", entrypoint: `${PACKAGE}/routes/revisions` },
 	{ pattern: "/_tidy/change", entrypoint: `${PACKAGE}/routes/change` },
-	{ pattern: "/_tidy/pages", entrypoint: `${PACKAGE}/routes/pages` }
+	{ pattern: "/_tidy/pages", entrypoint: `${PACKAGE}/routes/pages` },
+	{ pattern: "/_tidy/strings", entrypoint: `${PACKAGE}/routes/strings` }
 ] as const;
 
 /**
@@ -41,13 +42,18 @@ export const PLATFORM_ROUTES = [
  * framing middleware (a `frame-ancestors` policy from TIDY_FRAME_ANCESTORS so
  * the platform can embed the staging preview; inert without the variable).
  */
-export function tidyPlatform(): AstroIntegration {
+export interface TidyPlatformOptions {
+	/** The theme's own fixed labels (every string it passes through `wording()`), so `/_tidy/strings` lists them beside the package's. */
+	strings?: readonly string[];
+}
+export function tidyPlatform(options: TidyPlatformOptions = {}): AstroIntegration {
 	return {
 		name: PACKAGE,
 		hooks: {
-			"astro:config:setup": ({ injectRoute, addMiddleware }) => {
+			"astro:config:setup": ({ injectRoute, addMiddleware, updateConfig }) => {
 				for (const route of PLATFORM_ROUTES) injectRoute({ pattern: route.pattern, entrypoint: route.entrypoint, prerender: false });
 				addMiddleware({ entrypoint: `${PACKAGE}/middleware`, order: "pre" });
+				updateConfig({ vite: { define: { __TIDY_THEME_STRINGS__: JSON.stringify([...(options.strings ?? [])]) } } });
 			}
 		}
 	};

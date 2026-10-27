@@ -6,7 +6,8 @@
  * the form's thank-you in place. Any theme section, the header dialog or a
  * site's own page can place it: <Form name="Schedule a make up" />.
  */
-import { getForm, list, lines, str, bool, type FormRecord } from "./lib";
+import { getForm, list, lines, str, bool, type FormRecord, wording } from "./lib";
+const tx = await wording(Astro.request);
 interface Props {
 	/** The form's name, slug or id. Empty renders the default contact form. */
 	name?: string | null;
@@ -44,14 +45,14 @@ const formName = form?.title || (onlyEmail ? "Newsletter" : "Contact");
 <form class={`ts-form ${cls}`} action="/api/lead" method="post" data-tidy-form={form?.slug ?? form?.id ?? "contact"}>
 	<div class="ts-form-fields">
 		{intro && <p class="ts-form-intro">{intro}</p>}
-		{!onlyEmail && <label class={askPhone && askEmail ? "ts-full" : ""}>Name<input name="name" autocomplete="name" required /></label>}
-		{askPhone && <label>Phone<input name="phone" type="tel" autocomplete="tel" required={!askEmail} /></label>}
-		{askEmail && <label>Email<input name="email" type="email" autocomplete="email" required={!askPhone} /></label>}
+		{!onlyEmail && <label class={askPhone && askEmail ? "ts-full" : ""}>{tx("Name")}<input name="name" autocomplete="name" required /></label>}
+		{askPhone && <label>{tx("Phone")}<input name="phone" type="tel" autocomplete="tel" required={!askEmail} /></label>}
+		{askEmail && <label>{tx("Email")}<input name="email" type="email" autocomplete="email" required={!askPhone} /></label>}
 		{questions.map((q, i) => {
 			const key = `q_${slugOf(q.label)}`;
 			const opts = lines(q.options);
 			if (q.kind === "long answer") return <label class="ts-full">{q.label}<textarea name={key} required={q.required} placeholder={q.placeholder || undefined}></textarea></label>;
-			if (q.kind === "one choice" && opts.length) return <label class="ts-full">{q.label}<select name={key} required={q.required}><option value="">Choose one</option>{opts.map((o) => <option>{o}</option>)}</select></label>;
+			if (q.kind === "one choice" && opts.length) return <label class="ts-full">{q.label}<select name={key} required={q.required}><option value="">{tx("Choose one")}</option>{opts.map((o) => <option>{o}</option>)}</select></label>;
 			if (q.kind === "several choices" && opts.length) return <div class="ts-full"><span style="font-size:13px;font-weight:600;color:var(--ts-ink-2);display:block;margin-bottom:8px">{q.label}</span><div class="ts-choices">{opts.map((o) => <label><input type="checkbox" name={key} value={o} />{o}</label>)}</div></div>;
 			if (q.kind === "date") return <label>{q.label}<input name={key} type="date" required={q.required} /></label>;
 			if (q.kind === "number") return <label>{q.label}<input name={key} type="number" inputmode="numeric" required={q.required} placeholder={q.placeholder || undefined} /></label>;
