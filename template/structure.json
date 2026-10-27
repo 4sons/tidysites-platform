@@ -2906,6 +2906,78 @@
           "slug": "footer_row",
           "label": "Replace the footer with a custom row (its name)",
           "type": "string"
+        },
+        {
+          "slug": "display_font_file",
+          "label": "Display font file (woff2), when the font is not on Google or Adobe",
+          "type": "file"
+        },
+        {
+          "slug": "body_font_file",
+          "label": "Body font file (woff2)",
+          "type": "file"
+        },
+        {
+          "slug": "cookie_banner",
+          "label": "Cookie consent",
+          "type": "select",
+          "validation": {
+            "options": [
+              "off",
+              "on"
+            ]
+          }
+        },
+        {
+          "slug": "cookie_text",
+          "label": "Cookie consent text",
+          "type": "text"
+        },
+        {
+          "slug": "cookie_policy_url",
+          "label": "Link to the privacy or cookie policy",
+          "type": "string"
+        },
+        {
+          "slug": "cookie_accept_label",
+          "label": "Accept button",
+          "type": "string"
+        },
+        {
+          "slug": "cookie_decline_label",
+          "label": "Decline button",
+          "type": "string"
+        },
+        {
+          "slug": "blog_page_size",
+          "label": "Posts per page on the blog",
+          "type": "integer"
+        },
+        {
+          "slug": "footer_services_label",
+          "label": "Footer services column heading",
+          "type": "string"
+        },
+        {
+          "slug": "footer_services",
+          "label": "Footer services column",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
+        },
+        {
+          "slug": "footer_menu_label",
+          "label": "Footer menu column heading",
+          "type": "string"
+        },
+        {
+          "slug": "site_language",
+          "label": "Site language code (en, fr, es)",
+          "type": "string"
         }
       ]
     },
@@ -3018,6 +3090,53 @@
         {
           "slug": "accessibility_widget_id",
           "label": "Accessibility widget id, or the whole embed code pasted",
+          "type": "text"
+        },
+        {
+          "slug": "call_tracking",
+          "label": "Call tracking",
+          "type": "select",
+          "validation": {
+            "options": [
+              "CallRail",
+              "WhatConverts"
+            ]
+          }
+        },
+        {
+          "slug": "call_tracking_id",
+          "label": "Call tracking id, or the whole embed code pasted",
+          "type": "text"
+        },
+        {
+          "slug": "heatmaps",
+          "label": "Heatmaps and recordings",
+          "type": "select",
+          "validation": {
+            "options": [
+              "Hotjar",
+              "Microsoft Clarity"
+            ]
+          }
+        },
+        {
+          "slug": "heatmaps_id",
+          "label": "Heatmaps id, or the whole embed code pasted",
+          "type": "text"
+        },
+        {
+          "slug": "tiktok_pixel_id",
+          "label": "TikTok pixel id",
+          "type": "string"
+        },
+        {
+          "slug": "linkedin_insight_id",
+          "label": "LinkedIn Insight partner id",
+          "type": "string"
+        },
+        {
+          "slug": "adobe_fonts_kit",
+          "label": "Adobe Fonts kit id, or the whole embed code pasted",
           "type": "text"
         }
       ]
@@ -3280,6 +3399,16 @@
         {
           "slug": "footer_row",
           "label": "Footer custom row (its name)",
+          "type": "string"
+        },
+        {
+          "slug": "language",
+          "label": "Language code, when this page is not in the site language",
+          "type": "string"
+        },
+        {
+          "slug": "translation_of",
+          "label": "The page this one translates, by title",
           "type": "string"
         }
       ]
@@ -5086,6 +5215,11 @@
         {
           "slug": "category",
           "label": "Category",
+          "type": "string"
+        },
+        {
+          "slug": "tags",
+          "label": "Tags, separated by commas",
           "type": "string"
         },
         {

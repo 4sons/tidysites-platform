@@ -1,0 +1,12 @@
+---
+/** The brand's font stylesheets (Google by name, Adobe by kit) and @font-face for uploaded files. Place once in <head>. */
+import type { Business } from "../sections/lib";
+import { fontFaces, fontLinks } from "../sections/lib";
+interface Props { business: Business }
+const { business: b } = Astro.props;
+const faces = fontFaces(b);
+---
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+{fontLinks(b).map((href) => <link rel="stylesheet" href={href} />)}
+{faces && <style set:html={faces} />}

@@ -21,8 +21,11 @@ interface Props {
 	services?: number;
 	class?: string;
 }
-const { business: b, footerMenu = null, siteTitle = b.title, footerMenuLabel = "More", services: count = 6, class: cls = "" } = Astro.props;
-const services = count > 0 ? await entries("services", { limit: count }) : [];
+const { business: b, footerMenu = null, siteTitle = b.title, footerMenuLabel: menuLabelDefault = "More", services: count = 6, class: cls = "" } = Astro.props;
+// The frame record's headings win over the theme's defaults; its switch can drop the services column.
+const services = count > 0 && b.footerServices ? await entries("services", { limit: count }) : [];
+const servicesLabel = b.footerServicesLabel || "Services";
+const footerMenuLabel = b.footerMenuLabel || menuLabelDefault;
 const loc = await getLocation();
 const hours = loc ? hoursRows(loc.data) : [];
 const logo = b.logo ? mediaUrl(b.logo) ?? b.logo.src : null;
@@ -37,7 +40,7 @@ const year = new Date().getFullYear();
 			{b.tagline && <p class="ts-footer-tagline">{b.tagline}</p>}
 			{b.social.length > 0 && <div class="ts-footer-social">{b.social.map((s) => <a class="ts-footer-social-link" href={s.url} aria-label={s.network} target="_blank" rel="noopener">{s.network.charAt(0).toUpperCase()}</a>)}</div>}
 		</div>
-		{services.length > 0 && <div class="ts-footer-col"><h4 class="ts-footer-heading">Services</h4><ul class="ts-footer-list">{services.map((s) => <li><a href={`/services/${s.slug ?? s.id}`}>{String(s.data.title)}</a></li>)}</ul></div>}
+		{services.length > 0 && <div class="ts-footer-col"><h4 class="ts-footer-heading">{servicesLabel}</h4><ul class="ts-footer-list">{services.map((s) => <li><a href={`/services/${s.slug ?? s.id}`}>{String(s.data.title)}</a></li>)}</ul></div>}
 		{footerMenu?.items.length ? <div class="ts-footer-col"><h4 class="ts-footer-heading">{footerMenuLabel}</h4><ul class="ts-footer-list">{footerMenu.items.map((i) => <li><a href={i.url} target={i.target}>{i.label}</a></li>)}</ul></div> : <div class="ts-footer-col"></div>}
 		<div class="ts-footer-col ts-footer-visit"><h4 class="ts-footer-heading">Visit</h4><ul class="ts-footer-list">
 			{addressLine(b) && <li>{addressLine(b)}</li>}
