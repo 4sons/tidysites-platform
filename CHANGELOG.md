@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.18.0
+
+A page owns its SEO; the record stays data.
+
+- Every collection with a URL pattern carries the same group: `meta_title`, `meta_description`, `share_image`, `social_title`, `social_description`, `canonical`, `noindex`, `schema`. Each is empty by default and empty means derived from the record (title, summary, its own picture, its own address, its type); a set field replaces the derived value for that page.
+- Structured data on every page: the business (type from `schema_type` on the Business record, address unless hidden, logo, socials, `price_range`, founding year, map, hours from the primary location) and one entry per other location; the frame record's `site_schema` replaces it. Per page: the breadcrumb trail, the record's entry (Service, Person, BlogPosting, Product) and FAQPage from the page's FAQ sections; the page's `schema` replaces those.
+- `sections/lib` gains `pageHead()` for a theme's layout and `sitePages()` marks `noindex` pages, which the publish leaves out of the sitemap. `seo` exports the pure side.
+
 ## 0.17.0
 
 Records are data; pages are where the site says they are.

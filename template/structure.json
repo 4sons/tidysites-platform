@@ -2490,6 +2490,16 @@
           "type": "string"
         },
         {
+          "slug": "schema_type",
+          "label": "Business type for structured data (Dentist, Plumber, RoofingContractor, LawFirm...)",
+          "type": "string"
+        },
+        {
+          "slug": "price_range",
+          "label": "Price range ($ to $$$$)",
+          "type": "string"
+        },
+        {
           "slug": "rating",
           "label": "Rating",
           "type": "string"
@@ -3066,6 +3076,11 @@
               "off"
             ]
           }
+        },
+        {
+          "slug": "site_schema",
+          "label": "Site structured data (JSON-LD), replaces the generated business entry",
+          "type": "text"
         }
       ]
     },
@@ -3451,6 +3466,36 @@
           "type": "text"
         },
         {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
+          "type": "text"
+        },
+        {
           "slug": "custom_css",
           "label": "Custom CSS",
           "type": "text"
@@ -3586,6 +3631,46 @@
           "slug": "sort",
           "label": "Order",
           "type": "integer"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        },
+        {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
+          "type": "text"
         }
       ],
       "urlPattern": "/services/category/{slug}",
@@ -3738,6 +3823,36 @@
         {
           "slug": "meta_description",
           "label": "Meta description",
+          "type": "text"
+        },
+        {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
           "type": "text"
         },
         {
@@ -3900,6 +4015,36 @@
           "type": "text"
         },
         {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
+          "type": "text"
+        },
+        {
           "slug": "page",
           "label": "Own page",
           "type": "select",
@@ -3959,6 +4104,46 @@
               "off"
             ]
           }
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        },
+        {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
+          "type": "text"
         }
       ],
       "urlPattern": "/conditions/{slug}",
@@ -4072,6 +4257,36 @@
         {
           "slug": "meta_description",
           "label": "Meta description",
+          "type": "text"
+        },
+        {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
           "type": "text"
         },
         {
@@ -4208,6 +4423,46 @@
           "slug": "sort",
           "label": "Order",
           "type": "integer"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        },
+        {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
+          "type": "text"
         }
       ],
       "urlPattern": "/team/{slug}",
@@ -4796,6 +5051,46 @@
           "slug": "sort",
           "label": "Order",
           "type": "integer"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        },
+        {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
+          "type": "text"
         }
       ],
       "urlPattern": "/technology/{slug}",
@@ -5054,6 +5349,36 @@
           "type": "text"
         },
         {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
+          "type": "text"
+        },
+        {
           "slug": "page",
           "label": "Own page",
           "type": "select",
@@ -5248,6 +5573,36 @@
           "type": "text"
         },
         {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
+          "type": "text"
+        },
+        {
           "slug": "page",
           "label": "Own page",
           "type": "select",
@@ -5410,6 +5765,46 @@
           "slug": "content",
           "label": "Content",
           "type": "portableText"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
+        },
+        {
+          "slug": "share_image",
+          "label": "Share image",
+          "type": "image"
+        },
+        {
+          "slug": "social_title",
+          "label": "Share title",
+          "type": "string"
+        },
+        {
+          "slug": "social_description",
+          "label": "Share description",
+          "type": "text"
+        },
+        {
+          "slug": "canonical",
+          "label": "Canonical URL",
+          "type": "string"
+        },
+        {
+          "slug": "noindex",
+          "label": "Keep out of search engines",
+          "type": "boolean"
+        },
+        {
+          "slug": "schema",
+          "label": "Structured data (JSON-LD), replaces the generated one",
+          "type": "text"
         }
       ],
       "urlPattern": "/blog/{slug}",
