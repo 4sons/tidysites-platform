@@ -22,7 +22,7 @@ const q = encodeURIComponent([b.title, addr].filter(Boolean).join(" "));
 	<div class={bool(n.show_map, true) ? "ts-split" : ""} style="align-items:start">
 		{bool(n.show_map, true) && (b.hideAddress ? <div class="ts-map">{b.serviceAreaLine || tx("We come to you.")}</div> : <div class="ts-map"><iframe title="Map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src={`https://www.google.com/maps?q=${q}&output=embed`}></iframe></div>)}
 		<div class="ts-card">
-			{addr && <><p class="ts-group" style="margin-top:0">{b.isServiceArea ? tx("Based in") : "Address"}</p><p>{addr}</p>{(mapUrl || !b.hideAddress) && <a href={mapUrl || `https://www.google.com/maps/search/?api=1&query=${q}`} style="font-weight:700;color:var(--ts-primary);font-size:14px">{tx("Get directions")}</a>}</>}
+			{addr && <><p class="ts-group" style="margin-top:0">{b.isServiceArea ? tx("Based in") : tx("Address")}</p><p>{addr}</p>{(mapUrl || !b.hideAddress) && <a href={mapUrl || `https://www.google.com/maps/search/?api=1&query=${q}`} style="font-weight:700;color:var(--ts-primary);font-size:14px">{tx("Get directions")}</a>}</>}
 			{(phone || b.email) && <><p class="ts-group">{tx("Reach us")}</p>{phone && <p><a href={b.phoneHref}>{phone}</a></p>}{b.email && <p><a href={`mailto:${b.email}`}>{b.email}</a></p>}</>}
 			<p class="ts-group">{tx("Hours")}</p>
 			{rows.length ? (grouped ? <table class="ts-table">{hoursGrouped(d).map((g) => <tr><td>{g.days}</td><td>{g.value}</td></tr>)}</table> : <table class="ts-table">{rows.map((r) => <tr class={r.day === today ? "ts-today" : ""}><td>{r.day}</td><td>{r.value}</td></tr>)}</table>) : <p>{b.hours || tx("By appointment")}</p>}

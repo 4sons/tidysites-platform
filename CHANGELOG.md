@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.1
+
+- Labels the first pass missed go through the wording too: the call bar's "Call" and "Call or text", "Address", the built-in form's labels and its error line, "Read them all".
+
 ## 0.19.0
 
 Any word on the site can be changed: the fixed labels too.

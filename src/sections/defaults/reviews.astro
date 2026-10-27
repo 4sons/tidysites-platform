@@ -23,7 +23,7 @@ const when = (r: { data: Record<string, unknown> }) => { const d = str(r.data.da
 ---
 {(items.length > 0 || widget || (bool(n.show_aggregate, true) && rating)) && (
 <section class="ts" id="reviews"><div class="ts-wrap">
-	<Head n={n} action={bool(n.show_review_links) && b.reviewsUrl ? { href: b.reviewsUrl, label: "Read them all" } : null} />
+	<Head n={n} action={bool(n.show_review_links) && b.reviewsUrl ? { href: b.reviewsUrl, label: tx("Read them all") } : null} />
 	{widget ? (
 		<div class="ts-widget"><Fragment set:html={widget} /></div>
 	) : variant === "carousel" ? (

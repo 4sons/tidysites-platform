@@ -31,8 +31,8 @@ const questions: Q[] = onlyEmail && !form
 	? []
 	: form
 	? list<Record<string, unknown>>(d.questions).map((q) => ({ label: str(q.label), kind: str(q.kind, "short answer"), options: str(q.options), required: bool(q.required), placeholder: str(q.placeholder) })).filter((q) => q.label)
-	: [{ label: "How can we help?", kind: "long answer", options: "", required: false, placeholder: "" }];
-const submit = submitLabel || str(d.submit_label) || (onlyEmail ? "Subscribe" : "Send");
+	: [{ label: tx("How can we help?"), kind: "long answer", options: "", required: false, placeholder: "" }];
+const submit = submitLabel || str(d.submit_label) || (onlyEmail ? tx("Subscribe") : tx("Send"));
 const doneTitle = str(d.success_title) || "Thank you";
 const doneText = str(d.success_message) || "We have your message and will be in touch soon.";
 const consent = str(d.consent_text);
@@ -40,7 +40,7 @@ const intro = str(d.intro);
 const slugOf = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 60) || "answer";
 let turnstile: string | undefined;
 try { const m = (await import("cloudflare:workers")) as unknown as { env?: Record<string, unknown> }; turnstile = typeof m.env?.TURNSTILE_SITEKEY === "string" ? m.env.TURNSTILE_SITEKEY : undefined; } catch { turnstile = undefined; }
-const formName = form?.title || (onlyEmail ? "Newsletter" : "Contact");
+const formName = form?.title || (onlyEmail ? tx("Newsletter") : tx("Contact"));
 ---
 <form class={`ts-form ${cls}`} action="/api/lead" method="post" data-tidy-form={form?.slug ?? form?.id ?? "contact"}>
 	<div class="ts-form-fields">
@@ -84,7 +84,7 @@ const formName = form?.title || (onlyEmail ? "Newsletter" : "Contact");
 			if (!r.ok || j.ok === false) throw new Error(j.error || "Something went wrong. Please try again.");
 			f.setAttribute("data-done", "");
 			f.dispatchEvent(new CustomEvent("tidy:lead", { bubbles: true }));
-		} catch (x) { if (err) err.textContent = x && x.message ? x.message : "Something went wrong. Please try again."; }
+		} catch (x) { if (err) err.textContent = x && x.message ? x.message : tx("Something went wrong. Please try again."); }
 		if (btn) btn.disabled = false;
 	});
 })();
