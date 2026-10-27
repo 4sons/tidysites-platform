@@ -42,7 +42,7 @@ let turnstile: string | undefined;
 try { const m = (await import("cloudflare:workers")) as unknown as { env?: Record<string, unknown> }; turnstile = typeof m.env?.TURNSTILE_SITEKEY === "string" ? m.env.TURNSTILE_SITEKEY : undefined; } catch { turnstile = undefined; }
 const formName = form?.title || (onlyEmail ? tx("Newsletter") : tx("Contact"));
 ---
-<form class={`ts-form ${cls}`} action="/api/lead" method="post" data-tidy-form={form?.slug ?? form?.id ?? "contact"}>
+<form class={`ts-form ${cls}`} action="/api/lead" method="post" data-tidy-form={form?.slug ?? form?.id ?? "contact"} data-error={tx("Something went wrong. Please try again.")}>
 	<div class="ts-form-fields">
 		{intro && <p class="ts-form-intro">{intro}</p>}
 		{!onlyEmail && <label class={askPhone && askEmail ? "ts-full" : ""}>{tx("Name")}<input name="name" autocomplete="name" required /></label>}
@@ -77,15 +77,16 @@ const formName = form?.title || (onlyEmail ? tx("Newsletter") : tx("Contact"));
 	document.addEventListener("submit", async function (e) {
 		var f = e.target; if (!(f instanceof HTMLFormElement) || !f.hasAttribute("data-tidy-form")) return;
 		e.preventDefault();
+		var fallback = f.getAttribute("data-error") || "Something went wrong. Please try again.";
 		var btn = f.querySelector('button[type="submit"]'); var err = f.querySelector(".ts-form-error");
 		if (btn) btn.disabled = true; if (err) err.textContent = "";
 		try {
 			var r = await fetch(f.action, { method: "POST", body: new FormData(f), headers: { accept: "application/json" } });
 			var j = await r.json().catch(function () { return {}; });
-			if (!r.ok || j.ok === false) throw new Error(j.error || "Something went wrong. Please try again.");
+			if (!r.ok || j.ok === false) throw new Error(j.error || fallback);
 			f.setAttribute("data-done", "");
 			f.dispatchEvent(new CustomEvent("tidy:lead", { bubbles: true }));
-		} catch (x) { if (err) err.textContent = x && x.message ? x.message : tx("Something went wrong. Please try again."); }
+		} catch (x) { if (err) err.textContent = x && x.message ? x.message : fallback; }
 		if (btn) btn.disabled = false;
 	});
 })();

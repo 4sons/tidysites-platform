@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.20.1
+
+- The form's "Something went wrong" line follows the site's wording: the label is printed on the form and the browser script reads it there, instead of calling the server-side lookup it could not reach.
+- Themes (keel, porcelain) print the Business record's custom CSS and a page's own CSS at the top of the body, after the theme stylesheet, so a site's own rule has the last word.
+
 ## 0.20.0
 
 What a port kept running into.
