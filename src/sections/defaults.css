@@ -3,7 +3,7 @@
    --brand-font-display, --brand-font-body. Everything is namespaced ts- so a
    theme's own styles never collide. A theme that renders a type itself never
    loads these rules for it. */
-.ts,.ts-frame{--ts-ink:var(--ink,var(--brand-ink,#17211c));--ts-ink-2:var(--ink-2,var(--brand-ink-2,#4a5851));--ts-ink-3:var(--ink-3,var(--brand-ink-3,#7b877f));--ts-line:var(--line,var(--brand-line,#d6ddd9));--ts-ground:var(--ground,var(--brand-ground,#f6f7f5));--ts-surface:var(--surface,var(--brand-surface,#fff));--ts-primary:var(--primary,var(--brand-primary,#1e5a46));--ts-primary-ink:var(--primary-ink,var(--brand-primary-ink,#fff));--ts-accent:var(--accent,var(--brand-accent,#e8b23a));--ts-accent-ink:var(--accent-ink,var(--brand-accent-ink,#111));--ts-display:var(--brand-font-display,system-ui,sans-serif);--ts-body:var(--brand-font-body,system-ui,sans-serif);--ts-radius:var(--brand-radius,10px);--ts-max:var(--max,var(--brand-max,1180px));--ts-gutter:var(--gutter,clamp(16px,4vw,40px));--ts-space:var(--space,var(--brand-space,clamp(48px,7vw,96px)));--ts-type:var(--brand-type,1)}
+.ts,.ts-frame,.ts-row{--ts-ink:var(--ink,var(--brand-ink,#17211c));--ts-ink-2:var(--ink-2,var(--brand-ink-2,#4a5851));--ts-ink-3:var(--ink-3,var(--brand-ink-3,#7b877f));--ts-line:var(--line,var(--brand-line,#d6ddd9));--ts-ground:var(--ground,var(--brand-ground,#f6f7f5));--ts-surface:var(--surface,var(--brand-surface,#fff));--ts-primary:var(--primary,var(--brand-primary,#1e5a46));--ts-primary-ink:var(--primary-ink,var(--brand-primary-ink,#fff));--ts-accent:var(--accent,var(--brand-accent,#e8b23a));--ts-accent-ink:var(--accent-ink,var(--brand-accent-ink,#111));--ts-display:var(--brand-font-display,system-ui,sans-serif);--ts-body:var(--brand-font-body,system-ui,sans-serif);--ts-radius:var(--brand-radius,10px);--ts-max:var(--max,var(--brand-max,1180px));--ts-gutter:var(--gutter,clamp(16px,4vw,40px));--ts-space:var(--space,var(--brand-space,clamp(48px,7vw,96px)));--ts-type:var(--brand-type,1)}
 .ts{font-family:var(--ts-body);color:var(--ts-ink);padding:var(--ts-space) 0;line-height:1.55}
 .ts.ts-band{background:var(--ts-surface-2,color-mix(in srgb,var(--ts-primary) 8%,var(--ts-ground)))}
 .ts.ts-ink{background:var(--ts-ink);color:#fff}
@@ -189,3 +189,9 @@
 .ts-lightbox-close{top:16px;right:16px}
 .ts-lightbox-prev{left:16px;top:50%;transform:translateY(-50%)}
 .ts-lightbox-next{right:16px;top:50%;transform:translateY(-50%)}
+
+/* Custom rows: the row's own markup, the site's tokens around it. */
+.ts-row{font-family:var(--ts-body,var(--brand-font-body,system-ui,sans-serif));color:var(--ts-ink,var(--brand-ink,#17211c))}
+.ts-row .ts-row-wrap{max-width:var(--ts-max,var(--brand-max,1180px));margin:0 auto;padding:0 var(--ts-gutter,clamp(16px,4vw,40px))}
+.ts-row-section{padding:var(--ts-space,var(--brand-space,clamp(48px,7vw,96px))) 0}
+.ts-row-full .ts-row-wrap{max-width:none;padding:0}

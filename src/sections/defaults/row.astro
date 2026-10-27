@@ -1,0 +1,8 @@
+---
+/** Custom row: a saved row by name, or HTML and CSS written in the section. */
+import { bool, nodeOf, str } from "../lib";
+import Row from "../Row.astro";
+const n = nodeOf(Astro.props);
+const key = String((Astro.props as { blockKey?: string }).blockKey ?? "");
+---
+<Row name={str(n.row)} html={str(n.html)} css={str(n.css)} blockKey={key} fullWidth={bool(n.full_width)} />

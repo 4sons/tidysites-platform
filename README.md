@@ -116,6 +116,12 @@ A site runs its live chat, reviews widget, booking embed and pixels by id, never
 
 Adding a provider is a pull request here: its id pattern, its embed pattern and its snippet, with a test.
 
+## Custom rows
+
+A custom row is HTML and CSS a person or an agent wrote, rendered as part of the page: a saved row from the `rows` collection placed by name, or markup written straight into a `row` section. Nothing in a row can run. The sanitizer (`@tideworthy/tidysites-platform/sanitize`) keeps an allowlist of tags and attributes and drops script, event handlers, javascript links, styles in the markup and frames to anywhere but a few known hosts; the row's CSS is scoped to the row (`.ts-row[data-row=…]`) and stripped of imports and remote fetches. A row can open the booking dialog with `data-tidy-dialog="ts-booking"`, and it sees the site's tokens, so a row written for one theme reads right on the next. The sandboxed frame section stays for the calculator or embed that needs script.
+
+A page chooses its header and footer: the site's, none, or a named custom row. A theme's layout reads that with `pageFrame(page.data)` and renders `frame/header`, nothing, or `sections/row` with `as="header"`. The `frame` record can replace the site's header or footer everywhere with a row, which `frame/header` and `frame/footer` render on their own.
+
 ## The sections that are not records
 
 Three sections carry their own content instead of reading a collection, and they are the answer to "I just need a row of things here": Cards (the feature section: 2, 3 or 4 cards per row, each with a heading, text, an icon, an image and a link; or a checklist, points beside an image, or one statement), Steps, and Stats. A thing gets a collection when it is reused across pages or has a page of its own; it gets a repeater in its section when it lives only in that spot.

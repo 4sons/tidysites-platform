@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.15.0
+
+Custom rows: your own markup as part of the page, with nothing able to run.
+
+- The `rows` collection (a name, HTML, CSS) and the `row` section: a saved row by name, or HTML and CSS written in the section, rendered in the page itself through the sanitizer (`sanitize`: script, event handlers, javascript links, styles in the markup and frames to unknown hosts are dropped; the CSS is scoped to the row and stripped of imports and remote fetches) with the site's tokens around it. The sandboxed frame section is still there as "Embed (sandboxed)" for the calculator or embed that needs script.
+- A page chooses its header and footer: the site's, none, or a named custom row (`pageFrame()` for a theme's layout). The `frame` record can replace the site's header or footer everywhere with a row; `frame/header` and `frame/footer` render it.
+
 ## 0.14.0
 
 What a second survey of client sites showed the template forcing into sections, now data.
