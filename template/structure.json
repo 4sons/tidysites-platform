@@ -43,6 +43,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -157,6 +162,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "button_label",
               "label": "Button",
               "type": "string"
@@ -215,6 +225,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "source",
@@ -300,6 +315,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "image",
@@ -407,6 +427,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "steps",
               "label": "Steps",
               "type": "repeater",
@@ -495,6 +520,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "group",
               "label": "Only this group",
               "type": "string"
@@ -557,6 +587,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "eyebrow",
@@ -646,6 +681,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "service",
               "label": "Only this service (slug)",
               "type": "string"
@@ -696,6 +736,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "eyebrow",
@@ -766,6 +811,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -817,6 +867,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "source",
@@ -917,6 +972,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "show_network",
               "label": "Show in and out of network",
               "type": "boolean"
@@ -964,6 +1024,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "show_providers",
@@ -1027,6 +1092,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "kind",
               "label": "Only this kind",
               "type": "string"
@@ -1087,6 +1157,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "ask_patient_type",
@@ -1186,6 +1261,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "submit_label",
               "label": "Button label (overrides the form's)",
               "type": "string"
@@ -1208,6 +1288,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "eyebrow",
@@ -1292,6 +1377,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "location",
@@ -1386,6 +1476,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "button_label",
               "label": "Button",
               "type": "string"
@@ -1465,6 +1560,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "images",
               "label": "Images",
               "type": "repeater",
@@ -1519,6 +1619,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "video_url",
               "label": "Video",
               "type": "string"
@@ -1561,6 +1666,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "limit",
@@ -1610,6 +1720,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "group",
               "label": "Only this group",
               "type": "string"
@@ -1649,6 +1764,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "button_label",
               "label": "Button",
               "type": "string"
@@ -1686,6 +1806,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "variant",
@@ -1747,6 +1872,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "service",
               "label": "Only for one service (its slug)",
               "type": "string"
@@ -1804,6 +1934,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "group",
               "label": "Only this group",
               "type": "string"
@@ -1831,6 +1966,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "eyebrow",
@@ -1865,6 +2005,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "eyebrow",
@@ -1909,6 +2054,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "eyebrow",
@@ -2071,6 +2221,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "limit",
               "label": "How many",
               "type": "integer"
@@ -2127,6 +2282,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "category",
@@ -2191,6 +2351,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "service",
               "label": "Only this service (slug)",
               "type": "string"
@@ -2239,6 +2404,11 @@
               "type": "text"
             },
             {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -2276,6 +2446,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "eyebrow",
@@ -2329,6 +2504,11 @@
               "slug": "body",
               "label": "Text",
               "type": "text"
+            },
+            {
+              "slug": "copy",
+              "label": "Copy (rich text: links, lists, bold; shown instead of Text when set)",
+              "type": "portableText"
             },
             {
               "slug": "eyebrow",
@@ -3098,6 +3278,11 @@
       ],
       "fields": [
         {
+          "slug": "gtm_id_2",
+          "label": "Second Tag Manager id (a site that loads two containers)",
+          "type": "string"
+        },
+        {
           "slug": "title",
           "label": "Name",
           "type": "string",
@@ -3207,7 +3392,8 @@
           "validation": {
             "options": [
               "CallRail",
-              "WhatConverts"
+              "WhatConverts",
+              "CallTrackingMetrics"
             ]
           }
         },
@@ -3395,6 +3581,11 @@
           "label": "Title",
           "type": "string",
           "required": true
+        },
+        {
+          "slug": "parent",
+          "label": "Parent page (its slug): this page lives under it, at the parent's address plus its own slug",
+          "type": "string"
         },
         {
           "slug": "layout",
@@ -4728,7 +4919,8 @@
                     "one choice",
                     "several choices",
                     "date",
-                    "number"
+                    "number",
+                    "file upload"
                   ]
                 }
               },

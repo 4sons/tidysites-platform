@@ -1,7 +1,7 @@
 /** Helpers every section component shares: reading a stored block, images, lists, and the business record. */
 import { getCollectionInfo, getEmDashCollection, getEmDashEntry, getSiteSettings } from "emdash";
 import { adobeKitId } from "../lib/providers";
-import { PAGE_TYPES, entryPath, hasPage, indexOn, indexPath, normalizePath, pageType, routeCandidates, type Route } from "../lib/routes";
+import { MAX_PAGE_DEPTH, PAGE_TYPES, entryPath, hasPage, indexOn, indexPath, normalizePath, pageType, routeCandidates, type Route } from "../lib/routes";
 import { pageSeo, type Crumb, type Identity, type PageSeo } from "../lib/seo";
 export type { PageSeo, Crumb } from "../lib/seo";
 export { PAGE_TYPES, pageType, hasPage, indexPath, entryPath, normalizePath, type Route, type PageType } from "../lib/routes";
@@ -16,6 +16,8 @@ export const str = (v: unknown, fallback = ""): string => (typeof v === "string"
 export const bool = (v: unknown, fallback = false): boolean => (typeof v === "boolean" ? v : typeof v === "number" ? v !== 0 : fallback);
 export const int = (v: unknown, fallback: number): number => (typeof v === "number" && Number.isFinite(v) ? Math.floor(v) : fallback);
 export const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && v.trim() && Number.isFinite(Number(v)) ? Number(v) : null);
+/** A section's rich copy (its `copy` field), as blocks for <PortableText>; empty when none. */
+export const rich = (v: unknown): unknown[] => (Array.isArray(v) && v.length ? v : []);
 export const lines = (v: unknown): string[] => str(v).split("\n").map((s) => s.trim()).filter(Boolean);
 export const list = <T = Record<string, unknown>>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 export const slugify = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -114,7 +116,7 @@ export interface Business {
 	headerRow: string; footerRow: string;
 	popupShows: "nothing" | "an offer" | "a form"; popupTitle: string; popupOffer: string; popupForm: string; popupTrigger: "on arrival" | "after ten seconds" | "after thirty seconds" | "after scrolling halfway" | "on leaving"; popupEvery: "once a visit" | "once a day" | "every time";
 	logo: { src: string; alt?: string; width?: number; height?: number } | null;
-	ga4Id: string; gtmId: string; customCss: string;
+	ga4Id: string; gtmId: string; gtmId2: string; customCss: string;
 	/** Structured data: the business type (Dentist, Plumber...), the price range, and the frame record's own JSON-LD for the business when it replaces the generated one. */
 	schemaType: string; priceRange: string; siteSchema: string;
 	/** The frame record's wording lines (Original => Replacement): the site's own words for the fixed labels every theme prints. */
@@ -182,7 +184,7 @@ async function readBusiness(): Promise<Business> {
 		footerServicesLabel: str(fr.footer_services_label), footerServices: fr.footer_services !== "off", footerMenuLabel: str(fr.footer_menu_label), siteLanguage: str(fr.site_language) || "en",
 		headerRow: str(fr.header_row), footerRow: str(fr.footer_row),
 		popupShows: pickOne(fr.popup_shows, ["nothing", "an offer", "a form"], "nothing"), popupTitle: str(fr.popup_title), popupOffer: str(fr.popup_offer), popupForm: str(fr.popup_form), popupTrigger: pickOne(fr.popup_trigger, ["on arrival", "after ten seconds", "after thirty seconds", "after scrolling halfway", "on leaving"], "after ten seconds"), popupEvery: pickOne(fr.popup_every, ["once a visit", "once a day", "every time"], "once a visit"),
-		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), customCss: s("custom_css"), schemaType: s("schema_type"), priceRange: s("price_range"), siteSchema: str(fr.site_schema), wording: parseWording(fr.wording), raw: d,
+		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), gtmId2: str(ig.gtm_id_2), customCss: s("custom_css"), schemaType: s("schema_type"), priceRange: s("price_range"), siteSchema: str(fr.site_schema), wording: parseWording(fr.wording), raw: d,
 	};
 }
 /** "Original => Replacement" lines into a map; a line without the arrow, or with an empty side, is skipped. */
@@ -410,8 +412,32 @@ export async function entryUrl(collection: string, entry: { slug?: string | null
 	if (!t || !entry) return null;
 	if (!hasPage(t, entry.data ?? null)) return null;
 	const slug = entry.slug ?? entry.id;
-	if (collection === "pages") return slug === "home" ? "/" : entryPath((await sitePatterns()).pages ?? t.pattern, slug);
+	if (collection === "pages") {
+		if (slug === "home") return "/";
+		const parents = await pageParents(entry.data ?? null);
+		return entryPath((await sitePatterns()).pages ?? t.pattern, [...parents.map((x) => x.slug), slug].join("/"));
+	}
 	return entryPath((await sitePatterns())[collection] ?? t.pattern, slug);
+}
+
+/**
+ * The pages above a page, top first: a page names its parent by slug
+ * (`parent`), and its address is the parent's address plus its own slug.
+ * Stops at a missing parent, a loop, or the depth limit.
+ */
+export async function pageParents(data: Record<string, unknown> | null, lookup?: (slug: string) => Promise<Entry | null>): Promise<Array<{ slug: string; title: string }>> {
+	const out: Array<{ slug: string; title: string }> = [];
+	const seen = new Set<string>();
+	let next = str(data?.parent).trim().replace(/^\/+|\/+$/g, "");
+	const find = lookup ?? (async (slug: string) => { try { const r = (await getEmDashEntry("pages" as never, slug)) as { entry?: { id: string; slug?: string; data?: Record<string, unknown> } | null }; return r.entry ? { id: r.entry.id, slug: r.entry.slug ?? slug, data: r.entry.data ?? {} } : null; } catch { return null; } });
+	while (next && !seen.has(next) && out.length < MAX_PAGE_DEPTH - 1) {
+		seen.add(next);
+		const e = await find(next);
+		if (!e || next === "home") break;
+		out.unshift({ slug: next, title: field(e, "title") || next });
+		next = str(e.data.parent).trim().replace(/^\/+|\/+$/g, "");
+	}
+	return out;
 }
 /** The address of a type's listing page, or null when the type has none or its switch is off. The blog's is always on. */
 export async function collectionUrl(collection: string): Promise<string | null> {
@@ -439,6 +465,7 @@ export async function resolveRoute(path: string): Promise<(Route & { entry?: Awa
 		const entry = found?.entry as { data?: Record<string, unknown> } | null | undefined;
 		if (!entry) continue;
 		if (c.kind === "entry" && !hasPage(pageType(collection), entry.data ?? null)) continue;
+		if (c.kind === "page") { const chain = (await pageParents(entry.data ?? null)).map((x) => x.slug).join("/"); if (chain !== (c.parents ?? []).join("/")) continue; }
 		return { ...c, entry: entry as never, cacheHint: found?.cacheHint };
 	}
 	return null;
@@ -459,11 +486,13 @@ export async function sitePages(): Promise<SitePage[]> {
 	for (const t of PAGE_TYPES) {
 		const pattern = patterns[t.collection] ?? t.pattern;
 		const list = await entries(t.collection, { limit: 1000 });
+		const bySlug = new Map(list.map((e) => [e.slug ?? e.id, e] as const));
 		for (const e of list) {
 			const slug = e.slug ?? e.id;
 			if (t.collection === "pages" && slug === "home") { if (bool(e.data.noindex)) out[0]!.noindex = true; continue; }
 			if (!hasPage(t, e.data)) continue;
-			add({ path: entryPath(pattern, slug), kind: t.collection === "pages" ? "page" : "entry", collection: t.collection, id: refId(e), slug, title: field(e, "title"), ...(bool(e.data.noindex) ? { noindex: true } : {}) });
+			const chain = t.collection === "pages" ? [...(await pageParents(e.data, async (x) => bySlug.get(x) ?? null)).map((x) => x.slug), slug].join("/") : slug;
+			add({ path: entryPath(pattern, chain), kind: t.collection === "pages" ? "page" : "entry", collection: t.collection, id: refId(e), slug, title: field(e, "title"), ...(bool(e.data.noindex) ? { noindex: true } : {}) });
 		}
 	}
 	const base = indexPath(patterns.posts ?? "/blog/{slug}");
@@ -516,6 +545,11 @@ export async function pageHead(request: Request, input: PageHeadInput): Promise<
 		crumbs = [{ label: "Home", href: "/" }];
 		if (t?.index && collection) crumbs.push({ label: t.index.label, href: await collectionUrl(collection) });
 		else if (collection === "posts") crumbs.push({ label: "Blog", href: await blogBase() });
+		else if (collection === "pages" && str(data.parent)) {
+			const parents = await pageParents(data);
+			const pattern = (await sitePatterns()).pages ?? "/{slug}";
+			parents.forEach((x, i) => crumbs!.push({ label: x.title, href: entryPath(pattern, parents.slice(0, i + 1).map((y) => y.slug).join("/")) }));
+		}
 		if (!home) crumbs.push({ label: input.title });
 	}
 	const sections = list<Record<string, unknown>>(input.sections);

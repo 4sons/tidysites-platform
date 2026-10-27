@@ -146,6 +146,18 @@ A record is data first. A service, an area, a person or a product can be listed 
 - **In a theme.** One catch-all route asks `resolveRoute(path)` from `sections/lib` what a path is (`home`, `page`, `index`, `blog` or `entry`, with the entry) and renders it; links come from `entryUrl(collection, entry)` (null when the record has no page), `collectionUrl(collection)` (null when the listing is off) and `blogBase()`. `sitePages()` lists every address the site renders; `GET /_tidy/pages` serves it to the publish, which plans the live snapshot and writes the sitemap from it.
 - **Redirects** are EmDash's own: the admin's Redirects screen, `/_emdash/api/redirects`, and the automatic redirect EmDash writes when a published slug changes. The publish carries them to the live site; `productionFetch()` from `production` answers the ones marked gone (410, 451).
 
+## Pages under a parent
+
+A page names its parent by the parent's slug (`parent`). Its address is the parent's address plus its own slug, so `livonia` under `service-area` renders at `/service-area/livonia` (four levels at most); the breadcrumb and the structured data follow, `entryUrl`, `sitePages()` and `resolveRoute()` know the chain (`pageParents()`), and a page with a parent answers only at its nested address. Changing a parent moves every page under it; the redirect for the old address is the person's to add.
+
+## Rich copy on sections
+
+Every section with a Text field (`body`) also has `copy`, rich text: links in a paragraph, lists, bold. When `copy` is set the section shows it instead of the plain text (`rich()` from `sections/lib`, rendered with EmDash's PortableText), so a port keeps its in-copy links and the connector sends markdown for it the way it does for a record's content. A theme's own section component renders `copy` the same way.
+
+## File uploads on forms
+
+A form question of kind "file upload" takes one document or photo (PDF, Word, text, JPEG, PNG, GIF, WebP, HEIC; 10 MB). `handleLead` keeps it in the site's bucket (`MEDIA`) under `leads/<stamp>/<name>`, the lead's fields name the file under the question's label, `lead.files` lists each with its key, and `GET /_tidy/lead-file?key=` streams one back to the platform (keys under leads/ only). A file of another type or size is left out and the lead says so under "Files not accepted".
+
 ## Wording
 
 Every fixed label a theme prints is a line a site can change. The frame record's `wording` field takes one line per change, `Original => Replacement` ("Call or text => Call us", "Read them all => See every review"); the original is the key, so the line survives a theme change and a package update. In a component: `const tx = await wording(Astro.request)` from `sections/lib`, then `{tx("Call or text")}` in the markup. Every label the package passes through it is listed in `strings` (`PACKAGE_STRINGS`); a theme lists its own and hands them to `tidyPlatform({ strings })` in astro.config, and `GET /_tidy/strings` serves the catalog with the site's overrides, so the platform's text search finds a label the way it finds content and a replace rewords it. Record content is never in the catalog: a record's words are edited on the record.

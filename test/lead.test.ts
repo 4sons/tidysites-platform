@@ -11,7 +11,7 @@ const env = { TIDY_CONTROL_ORIGIN: "https://control.test", TIDY_SITE_ID: "site-1
 describe("leadFrom", () => {
 	it("keeps the contact columns, the form name, and every other answer under its label", () => {
 		const lead = leadFrom({ name: " Ada ", email: "ada@x.test", phone: "", form: "Schedule a make up", q_class: "Tuesday 6pm", "label:q_class": "Which class?", q_notes: "", website_hp: "" }, "/registration", () => new Date("2026-10-26T12:00:00Z"));
-		expect(lead).toEqual({ name: "Ada", email: "ada@x.test", phone: null, form: "Schedule a make up", fields: { "Which class?": "Tuesday 6pm" }, page: "/registration", submittedAt: "2026-10-26T12:00:00.000Z" });
+		expect(lead).toEqual({ name: "Ada", email: "ada@x.test", phone: null, form: "Schedule a make up", fields: { "Which class?": "Tuesday 6pm" }, files: [], page: "/registration", submittedAt: "2026-10-26T12:00:00.000Z" });
 	});
 	it("labels an unlabelled field by its name", () => {
 		expect(leadFrom({ name: "A", phone: "1", service: "Cleaning" }, null).fields).toEqual({ service: "Cleaning" });
@@ -70,5 +70,32 @@ describe("handleLead", () => {
 	});
 	it("reports when the site is not platform-hosted", async () => {
 		expect(await forwardLead({}, leadFrom({ name: "A", email: "a@x.test" }, null))).toEqual({ forwarded: false, status: "not configured" });
+	});
+});
+
+describe("files on a lead", () => {
+	it("keeps an attached document in the bucket under leads/ and names it on the lead; refuses other types and sizes", async () => {
+		const { readLeadFiles, storeLeadFiles, leadFrom, leadLabels } = await import("../src/lib/lead");
+		const put: Array<{ key: string; type?: string }> = [];
+		const env = { MEDIA: { put: async (key: string, _v: unknown, o?: { httpMetadata?: { contentType?: string } }) => { put.push({ key, type: o?.httpMetadata?.contentType }); }, get: async () => null } } as never;
+		const fd = new FormData();
+		fd.set("name", "Pat"); fd.set("email", "pat@example.com"); fd.set("label:q_resume", "Resume");
+		fd.set("q_resume", new File(["%PDF-1.4"], "My Resume.pdf", { type: "application/pdf" }));
+		fd.set("q_bad", new File(["x"], "virus.exe", { type: "application/x-msdownload" }));
+		const req = new Request("https://site.test/api/lead", { method: "POST", body: fd });
+		const files = await readLeadFiles(req);
+		expect(files.map((f) => f.field)).toEqual(["q_resume", "q_bad"]);
+		const stored = await storeLeadFiles(env, files, { q_resume: "Resume" }, () => new Date("2026-10-27T20:00:00Z"));
+		expect(stored.refused).toEqual(["virus.exe"]);
+		expect(stored.files).toHaveLength(1);
+		expect(stored.files[0]).toMatchObject({ label: "Resume", name: "My Resume.pdf", type: "application/pdf" });
+		expect(stored.files[0]!.key).toMatch(/^leads\/20261027200000-[a-z0-9]+\/My-Resume\.pdf$/);
+		expect(put[0]).toEqual({ key: stored.files[0]!.key, type: "application/pdf" });
+		const body = { name: "Pat", email: "pat@example.com", "label:q_resume": "Resume" };
+		const lead = leadFrom(body, null, () => new Date(), stored.files);
+		expect(lead.fields.Resume).toBe("My Resume.pdf");
+		expect(lead.files).toEqual(stored.files);
+		expect(leadLabels(body)).toEqual({ q_resume: "Resume" });
+		expect((await storeLeadFiles({} as never, files, {})).refused).toEqual(["My Resume.pdf", "virus.exe"]);
 	});
 });

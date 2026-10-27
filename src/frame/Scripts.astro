@@ -10,7 +10,7 @@ import type { Business } from "../sections/lib";
 import { providerSnippets } from "../lib/providers";
 interface Props { business: Business; where?: "head" | "body" }
 const { business: b, where = "body" } = Astro.props;
-const s = providerSnippets({ chatProvider: b.chatProvider, chatId: b.chatId, reviewsWidget: b.reviewsWidget, reviewsWidgetId: b.reviewsWidgetId, metaPixelId: b.metaPixelId, googleAdsId: b.googleAdsId, accessibilityWidget: b.accessibilityWidget, accessibilityWidgetId: b.accessibilityWidgetId, callTracking: b.callTracking, callTrackingId: b.callTrackingId, heatmaps: b.heatmaps, heatmapsId: b.heatmapsId, tiktokPixelId: b.tiktokPixelId, linkedinInsightId: b.linkedinInsightId, gtmId: b.gtmId, ga4Id: b.ga4Id });
+const s = providerSnippets({ chatProvider: b.chatProvider, chatId: b.chatId, reviewsWidget: b.reviewsWidget, reviewsWidgetId: b.reviewsWidgetId, metaPixelId: b.metaPixelId, googleAdsId: b.googleAdsId, accessibilityWidget: b.accessibilityWidget, accessibilityWidgetId: b.accessibilityWidgetId, callTracking: b.callTracking, callTrackingId: b.callTrackingId, heatmaps: b.heatmaps, heatmapsId: b.heatmapsId, tiktokPixelId: b.tiktokPixelId, linkedinInsightId: b.linkedinInsightId, gtmId: b.gtmId, gtmId2: b.gtmId2, ga4Id: b.ga4Id });
 // With the cookie banner on, trackers wait as inert scripts until the visitor accepts (frame/consent wakes them); off, they run as any script.
 const gate = (snippet: string) => (b.cookieBanner ? snippet.replace(/<script(?![^>]*\bsrc=)/g, '<script type="text/plain" data-tidy-gated').replace(/<script([^>]*\bsrc=[^>]*)>/g, '<script type="text/plain" data-tidy-gated$1>') : snippet);
 const html = (where === "head" ? [...s.head, ...s.gatedHead.map(gate)] : [...s.body, ...s.gatedBody.map(gate)]).join("");

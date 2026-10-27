@@ -1,13 +1,14 @@
 ---
 /** The eyebrow, headline and optional text that open most sections, plus a right-side action. */
-import { str } from "../lib";
+import { PortableText } from "emdash/ui";
+import { rich, str } from "../lib";
 interface Props { n: Record<string, unknown>; action?: { href: string; label: string } | null; class?: string }
 const { n, action = null, class: cls = "" } = Astro.props;
-const eyebrow = str(n.eyebrow), headline = str(n.headline), body = str(n.body) || str(n.text);
+const eyebrow = str(n.eyebrow), headline = str(n.headline), copy = rich(n.copy), body = copy.length ? "" : str(n.body) || str(n.text);
 ---
-{(eyebrow || headline || body || action) && (
+{(eyebrow || headline || body || copy.length > 0 || action) && (
 	<div class={`ts-head ${cls}`}>
-		<div>{eyebrow && <p class="ts-eyebrow">{eyebrow}</p>}{headline && <h2>{headline}</h2>}{body && <p class="ts-lede">{body}</p>}</div>
+		<div>{eyebrow && <p class="ts-eyebrow">{eyebrow}</p>}{headline && <h2>{headline}</h2>}{body && <p class="ts-lede">{body}</p>}{copy.length > 0 && <div class="ts-prose ts-lede"><PortableText value={copy as never} /></div>}</div>
 		{action && <a class="ts-btn ts-btn-outline" href={action.href}>{action.label}</a>}
 	</div>
 )}

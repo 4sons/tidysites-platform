@@ -12,7 +12,7 @@ export type ReviewsProvider = "Trustindex" | "Elfsight" | "Birdeye";
 export type BookingProvider = "Calendly" | "Pike13" | "Square Appointments" | "Acuity" | "Jobber";
 export type InstagramProvider = "Elfsight" | "Behold";
 export type AccessibilityProvider = "UserWay" | "accessiBe";
-export type CallTrackingProvider = "CallRail" | "WhatConverts";
+export type CallTrackingProvider = "CallRail" | "WhatConverts" | "CallTrackingMetrics";
 export type HeatmapsProvider = "Hotjar" | "Microsoft Clarity";
 
 const esc = (s: string) => s.replace(/[^A-Za-z0-9_\-:./]/g, "");
@@ -51,6 +51,7 @@ export function providerId(kind: "chat" | "reviews" | "booking" | "instagram" | 
 		case "accessibility:accessiBe": return s ? "on" : "";
 		case "calls:CallRail": return first(s, [/cdn\.callrail\.com\/companies\/(\d+\/[0-9a-f]+)\//i]) || bare(s, /^\d+\/[0-9a-f]{16,}$/i);
 		case "calls:WhatConverts": return first(s, [/scripts\.whatconverts\.com\/([0-9a-z]+)\.js/i, /whatconverts\.com\/.*?\/([0-9a-z]{6,})\.js/i]) || bare(s, /^[0-9a-z]{6,}$/i);
+		case "calls:CallTrackingMetrics": return first(s, [/\/\/(\d{6,})\.tctm\.co\//i, /tctm\.co\/.*?(\d{6,})/i]) || bare(s, /^\d{6,}$/);
 		case "heatmaps:Hotjar": return first(s, [/hjid\s*:\s*(\d+)/]) || bare(s, /^\d{5,}$/);
 		case "heatmaps:Microsoft Clarity": return first(s, [/clarity\.ms\/tag\/([a-z0-9]{6,})/i, /["']clarity["']\s*,\s*["']script["']\s*,\s*["']([a-z0-9]+)["']/i]) || bare(s, /^[a-z0-9]{8,}$/i);
 		default: return "";
@@ -76,16 +77,17 @@ export function adobeKitId(pasted: string): string {
 export interface Snippets { head: string[]; body: string[]; gatedHead: string[]; gatedBody: string[] }
 
 /** The frame's own snippets for the providers a business record names. Every id goes through `esc`; the snippets are fixed. */
-export function providerSnippets(input: { chatProvider: string; chatId: string; reviewsWidget: string; reviewsWidgetId: string; metaPixelId: string; googleAdsId: string; accessibilityWidget?: string; accessibilityWidgetId?: string; callTracking?: string; callTrackingId?: string; heatmaps?: string; heatmapsId?: string; tiktokPixelId?: string; linkedinInsightId?: string; gtmId?: string; ga4Id?: string }): Snippets {
+export function providerSnippets(input: { chatProvider: string; chatId: string; reviewsWidget: string; reviewsWidgetId: string; metaPixelId: string; googleAdsId: string; accessibilityWidget?: string; accessibilityWidgetId?: string; callTracking?: string; callTrackingId?: string; heatmaps?: string; heatmapsId?: string; tiktokPixelId?: string; linkedinInsightId?: string; gtmId?: string; gtmId2?: string; ga4Id?: string }): Snippets {
 	const out: Snippets = { head: [], body: [], gatedHead: [], gatedBody: [] };
 	// Google Tag Manager, or GA4 alone when there is no container; both are trackers, so they wait on consent.
-	const gtm = (input.gtmId ?? "").trim().replace(/[^A-Za-z0-9-]/g, "");
+	const gtms = [input.gtmId, input.gtmId2].map((v) => (v ?? "").trim().replace(/[^A-Za-z0-9-]/g, "")).filter((v, i, a) => v && a.indexOf(v) === i);
 	const ga4 = (input.ga4Id ?? "").trim().replace(/[^A-Za-z0-9-]/g, "");
-	if (gtm) out.gatedHead.push(`<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtm}');</script>`);
-	else if (ga4) out.gatedHead.push(`<script async src="https://www.googletagmanager.com/gtag/js?id=${ga4}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga4}');</script>`);
+	for (const gtm of gtms) out.gatedHead.push(`<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtm}');</script>`);
+	if (!gtms.length && ga4) out.gatedHead.push(`<script async src="https://www.googletagmanager.com/gtag/js?id=${ga4}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga4}');</script>`);
 	const calls = providerId("calls", input.callTracking ?? "", input.callTrackingId ?? "");
 	if (calls && input.callTracking === "CallRail") out.body.push(`<script async src="//cdn.callrail.com/companies/${esc(calls)}/12/swap.js"></script>`);
 	if (calls && input.callTracking === "WhatConverts") out.body.push(`<script async src="https://scripts.whatconverts.com/${esc(calls)}.js"></script>`);
+	if (calls && input.callTracking === "CallTrackingMetrics") out.body.push(`<script async src="https://${esc(calls)}.tctm.co/t.js"></script>`);
 	const heat = providerId("heatmaps", input.heatmaps ?? "", input.heatmapsId ?? "");
 	if (heat && input.heatmaps === "Hotjar") out.gatedHead.push(`<script>(function(h,o,t,j,a,r){h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};h._hjSettings={hjid:${Number(heat) || 0},hjsv:6};a=o.getElementsByTagName('head')[0];r=o.createElement('script');r.async=1;r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;a.appendChild(r);})(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');</script>`);
 	if (heat && input.heatmaps === "Microsoft Clarity") out.gatedHead.push(`<script>(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${esc(heat)}");</script>`);
