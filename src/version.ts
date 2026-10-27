@@ -1,3 +1,3 @@
 /** Kept in step with package.json by the release checklist in MAINTAINING.md. */
-export const VERSION = "0.17.0";
+export const VERSION = "0.18.0";
 export const PLUGIN_ID = "tidy-platform";

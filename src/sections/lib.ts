@@ -2,6 +2,8 @@
 import { getCollectionInfo, getEmDashCollection, getEmDashEntry, getSiteSettings } from "emdash";
 import { adobeKitId } from "../lib/providers";
 import { PAGE_TYPES, entryPath, hasPage, indexOn, indexPath, normalizePath, pageType, routeCandidates, type Route } from "../lib/routes";
+import { pageSeo, type Crumb, type Identity, type PageSeo } from "../lib/seo";
+export type { PageSeo, Crumb } from "../lib/seo";
 export { PAGE_TYPES, pageType, hasPage, indexPath, entryPath, normalizePath, type Route, type PageType } from "../lib/routes";
 
 export type Node = Record<string, unknown>;
@@ -113,6 +115,8 @@ export interface Business {
 	popupShows: "nothing" | "an offer" | "a form"; popupTitle: string; popupOffer: string; popupForm: string; popupTrigger: "on arrival" | "after ten seconds" | "after thirty seconds" | "after scrolling halfway" | "on leaving"; popupEvery: "once a visit" | "once a day" | "every time";
 	logo: { src: string; alt?: string; width?: number; height?: number } | null;
 	ga4Id: string; gtmId: string; customCss: string;
+	/** Structured data: the business type (Dentist, Plumber...), the price range, and the frame record's own JSON-LD for the business when it replaces the generated one. */
+	schemaType: string; priceRange: string; siteSchema: string;
 	raw: Record<string, unknown>;
 }
 /** Empty means the record leaves it to the theme. */
@@ -176,7 +180,7 @@ async function readBusiness(): Promise<Business> {
 		footerServicesLabel: str(fr.footer_services_label), footerServices: fr.footer_services !== "off", footerMenuLabel: str(fr.footer_menu_label), siteLanguage: str(fr.site_language) || "en",
 		headerRow: str(fr.header_row), footerRow: str(fr.footer_row),
 		popupShows: pickOne(fr.popup_shows, ["nothing", "an offer", "a form"], "nothing"), popupTitle: str(fr.popup_title), popupOffer: str(fr.popup_offer), popupForm: str(fr.popup_form), popupTrigger: pickOne(fr.popup_trigger, ["on arrival", "after ten seconds", "after thirty seconds", "after scrolling halfway", "on leaving"], "after ten seconds"), popupEvery: pickOne(fr.popup_every, ["once a visit", "once a day", "every time"], "once a visit"),
-		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), customCss: s("custom_css"), raw: d,
+		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), customCss: s("custom_css"), schemaType: s("schema_type"), priceRange: s("price_range"), siteSchema: str(fr.site_schema), raw: d,
 	};
 }
 const memo = new WeakMap<Request, Promise<Business>>();
@@ -417,7 +421,7 @@ export async function resolveRoute(path: string): Promise<(Route & { entry?: Awa
 	return null;
 }
 
-export interface SitePage { path: string; kind: "home" | "page" | "index" | "entry" | "blog"; collection?: string; id?: string; slug?: string; title: string }
+export interface SitePage { path: string; kind: "home" | "page" | "index" | "entry" | "blog"; collection?: string; id?: string; slug?: string; title: string; /** The record keeps the page out of search engines: the sitemap leaves it out. */ noindex?: boolean }
 /** Every address the site renders: the home page, the pages, each listing that is on, the blog and its facets, and every record whose page is on. For the publish, the sitemap and the pages tool. */
 export async function sitePages(): Promise<SitePage[]> {
 	const [patterns, frame] = await Promise.all([sitePatterns(), siteFrame()]);
@@ -434,9 +438,9 @@ export async function sitePages(): Promise<SitePage[]> {
 		const list = await entries(t.collection, { limit: 1000 });
 		for (const e of list) {
 			const slug = e.slug ?? e.id;
-			if (t.collection === "pages" && slug === "home") continue;
+			if (t.collection === "pages" && slug === "home") { if (bool(e.data.noindex)) out[0]!.noindex = true; continue; }
 			if (!hasPage(t, e.data)) continue;
-			add({ path: entryPath(pattern, slug), kind: t.collection === "pages" ? "page" : "entry", collection: t.collection, id: refId(e), slug, title: field(e, "title") });
+			add({ path: entryPath(pattern, slug), kind: t.collection === "pages" ? "page" : "entry", collection: t.collection, id: refId(e), slug, title: field(e, "title"), ...(bool(e.data.noindex) ? { noindex: true } : {}) });
 		}
 	}
 	const base = indexPath(patterns.posts ?? "/blog/{slug}");
@@ -447,4 +451,84 @@ export async function sitePages(): Promise<SitePage[]> {
 		for (const a of f.authors) add({ path: `${base}/author/${a.slug}`, kind: "blog", collection: "posts", title: a.label });
 	}
 	return out;
+}
+
+/** The field each page-bearing record keeps its own picture in. */
+const RECORD_IMAGE: Record<string, string> = { services: "featured_image", service_categories: "featured_image", service_areas: "featured_image", audiences: "featured_image", people: "photo", technologies: "image", products: "image", case_studies: "featured_image", posts: "featured_image" };
+
+export interface PageHeadInput {
+	/** The collection the page renders; null for a fixed page (a listing, the blog, contact, 404). */
+	collection?: string | null;
+	/** The record's data, when there is one. */
+	data?: Record<string, unknown> | null;
+	/** The page's sections (its FAQ sections give FAQPage; a page's first hero gives its picture). */
+	sections?: unknown;
+	path: string; origin: string;
+	/** The page title the theme shows, and its description and picture when no SEO field says otherwise. */
+	title: string; description?: string; image?: string | null;
+	/** The breadcrumb trail the theme shows; derived from the collection's listing when left out. */
+	crumbs?: Crumb[];
+	/** When the record was published and last changed (ISO), for a post's entry. */
+	dates?: { published?: string | null; modified?: string | null };
+}
+
+/**
+ * A page's head, from its record and the site: title tag, description,
+ * canonical, robots, the share title, description and image, and the
+ * structured data (the business and its locations on every page, the
+ * breadcrumbs, the record's own entry, the page's questions). A theme's
+ * layout calls it once and hands the result to the page context; see
+ * lib/seo for the derivation and the override fields.
+ */
+export async function pageHead(request: Request, input: PageHeadInput): Promise<PageSeo> {
+	const iso = (v: unknown): string => (v instanceof Date ? v.toISOString() : str(v));
+	const business = await getBusiness(request);
+	const data = input.data ?? {};
+	const collection = input.collection ?? null;
+	const home = input.path === "/";
+	const abs = (u: string | null | undefined): string | null => (u ? (/^https?:\/\//i.test(u) ? u : `${input.origin}${u.startsWith("/") ? "" : "/"}${u}`) : null);
+	const t = collection ? pageType(collection) : undefined;
+	let crumbs = input.crumbs;
+	if (!crumbs) {
+		crumbs = [{ label: "Home", href: "/" }];
+		if (t?.index && collection) crumbs.push({ label: t.index.label, href: await collectionUrl(collection) });
+		else if (collection === "posts") crumbs.push({ label: "Blog", href: await blogBase() });
+		if (!home) crumbs.push({ label: input.title });
+	}
+	const sections = list<Record<string, unknown>>(input.sections);
+	const faqs: Array<{ question: string; answer: string }> = [];
+	for (const b of sections) {
+		if (b._type !== "faq") continue;
+		const group = str(b.group);
+		const items = await entries("faqs", { limit: int(b.limit, 40), ...(group ? { where: { group } } : {}) });
+		for (const q of items) faqs.push({ question: str(q.data.title), answer: str(q.data.answer) });
+		for (const q of list<Record<string, unknown>>(b.items)) faqs.push({ question: str(q.question), answer: str(q.answer) });
+	}
+	let author: { name: string; url: string | null } | null = null;
+	if (collection === "posts" && data.author) {
+		const people = await entries("people", { limit: 200 });
+		const raw = typeof data.author === "object" && data.author && "id" in data.author ? str((data.author as { id?: unknown }).id) : str(data.author);
+		const p = people.find((x) => x.id === raw || str(x.data.id) === raw || str(x.data.title) === raw);
+		if (p) author = { name: str(p.data.display_name) || str(p.data.title), url: await entryUrl("people", p) };
+	}
+	const locations = await entries("locations", { limit: 50 });
+	const identity: Identity = {
+		name: business.title, url: input.origin, type: business.schemaType,
+		phone: business.phone, email: business.email,
+		address: business.address, city: business.city, region: business.region, postal: business.postal, country: business.country, hideAddress: business.hideAddress,
+		logo: abs(business.logo?.src), sameAs: business.social.map((x) => x.url), foundedYear: business.foundedYear, priceRange: business.priceRange, hoursLine: business.hours,
+		locations: locations.map((l) => ({
+			name: field(l, "title"), address: field(l, "address"), city: field(l, "city"), region: field(l, "region"), postal: field(l, "postal"), phone: field(l, "phone"), mapUrl: field(l, "map_url"),
+			hours: { mon: field(l, "hours_mon"), tue: field(l, "hours_tue"), wed: field(l, "hours_wed"), thu: field(l, "hours_thu"), fri: field(l, "hours_fri"), sat: field(l, "hours_sat"), sun: field(l, "hours_sun") }
+		})),
+		override: business.siteSchema
+	};
+	const hero = sections.find((b) => b._type === "hero");
+	const recordImage = abs(collection && RECORD_IMAGE[collection] ? mediaUrl(data[RECORD_IMAGE[collection]!]) : null) ?? (hero ? abs(mediaUrl(hero.image)) : null);
+	return pageSeo({
+		collection, data, path: input.path, origin: input.origin, siteTitle: business.title,
+		fallback: { title: input.title, description: input.description || business.tagline, image: abs(input.image), home },
+		identity, crumbs, faqs, author, shareImage: abs(mediaUrl(data.share_image)), recordImage,
+		dates: { published: input.dates?.published || iso(data.publishedAt), modified: input.dates?.modified || iso(data.updatedAt) }
+	});
 }
