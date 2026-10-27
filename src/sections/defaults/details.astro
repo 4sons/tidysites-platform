@@ -1,0 +1,36 @@
+---
+/** Business details: name, address, phone, email, hours day by day, socials and the map, each on or off, as a row, a card or two columns. */
+import { addressLine, bool, getBusiness, getLocation, hoursRows, nodeOf, str, todayKey, DAYS } from "../lib";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const b = await getBusiness(Astro.request);
+const loc = await getLocation(str(n.location));
+const d = loc?.data ?? {};
+const variant = str(n.variant, "row");
+const rows = hoursRows(d);
+const today = DAYS.find(([k]) => k === todayKey())?.[1];
+const address = loc ? addressLine({ address: str(d.address), city: str(d.city), region: str(d.region), postal: str(d.postal) }) : addressLine(b);
+const phone = str(d.phone) || b.phone; const email = str(d.email) || b.email;
+const show = { name: bool(n.show_name), address: bool(n.show_address, true) && Boolean(address), phone: bool(n.show_phone, true) && Boolean(phone), email: bool(n.show_email, true) && Boolean(email), hours: bool(n.show_hours, true) && (rows.length > 0 || Boolean(b.hours)), socials: bool(n.show_socials) && b.social.length > 0, map: bool(n.show_map) && Boolean(str(d.map_url) || address) };
+const mapSrc = str(d.map_url) || (address ? `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed` : "");
+const tel = (p: string) => `tel:${p.replace(/[^\d+]/g, "")}`;
+---
+<section class={`ts ts-details ts-details-${variant.replace(/\s+/g, "-")}`} id="details"><div class="ts-wrap">
+	<Head n={n} />
+	<div class="ts-details-body">
+		<dl class="ts-details-list">
+			{show.name && <div class="ts-details-item ts-details-name"><dt>Name</dt><dd>{b.title}</dd></div>}
+			{show.address && <div class="ts-details-item ts-details-address"><dt>Address</dt><dd>{address}</dd></div>}
+			{show.phone && <div class="ts-details-item ts-details-phone"><dt>Phone</dt><dd><a href={tel(phone)}>{phone}</a></dd></div>}
+			{show.email && <div class="ts-details-item ts-details-email"><dt>Email</dt><dd><a href={`mailto:${email}`}>{email}</a></dd></div>}
+			{show.socials && <div class="ts-details-item ts-details-socials"><dt>Follow</dt><dd>{b.social.map((s) => <a href={s.url} target="_blank" rel="noopener" style="margin-right:12px;text-transform:capitalize">{s.network}</a>)}</dd></div>}
+		</dl>
+		{show.hours && (
+			<div class="ts-details-hours">
+				{rows.length > 0 ? <table class="ts-hours"><tbody>{rows.map((r) => <tr class={r.day === today ? "ts-today" : ""}><th scope="row">{r.day}</th><td>{r.value}</td></tr>)}</tbody></table> : <p class="ts-hours-line">{b.hours}</p>}
+				{str(d.hours_note) && <p class="ts-muted" style="font-size:13px;margin-top:8px">{str(d.hours_note)}</p>}
+			</div>
+		)}
+		{show.map && <div class="ts-details-map"><iframe class="ts-map" src={mapSrc} title="Map" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>}
+	</div>
+</div></section>

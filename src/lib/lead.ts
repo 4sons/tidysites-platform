@@ -119,7 +119,9 @@ export async function handleLead(request: Request, env: LeadEnv, opts: { fetch?:
 	const ts = await turnstileOk(env, body["cf-turnstile-response"], request.headers.get("cf-connecting-ip"), opts.fetch);
 	if (!ts.ok) return json({ ok: false, error: ts.error }, 400);
 	const lead = leadFrom(body, request.headers.get("referer"));
-	if (!lead.name || !(lead.email || lead.phone)) return json({ ok: false, error: "Name and an email or phone are required." }, 400);
+	// A name is wanted whenever there is a phone (someone will call); an email alone is enough (a newsletter signup).
+	if (!(lead.email || lead.phone)) return json({ ok: false, error: "An email or phone is required." }, 400);
+	if (!lead.name && !lead.email) return json({ ok: false, error: "A name is required." }, 400);
 	const fw = await forwardLead(env, lead, opts.fetch);
 	if (!fw.forwarded) console.error("[lead] forward failed:", fw.status);
 	const accept = request.headers.get("accept") ?? "";

@@ -88,3 +88,9 @@
 .ts-dialog-close:hover{color:var(--ts-ink)}
 .ts-dialog .ts-form{grid-template-columns:1fr 1fr}
 @media (max-width:600px){.ts-dialog .ts-form{grid-template-columns:1fr}}
+
+/* Footer hours, pop-up */
+.ts-footer .ts-hours-small{border-collapse:collapse;font-size:13.5px}
+.ts-footer .ts-hours-small th{text-align:left;font-weight:600;padding:2px 12px 2px 0}
+.ts-footer .ts-hours-small td{padding:2px 0;white-space:nowrap}
+.ts-popup .ts-dialog-box{max-width:520px}

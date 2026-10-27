@@ -98,6 +98,9 @@ export interface Business {
 	callBar: "call and book" | "call only" | "book only" | "off"; topBarText: string; topBarLink: string;
 	/** Third parties by id (or the pasted embed the id is read from): see lib/providers. */
 	chatProvider: string; chatId: string; reviewsWidget: string; reviewsWidgetId: string; bookingEmbed: string; bookingEmbedId: string; metaPixelId: string; googleAdsId: string;
+	instagramWidget: string; instagramWidgetId: string; accessibilityWidget: string; accessibilityWidgetId: string;
+	/** The pop-up the frame opens on its own: what, when, how often. */
+	popupShows: "nothing" | "an offer" | "a form"; popupTitle: string; popupOffer: string; popupForm: string; popupTrigger: "on arrival" | "after ten seconds" | "after thirty seconds" | "after scrolling halfway" | "on leaving"; popupEvery: "once a visit" | "once a day" | "every time";
 	logo: { src: string; alt?: string; width?: number; height?: number } | null;
 	ga4Id: string; gtmId: string; customCss: string;
 	raw: Record<string, unknown>;
@@ -156,6 +159,8 @@ async function readBusiness(): Promise<Business> {
 		bookingOpens: s("booking_opens") === "a form on this site" ? "form" : s("booking_opens") === "the booking embed" ? "embed" : "link", bookingForm: s("booking_form"), portalLabel: s("portal_label") || "Log in", headerPhone: bool(d.header_phone, true),
 		callBar: pickOne(fr.call_bar, ["call and book", "call only", "book only", "off"], "call and book"), topBarText: str(fr.top_bar_text), topBarLink: str(fr.top_bar_link),
 		chatProvider: str(ig.chat_provider), chatId: str(ig.chat_id), reviewsWidget: str(ig.reviews_widget), reviewsWidgetId: str(ig.reviews_widget_id), bookingEmbed: str(ig.booking_embed), bookingEmbedId: str(ig.booking_embed_id), metaPixelId: str(ig.meta_pixel_id), googleAdsId: str(ig.google_ads_id),
+		instagramWidget: str(ig.instagram_widget), instagramWidgetId: str(ig.instagram_widget_id), accessibilityWidget: str(ig.accessibility_widget), accessibilityWidgetId: str(ig.accessibility_widget_id),
+		popupShows: pickOne(fr.popup_shows, ["nothing", "an offer", "a form"], "nothing"), popupTitle: str(fr.popup_title), popupOffer: str(fr.popup_offer), popupForm: str(fr.popup_form), popupTrigger: pickOne(fr.popup_trigger, ["on arrival", "after ten seconds", "after thirty seconds", "after scrolling halfway", "on leaving"], "after ten seconds"), popupEvery: pickOne(fr.popup_every, ["once a visit", "once a day", "every time"], "once a visit"),
 		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), customCss: s("custom_css"), raw: d,
 	};
 }
@@ -230,4 +235,19 @@ export async function getForm(name: string): Promise<FormRecord | null> {
 	const all = await entries("forms", { limit: 100 });
 	const e = all.find((f) => [f.slug, f.id, refId(f), field(f, "title")].some((v) => typeof v === "string" && v.toLowerCase() === want));
 	return e ? { id: refId(e), slug: e.slug ?? null, title: field(e, "title"), data: e.data } : null;
+}
+
+/** A location record by name or slug, or the primary one (or the first) when no name is given. Null on a site with none. */
+export async function getLocation(name = ""): Promise<Entry | null> {
+	const all = await entries("locations", { limit: 50 });
+	const want = name.trim().toLowerCase();
+	if (want) return all.find((l) => [l.slug, l.id, field(l, "title")].some((v) => typeof v === "string" && v.toLowerCase() === want)) ?? null;
+	return all.find((l) => bool(l.data.is_primary)) ?? all[0] ?? null;
+}
+/** An offer record by name or slug, or null. */
+export async function getOffer(name: string): Promise<Entry | null> {
+	const want = name.trim().toLowerCase();
+	if (!want) return null;
+	const all = await entries("offers", { limit: 50 });
+	return all.find((o) => [o.slug, o.id, refId(o), field(o, "title")].some((v) => typeof v === "string" && v.toLowerCase() === want)) ?? null;
 }

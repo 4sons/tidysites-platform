@@ -1,6 +1,6 @@
 # The Tidysites template
 
-One data shape, rendered by every theme. `structure.json` is the structure half of an EmDash seed: 27 collections, 36 section types, the two menus. No content, no design. It validates with EmDash's `validateSeed` (emdash 1.0.1).
+One data shape, rendered by every theme. `structure.json` is the structure half of an EmDash seed: 28 collections, 38 section types, the two menus. No content, no design. It validates with EmDash's `validateSeed` (emdash 1.0.1).
 
 ## The model
 
@@ -27,6 +27,8 @@ Who they are: `people` (role, group, credentials, licence, two bio lengths, educ
 Proof: `reviews` (quote, display name, rating, source, date, photo, service, service area, provider, video, featured), `cases` (before and after with problem and treatment).
 
 Money and admin: `plans` (memberships, packages, tiers, banked credit), `insurers` (network status, note, which services), `financing_providers`, `offers` (with how to claim and an end date), `downloads` (intake, consent, pre-op, post-op), `policies`.
+
+Who it is for: `audiences` (the people or industries a service is for, each with a page at /for/<slug>).
 
 Pages and words: `pages`, `posts`, `faqs`, `forms` (contact details asked for, questions, button, thank-you), and a `sections` field on pages, services, service categories, service areas and case studies that holds any of the 36 section types.
 

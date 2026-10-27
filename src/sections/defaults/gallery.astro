@@ -1,17 +1,24 @@
 ---
-import { list, nodeOf, pic, str } from "../lib";
+import { bool, getBusiness, list, mediaUrl, nodeOf, pic, str } from "../lib";
+import { instagramFeedHtml } from "../../lib/providers";
+import Lightbox from "./_Lightbox.astro";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
 import Carousel from "./_Carousel.astro";
 const n = nodeOf(Astro.props);
 const images = list<Record<string, unknown>>(n.images).map((i) => ({ p: pic(i.image), caption: str(i.caption) })).filter((i) => i.p.image || i.p.url);
 const captions = str(n.variant) === "with captions";
+const lightbox = bool(n.lightbox, true);
+const b = await getBusiness(Astro.request);
+const feed = str(n.variant) === "instagram feed" ? instagramFeedHtml(b.instagramWidget, b.instagramWidgetId) : null;
+const item = (i: { p: ReturnType<typeof pic>; caption: string }) => lightbox ? { "data-tidy-lightbox-item": mediaUrl(i.p) ?? "", "data-tidy-lightbox-caption": i.caption, role: "button", tabindex: 0 } : {};
 ---
-{images.length > 0 && (
-<section class="ts"><div class="ts-wrap">
+{(images.length > 0 || feed) && (
+<section class="ts" data-tidy-lightbox-group><div class="ts-wrap">
 	<Head n={n} />
+	{feed && <div class="ts-widget"><Fragment set:html={feed} /></div>}
 	{str(n.variant) === "carousel" ? (
-		<Carousel cols={3} label="Gallery">{images.map((i) => <figure class="ts-carousel-item" style="margin:0"><Photo image={i.p.image} url={i.p.url} alt={i.caption || ""} ratio="wide" />{i.caption && <figcaption class="ts-muted" style="font-size:13px;margin-top:6px">{i.caption}</figcaption>}</figure>)}</Carousel>
-	) : <div class="ts-gallery" style={str(n.variant) === "strip" ? "grid-template-columns:repeat(6,1fr)" : ""}>{images.map((i) => <figure style="margin:0"><Photo image={i.p.image} url={i.p.url} alt={i.caption || ""} ratio="square" />{captions && i.caption && <figcaption class="ts-muted" style="font-size:13px;margin-top:6px">{i.caption}</figcaption>}</figure>)}</div>}
-</div></section>
+		<Carousel cols={3} label="Gallery">{images.map((i) => <figure class="ts-carousel-item" style="margin:0" {...item(i)}><Photo image={i.p.image} url={i.p.url} alt={i.caption || ""} ratio="wide" />{i.caption && <figcaption class="ts-muted" style="font-size:13px;margin-top:6px">{i.caption}</figcaption>}</figure>)}</Carousel>
+	) : <div class="ts-gallery" style={str(n.variant) === "strip" ? "grid-template-columns:repeat(6,1fr)" : ""}>{images.map((i) => <figure style="margin:0" {...item(i)}><Photo image={i.p.image} url={i.p.url} alt={i.caption || ""} ratio="square" />{captions && i.caption && <figcaption class="ts-muted" style="font-size:13px;margin-top:6px">{i.caption}</figcaption>}</figure>)}</div>}
+</div>{lightbox && images.length > 0 && <Lightbox />}</section>
 )}

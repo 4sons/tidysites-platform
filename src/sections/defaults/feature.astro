@@ -5,6 +5,7 @@ import Photo from "../Photo.astro";
 const n = nodeOf(Astro.props);
 const variant = str(n.variant, "cards");
 const points = list<Record<string, unknown>>(n.points).filter((p) => str(p.title) || str(p.body));
+const cols = Number(str(n.columns, "3")) || 3;
 const bullets = lines(n.bullets);
 const stepList = steps(n.steps);
 const photo = pic(n.image);
@@ -22,7 +23,7 @@ const side = str(n.image_side, "left");
 			{str(n.headline) && <h2>{str(n.headline)}</h2>}
 			{str(n.body) && <p class="ts-lede">{str(n.body)}</p>}
 			{variant === "cards" && points.length > 0 && !hasPhoto ? (
-				<div class="ts-grid" style="margin-top:24px;--cols:3">{points.map((p) => <div class="ts-card">{str(p.icon) && <span class="ts-eyebrow" style="margin:0">{str(p.icon)}</span>}<h3>{str(p.title)}</h3>{str(p.body) && <p>{str(p.body)}</p>}</div>)}</div>
+				<div class="ts-grid" style={`margin-top:24px;--cols:${cols}`}>{points.map((p) => { const pp = pic(p.image); const Tag = str(p.link_url) ? "a" : "div"; return <Tag class="ts-card" href={str(p.link_url) || undefined}>{(pp.image || pp.url) && <Photo image={pp.image} url={pp.url} alt={str(p.title)} ratio="wide" />}{str(p.icon) && <span class="ts-eyebrow" style="margin:0">{str(p.icon)}</span>}<h3>{str(p.title)}</h3>{str(p.body) && <p>{str(p.body)}</p>}{str(p.link_url) && str(p.link_label) && <span style="font-weight:700;font-size:14px;color:var(--ts-primary)">{str(p.link_label)}</span>}</Tag>; })}</div>
 			) : points.length > 0 ? (
 				<ul class="ts-list" style="margin-top:18px">{points.map((p) => <li><span><b>{str(p.title)}</b>{str(p.body) && <> {str(p.body)}</>}</span></li>)}</ul>
 			) : null}
