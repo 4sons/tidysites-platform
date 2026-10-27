@@ -1,6 +1,6 @@
 ---
 /** Hero: headline, subhead, buttons, and a photo, a booking card, a form, or a picker of services. */
-import { bool, entries, entryUrl, getBusiness, nodeOf, pic, str, wording } from "../lib";
+import { bool, entries, entryUrl, getBusiness, nodeOf, pic, str, wording, mediaUrl } from "../lib";
 import Photo from "../Photo.astro";
 import Form from "../Form.astro";
 const n = nodeOf(Astro.props);
@@ -16,7 +16,7 @@ const rating = b.rating ? b.rating.toFixed(1) : null;
 const showRating = bool(n.show_rating, true) && rating;
 const over = variant === "photo with headline over";
 ---
-<section class={`ts ts-hero ${over ? "ts-ink" : ""}`} style={over && photo.url ? `background-image:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.55)),url(${photo.url});background-size:cover;background-position:center` : undefined}>
+<section class={`ts ts-hero ${over ? "ts-ink" : ""}`} style={over && mediaUrl(photo) ? `background-image:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.55)),url(${mediaUrl(photo)});background-size:cover;background-position:center` : undefined}>
 	<div class={`ts-wrap ${over || variant === "headline and picker" ? "" : "ts-split"}`}>
 		<div>
 			{str(n.pill) && <p class="ts-chip" style="display:inline-flex;margin-bottom:16px">{str(n.pill)}</p>}
