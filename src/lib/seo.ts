@@ -85,18 +85,17 @@ export function jsonLdScript(graph: Record<string, unknown>): string {
 	return `<script type="application/ld+json">${json}</script>`;
 }
 
-/** A written JSON-LD override: one object or a list of them; anything else (empty, invalid, a scalar) is nothing. */
+/** A written JSON-LD override: one object or a list of them, as JSON text or already parsed (the CMS stores JSON written into a text field as a value); anything else (empty, invalid, a scalar) is nothing. */
 export function parseSchemaOverride(text: unknown): Array<Record<string, unknown>> | null {
-	const s = str(text);
-	if (!s) return null;
-	try {
-		const v = JSON.parse(s) as unknown;
-		if (Array.isArray(v)) return v.filter((x) => x && typeof x === "object" && !Array.isArray(x)) as Array<Record<string, unknown>>;
-		if (v && typeof v === "object") return [v as Record<string, unknown>];
-		return null;
-	} catch {
-		return null;
+	let v: unknown = text;
+	if (typeof text === "string") {
+		const s = text.trim();
+		if (!s) return null;
+		try { v = JSON.parse(s); } catch { return null; }
 	}
+	if (Array.isArray(v)) { const out = v.filter((x) => x && typeof x === "object" && !Array.isArray(x)) as Array<Record<string, unknown>>; return out.length ? out : null; }
+	if (v && typeof v === "object") return [v as Record<string, unknown>];
+	return null;
 }
 
 /** An absolute URL for a canonical field: a path on the site, or an http(s) address as written; anything else falls back. */

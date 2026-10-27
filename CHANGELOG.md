@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.1
+
+- A `schema` or `site_schema` override the CMS stored as a parsed value (JSON written into the text field) is read as written; only text was read before, so the override never rendered.
+
 ## 0.18.0
 
 A page owns its SEO; the record stays data.
