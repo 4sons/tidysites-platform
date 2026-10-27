@@ -40,7 +40,7 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 				{b.phone && <><dt>{tx("Call or text")}</dt><dd><a href={b.phoneHref}>{b.phone}</a></dd></>}
 				{b.email && <><dt>{tx("Email")}</dt><dd><a href={`mailto:${b.email}`}>{b.email}</a></dd></>}
 				{b.hours && <><dt>{tx("Hours")}</dt><dd>{b.hours}</dd></>}
-				{addressLine(b) && <><dt>{b.isServiceArea ? tx("Based in") : "Address"}</dt><dd>{addressLine(b)}</dd></>}
+				{addressLine(b) && <><dt>{b.isServiceArea ? tx("Based in") : tx("Address")}</dt><dd>{addressLine(b)}</dd></>}
 				{b.sameDayLine && <><dt>{tx("Same day")}</dt><dd>{b.sameDayLine}</dd></>}
 				{b.parkingLine && <><dt>{tx("Parking")}</dt><dd>{b.parkingLine}</dd></>}
 			</dl>

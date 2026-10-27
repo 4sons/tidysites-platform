@@ -18,7 +18,7 @@ const beside = variant === "beside business details";
 				{b.phone && <><dt>{tx("Call or text")}</dt><dd><a href={b.phoneHref}>{b.phone}</a></dd></>}
 				{b.email && <><dt>{tx("Email")}</dt><dd><a href={`mailto:${b.email}`}>{b.email}</a></dd></>}
 				{b.hours && <><dt>{tx("Hours")}</dt><dd>{b.hours}</dd></>}
-				{addressLine(b) && <><dt>{b.isServiceArea ? tx("Based in") : "Address"}</dt><dd>{addressLine(b)}</dd></>}
+				{addressLine(b) && <><dt>{b.isServiceArea ? tx("Based in") : tx("Address")}</dt><dd>{addressLine(b)}</dd></>}
 				{bool(n.show_parking) && b.parkingLine && <><dt>{tx("Parking")}</dt><dd>{b.parkingLine}</dd></>}
 			</dl>
 		)}

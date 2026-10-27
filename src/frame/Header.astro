@@ -117,7 +117,7 @@ const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, tr
 )}
 {callBar && (
 	<div class="ts-frame ts-callbar" data-tidy-frame="callbar">
-		{callBar !== "book only" && b.phone && <a class="ts-btn ts-btn-outline ts-callbar-call" href={b.phoneHref}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z" fill="currentColor"/></svg>Call{b.phoneText ? " or text" : ""}</a>}
+		{callBar !== "book only" && b.phone && <a class="ts-btn ts-btn-outline ts-callbar-call" href={b.phoneHref}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z" fill="currentColor"/></svg>{b.phoneText ? tx("Call or text") : tx("Call")}</a>}
 		{callBar !== "call only" && (bookInDialog ? <button class="ts-btn ts-btn-accent ts-callbar-book" type="button" data-tidy-dialog="ts-booking">{b.bookingLabel}</button> : <a class="ts-btn ts-btn-accent ts-callbar-book" href={bookHref}>{b.bookingLabel}</a>)}
 	</div>
 )}
