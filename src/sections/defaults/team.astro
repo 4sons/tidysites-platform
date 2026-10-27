@@ -1,6 +1,6 @@
 ---
 /** People from the records: cards, grouped by department, a photo grid, or one person featured. */
-import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import { bool, collectionUrl, entries, entryUrl, int, nodeOf, pic, str } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
 import Carousel from "./_Carousel.astro";
@@ -15,11 +15,13 @@ people = people.slice(0, limit);
 const showCred = bool(n.show_credentials, true), showBio = bool(n.show_bio, true);
 const name = (p: { data: Record<string, unknown> }) => str(p.data.display_name) || str(p.data.title);
 const groups = variant === "grouped by department" ? [...new Set(people.map((p) => str(p.data.group)))].map((g) => ({ title: g, items: people.filter((p) => str(p.data.group) === g) })) : [];
-const href = (p: { slug?: string | null; id: string; data: Record<string, unknown> }) => (bool(p.data.has_profile) ? `/team/${p.slug ?? p.id}` : null);
+const links = new Map(await Promise.all(people.map(async (p) => [p.id, await entryUrl("people", p)] as const)));
+const href = (p: { id: string }) => links.get(p.id) ?? null;
+const allHref = await collectionUrl("people");
 ---
 {people.length > 0 && (
 <section class="ts ts-band" id="team"><div class="ts-wrap">
-	<Head n={n} action={bool(n.show_all, true) ? { href: "/team", label: "Meet the team" } : null} />
+	<Head n={n} action={bool(n.show_all, true) && allHref ? { href: allHref, label: "Meet the team" } : null} />
 	{variant === "one person featured" ? (() => { const p = people[0]!; const ph = pic(p.data.photo); return (
 		<div class="ts-split"><Photo image={ph.image} url={ph.url} alt={name(p)} ratio="tall" /><div data-tidy-record="people" data-tidy-record-id={p.id} data-tidy-record-label="Team member"><p class="ts-role">{str(p.data.role)}{showCred && str(p.data.credentials) ? ` · ${str(p.data.credentials)}` : ""}</p><h3 style="font-size:28px;margin-top:6px">{name(p)}</h3>{str(p.data.bio) && <p class="ts-prose" style="margin-top:12px">{str(p.data.bio)}</p>}{href(p) && <div class="ts-actions"><a class="ts-btn ts-btn-outline" href={href(p)!}>Full bio</a></div>}</div></div>
 	); })() : variant === "carousel" ? (

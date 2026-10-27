@@ -47,6 +47,9 @@ export interface PlatformStore {
 	sweepHandoffs(now: number): Promise<number>;
 
 	migrationStatus(): Promise<{ applied: number; pending: number }>;
+
+	/** A collection's own routing as the site has it (its URL pattern, changeable in the admin), or null when the site has no such collection. */
+	collectionRouting(slug: string): Promise<{ urlPattern: string | null; routable: boolean } | null>;
 }
 
 const HANDOFF_PREFIX = "tidy:handoff:";
@@ -151,6 +154,12 @@ export function createEmdashStore(db: Kysely<any>, emdash: EmdashModule): Platfo
 		migrationStatus: async () => {
 			const s = await emdash.getMigrationStatus(db);
 			return { applied: s.applied.length, pending: s.pending.length };
+		},
+
+		collectionRouting: async (slug) => {
+			const row = await db.selectFrom("_emdash_collections").select(["url_pattern", "routable"]).where("slug", "=", slug).executeTakeFirst();
+			if (!row) return null;
+			return { urlPattern: (row.url_pattern as string | null) ?? null, routable: Boolean(row.routable) };
 		}
 	};
 }

@@ -136,6 +136,16 @@ The `frame` record's `cookie_banner` switch puts a consent bar on every page (`f
 
 The `frame` record's `site_language` is the `<html lang>` default. A page in another language sets `language` and names the page it translates in `translation_of` (by title); `pageLanguages(business, page, origin)` returns the page's language and the `hreflang` alternates for every page in that group, with `x-default` on the untranslated one. A theme passes the page record into its layout and emits the links; nothing else changes, and a site with no translations emits none.
 
+## Where records render as pages
+
+A record is data first. A service, an area, a person or a product can be listed by any section anywhere on the site; whether it also has an address of its own is a switch on the record, and where that address is comes from the collection's URL pattern.
+
+- **Patterns.** Each page-bearing collection carries EmDash's own URL pattern: `pages` at `/{slug}`, `services` at `/services/{slug}`, `service_categories` at `/services/category/{slug}`, `service_areas` at `/service-areas/{slug}`, `audiences` at `/for/{slug}`, `people` at `/team/{slug}`, `conditions`, `products`, `technologies` (`/technology/{slug}`), `case_studies` (`/case-studies/{slug}`) and `posts` at `/blog/{slug}`. The template sets them on a new site; after that the site's own value wins (the admin's collection settings, or `schema_update_collection` on the site's MCP), and a structure apply leaves it alone. A port that wants `/locations/{slug}`, or a location at the root (`/{slug}`), changes the pattern and nothing else.
+- **A record's page.** `page` on services, service areas, audiences, conditions, products and case studies is on unless it says off. `has_profile` on people and `has_page` on technologies are off unless on. A record whose page is off renders in every section that lists it, without a link.
+- **Listings.** The listing at a pattern's prefix (`/services`, `/team`, `/service-areas`, ...) is on unless the frame record's switch for it (`services_index`, `team_index`, ...) says off. A page record at the same slug takes the address. The blog's listing and facets are always at the posts pattern's prefix.
+- **In a theme.** One catch-all route asks `resolveRoute(path)` from `sections/lib` what a path is (`home`, `page`, `index`, `blog` or `entry`, with the entry) and renders it; links come from `entryUrl(collection, entry)` (null when the record has no page), `collectionUrl(collection)` (null when the listing is off) and `blogBase()`. `sitePages()` lists every address the site renders; `GET /_tidy/pages` serves it to the publish, which plans the live snapshot and writes the sitemap from it.
+- **Redirects** are EmDash's own: the admin's Redirects screen, `/_emdash/api/redirects`, and the automatic redirect EmDash writes when a published slug changes. The publish carries them to the live site; `productionFetch()` from `production` answers the ones marked gone (410, 451).
+
 ## Custom rows
 
 A custom row is HTML and CSS a person or an agent wrote, rendered as part of the page: a saved row from the `rows` collection placed by name, or markup written straight into a `row` section. Nothing in a row can run. The sanitizer (`@tideworthy/tidysites-platform/sanitize`) keeps an allowlist of tags and attributes and drops script, event handlers, javascript links, styles in the markup and frames to anywhere but a few known hosts; the row's CSS is scoped to the row (`.ts-row[data-row=…]`) and stripped of imports and remote fetches. A row can open the booking dialog with `data-tidy-dialog="ts-booking"`, and it sees the site's tokens, so a row written for one theme reads right on the next. The sandboxed frame section stays for the calculator or embed that needs script.
@@ -263,6 +273,10 @@ Entries are upserted by slug (`slug` defaults to `id`). An existing entry keeps 
 ### `POST /_tidy/schema?budgetMs=25000&force=1`
 
 Applies the template seed's structure to a site that is already set up: block types (new ones created, compatible versions amended), collections and their fields (existing ones updated to the template's definition, missing ones added, nothing deleted) and relations. Entries, settings, menus, taxonomies and sections are untouched. Refuses with 409 before bootstrap. Returns `{ ok, applied }` with EmDash's counts. This is how a template schema change reaches a site provisioned before it; the platform calls it before deploying the new template artifact.
+
+### `GET /_tidy/pages`
+
+Every address the site renders (`{ ok, pages: [{ path, kind, collection?, id?, slug?, title }] }`): the home page, the pages, each listing that is on, the blog and its facets, and every record whose page is on, at the site's own URL patterns.
 
 ### `POST /_tidy/maintenance?cron=…`
 

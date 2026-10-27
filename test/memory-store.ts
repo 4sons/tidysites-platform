@@ -12,6 +12,10 @@ export interface MemoryState {
 	content: Record<string, Record<string, unknown>>;
 	/** The last structural seed applySchema handed to the seed ops. */
 	structureApplied?: unknown;
+	/** Every structural seed applySchema handed to the seed ops, in order. */
+	structuresApplied?: unknown[];
+	/** Collections the site already has, with their routing, for the schema tests. */
+	collections?: Record<string, { urlPattern: string | null; routable: boolean }>;
 }
 
 export function createMemoryStore(seedState: Partial<MemoryState> = {}): PlatformStore & { state: MemoryState } {
@@ -64,7 +68,8 @@ export function createMemoryStore(seedState: Partial<MemoryState> = {}): Platfor
 			for (const [k, v] of state.handoffs) if (v.expiresAt <= now) (state.handoffs.delete(k), n++);
 			return n;
 		},
-		migrationStatus: async () => state.migrations
+		migrationStatus: async () => state.migrations,
+		collectionRouting: async (slug) => state.collections?.[slug] ?? null
 	};
 }
 
@@ -79,6 +84,7 @@ export function createDeps(overrides: Partial<Deps> & { store?: ReturnType<typeo
 			apply: async () => ({ collections: 3, content: 4 }),
 			applyStructure: async (seed) => {
 				store.state.structureApplied = seed;
+				(store.state.structuresApplied ??= []).push(seed);
 				return { blockTypes: { created: 1, skipped: 0, updated: 0 }, collections: { created: 0, updated: 2, skipped: 0 }, fields: { created: 1, updated: 9, skipped: 0 } };
 			},
 			upsertContent: async (content) => {

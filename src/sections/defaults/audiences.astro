@@ -1,6 +1,6 @@
 ---
 /** Who we serve: the people or industries a service is for, from the records, as cards, chips or a list. */
-import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import { bool, entries, entryUrl, int, nodeOf, pic, str } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
@@ -10,7 +10,8 @@ if (bool(n.featured_only)) items = items.filter((a) => bool(a.data.featured));
 const svc = str(n.service);
 if (svc) { const services = await entries("services", { limit: 100 }); const s = services.find((x) => (x.slug ?? x.id) === svc); if (s) items = items.filter((a) => String(a.data.service ?? "") === String(s.data.id ?? s.id) || String(a.data.service ?? "") === s.id); }
 const cols = int(Number(str(n.columns, "3")), 3);
-const href = (a: { slug?: string | null; id: string }) => `/for/${a.slug ?? a.id}`;
+const links = new Map(await Promise.all(items.map(async (a) => [a.id, await entryUrl("audiences", a)] as const)));
+const href = (a: { id: string }) => links.get(a.id) ?? undefined;
 ---
 {items.length > 0 && (
 <section class="ts ts-audiences" id="audiences"><div class="ts-wrap">

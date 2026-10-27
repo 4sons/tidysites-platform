@@ -1,6 +1,6 @@
 ---
 /** Hero: headline, subhead, buttons, and a photo, a booking card, a form, or a picker of services. */
-import { bool, entries, getBusiness, nodeOf, pic, str } from "../lib";
+import { bool, entries, entryUrl, getBusiness, nodeOf, pic, str } from "../lib";
 import Photo from "../Photo.astro";
 import Form from "../Form.astro";
 const n = nodeOf(Astro.props);
@@ -10,6 +10,7 @@ const photo = pic(n.image);
 const button = { label: str(n.button_label) || b.ctaLabel, href: str(n.button_url) || b.bookingUrl || "/contact" };
 const button2 = str(n.button2_label) ? { label: str(n.button2_label), href: str(n.button2_url) || "#" } : b.phone ? { label: b.phone, href: b.phoneHref } : null;
 const services = variant === "headline and picker" ? await entries("services", { limit: 8 }) : [];
+const serviceLinks = new Map(await Promise.all(services.map(async (s) => [s.id, await entryUrl("services", s)] as const)));
 const rating = b.rating ? b.rating.toFixed(1) : null;
 const showRating = bool(n.show_rating, true) && rating;
 const over = variant === "photo with headline over";
@@ -59,7 +60,7 @@ const over = variant === "photo with headline over";
 		{variant === "headline and picker" && services.length > 0 && (
 			<div class="ts-card" style="margin-top:28px">
 				<h3>{str(n.picker_title, "What do you need?")}</h3>
-				<div class="ts-chips" style="margin-top:10px">{services.map((s) => <a class="ts-chip" href={`/services/${s.slug ?? s.id}`}>{str(s.data.title)}</a>)}</div>
+				<div class="ts-chips" style="margin-top:10px">{services.map((s) => <a class="ts-chip" href={serviceLinks.get(s.id) ?? undefined}>{str(s.data.title)}</a>)}</div>
 				{str(n.picker_note) && <p class="ts-muted" style="margin-top:10px;font-size:14px">{str(n.picker_note)}</p>}
 			</div>
 		)}

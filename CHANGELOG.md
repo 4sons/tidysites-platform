@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.17.0
+
+Records are data; pages are where the site says they are.
+
+- Every page-bearing collection carries EmDash's own URL pattern (`/services/{slug}`, `/service-areas/{slug}`, `/team/{slug}`, `/for/{slug}`, `/blog/{slug}`, pages at `/{slug}`), set by the template on a new site and changed on the site itself afterwards (the admin's collection settings): a port can put locations at `/locations/{slug}` or at the root. A structure apply never overwrites a pattern the site already has.
+- A record's own page is a switch: `page` (on unless off) on services, service areas, audiences, conditions, products and case studies; `has_profile` on people and `has_page` on technologies as before. A record whose page is off is still data for every section that lists it, with no link, no address and no sitemap line.
+- The listing page at a pattern's prefix is a switch on the frame record (`services_index`, `areas_index`, `team_index`, `audiences_index`, `conditions_index`, `products_index`, `technologies_index`, `case_studies_index`; on unless off). A page record at the same slug takes the address instead.
+- `sections/lib` gains the runtime side: `sitePatterns()`, `entryUrl()`, `collectionUrl()`, `blogBase()`, `resolveRoute()` and `sitePages()`; `routes-lib` has the pure part (`PAGE_TYPES`, `routeCandidates`, pattern maths). Every section and the footer build links through them. A theme renders everything from one catch-all route.
+- `GET /_tidy/pages`: every address the site renders, from its own data. The publish plans and writes the sitemap from it.
+- `production`: `productionFetch()` for a theme's live worker, answering 410 and 451 for the addresses the site's redirects mark gone (`_gone.json`, written by the publish) beside the API and the not-found page. Redirects themselves are EmDash's own (`/_emdash/api/redirects`, the admin's Redirects screen, the automatic one on a slug change).
+
 ## 0.15.0
 
 Custom rows: your own markup as part of the page, with nothing able to run.

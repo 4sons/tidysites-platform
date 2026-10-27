@@ -1,5 +1,5 @@
 ---
-import { bool, entries, getBusiness, int, nodeOf, pic, str } from "../lib";
+import { bool, entries, entryUrl, getBusiness, int, nodeOf, pic, str } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
@@ -9,13 +9,14 @@ if (str(n.category)) items = items.filter((p) => str(p.data.category) === str(n.
 if (str(n.variant) === "featured") items = items.filter((p) => bool(p.data.featured));
 const prices = bool(n.show_prices, true);
 const compare = str(n.variant) === "compare";
+const links = new Map(await Promise.all(items.map(async (p) => [p.id, await entryUrl("products", p)] as const)));
 const SPECS: Array<[string, string]> = [["brand", "Brand"], ["unit", "Unit"], ["availability_line", "Availability"]];
 ---
 {items.length > 0 && (
 <section class="ts" id="products"><div class="ts-wrap">
 	<Head n={n} action={bool(n.show_store_button, true) && b.storeUrl ? { href: b.storeUrl, label: b.storeLabel } : null} />
 	{compare ? (
-		<div class="ts-table-wrap"><table class="ts-compare"><thead><tr><th></th>{items.map((p) => <th scope="col" data-tidy-record="products" data-tidy-record-id={p.id} data-tidy-record-label="Product"><span class="ts-compare-name">{str(p.data.title)}</span>{prices && str(p.data.price) && <span class="ts-compare-price">{str(p.data.price)}</span>}</th>)}</tr></thead><tbody>{SPECS.filter(([k]) => items.some((p) => str(p.data[k]))).map(([k, label]) => <tr><th scope="row">{label}</th>{items.map((p) => <td>{str(p.data[k]) || "·"}</td>)}</tr>)}<tr><th scope="row">Summary</th>{items.map((p) => <td>{str(p.data.summary)}</td>)}</tr><tr class="ts-compare-actions"><th></th>{items.map((p) => <td><a class="ts-btn ts-btn-accent" href={str(p.data.buy_url) || `/products/${p.slug ?? p.id}`}>{str(p.data.buy_label) || "View"}</a></td>)}</tr></tbody></table></div>
+		<div class="ts-table-wrap"><table class="ts-compare"><thead><tr><th></th>{items.map((p) => <th scope="col" data-tidy-record="products" data-tidy-record-id={p.id} data-tidy-record-label="Product"><span class="ts-compare-name">{str(p.data.title)}</span>{prices && str(p.data.price) && <span class="ts-compare-price">{str(p.data.price)}</span>}</th>)}</tr></thead><tbody>{SPECS.filter(([k]) => items.some((p) => str(p.data[k]))).map(([k, label]) => <tr><th scope="row">{label}</th>{items.map((p) => <td>{str(p.data[k]) || "·"}</td>)}</tr>)}<tr><th scope="row">Summary</th>{items.map((p) => <td>{str(p.data.summary)}</td>)}</tr><tr class="ts-compare-actions"><th></th>{items.map((p) => <td><a class="ts-btn ts-btn-accent" href={str(p.data.buy_url) || links.get(p.id) || undefined}>{str(p.data.buy_label) || "View"}</a></td>)}</tr></tbody></table></div>
 	) : <div class="ts-grid" style={`--cols:${str(n.variant) === "list" ? 1 : 4}`}>{items.map((p) => { const ph = pic(p.data.image); return <a class="ts-card" href={str(p.data.buy_url) || `/products/${p.slug ?? p.id}`} data-tidy-record="products" data-tidy-record-id={p.id} data-tidy-record-label="Product"><Photo image={ph.image} url={ph.url} alt={str(p.data.title)} ratio="square" /><h3 style="font-size:17px">{str(p.data.title)}</h3>{str(p.data.summary) && <p>{str(p.data.summary)}</p>}{prices && str(p.data.price) && <p style="font-weight:700">{str(p.data.price)}{str(p.data.unit) && <span class="ts-muted" style="font-weight:400"> / {str(p.data.unit)}</span>}{str(p.data.compare_price) && <s class="ts-muted" style="margin-left:8px;font-weight:400">{str(p.data.compare_price)}</s>}</p>}{str(p.data.availability_line) && <p class="ts-muted" style="font-size:12.5px">{str(p.data.availability_line)}</p>}</a>; })}</div>}
 </div></section>
 )}

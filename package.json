@@ -1,6 +1,6 @@
 {
 	"name": "@tideworthy/tidysites-platform",
-	"version": "0.16.0",
+	"version": "0.17.0",
 	"description": "The Tidysites platform integration for EmDash sites: bootstrap, sessions, maintenance, health, and publish hooks under /_tidy/*.",
 	"license": "MIT",
 	"type": "module",
@@ -35,6 +35,9 @@
 		"./routes/maintenance": "./src/routes/maintenance.ts",
 		"./routes/revisions": "./src/routes/revisions.ts",
 		"./routes/change": "./src/routes/change.ts",
+		"./routes/pages": "./src/routes/pages.ts",
+		"./production": "./src/production.ts",
+		"./routes-lib": "./src/lib/routes.ts",
 		"./template": "./src/template/index.ts",
 		"./template/structure.json": "./template/structure.json",
 		"./sections": "./src/sections/Sections.astro",

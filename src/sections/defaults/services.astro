@@ -1,6 +1,6 @@
 ---
 /** Services or categories from the records, in one of five layouts. */
-import { bool, entries, int, nodeOf, pic, refersTo, str } from "../lib";
+import { bool, collectionUrl, entries, entryUrl, int, nodeOf, pic, refersTo, str } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
 import Carousel from "./_Carousel.astro";
@@ -8,27 +8,29 @@ const n = nodeOf(Astro.props);
 const variant = str(n.variant, "cards with summary");
 const source = str(n.source, "services");
 const limit = int(n.limit, 12);
-let items: Array<{ id: string; slug?: string | null; data: Record<string, unknown>; href: string }> = [];
+let items: Array<{ id: string; slug?: string | null; data: Record<string, unknown>; href?: string }> = [];
 let groups: Array<{ title: string; items: typeof items }> = [];
-const svc = (e: { id: string; slug?: string | null; data: Record<string, unknown> }) => ({ ...e, href: `/services/${e.slug ?? e.id}` });
-if (source === "categories") items = (await entries("service_categories", { limit })).map((e) => ({ ...e, href: `/services/category/${e.slug ?? e.id}` }));
-else if (source === "featured services") items = (await entries("services", { limit, where: { featured: "1" } })).map(svc);
+const linked = async (col: string, list: Array<{ id: string; slug?: string | null; data: Record<string, unknown> }>) => Promise.all(list.map(async (e) => ({ ...e, href: (await entryUrl(col, e)) ?? undefined })));
+const svc = (list: Array<{ id: string; slug?: string | null; data: Record<string, unknown> }>) => linked("services", list);
+if (source === "categories") items = await linked("service_categories", await entries("service_categories", { limit }));
+else if (source === "featured services") items = await svc(await entries("services", { limit, where: { featured: "1" } }));
 else if (source === "services in one category" && str(n.category)) {
 	const cats = await entries("service_categories");
 	const cat = cats.find((c) => (c.slug ?? c.id) === str(n.category));
-	items = (cat ? (await entries("services", { limit: 100 })).filter((s) => refersTo(s.data.category, cat)).slice(0, limit) : []).map(svc);
-} else items = (await entries("services", { limit })).map(svc);
+	items = await svc(cat ? (await entries("services", { limit: 100 })).filter((s) => refersTo(s.data.category, cat)).slice(0, limit) : []);
+} else items = await svc(await entries("services", { limit }));
 if (variant === "grouped by category") {
 	const cats = await entries("service_categories");
-	const all = (await entries("services", { limit: 100 })).map(svc);
+	const all = await svc(await entries("services", { limit: 100 }));
 	groups = cats.map((c) => ({ title: str(c.data.title), items: all.filter((s) => refersTo(s.data.category, c)) })).filter((g) => g.items.length);
 	if (!groups.length) groups = [{ title: "", items: all }];
 }
 const showAll = bool(n.show_all, true);
+const allHref = await collectionUrl("services");
 ---
 {(items.length > 0 || groups.length > 0) && (
 <section class="ts ts-band" id="services"><div class="ts-wrap">
-	<Head n={n} action={showAll ? { href: "/services", label: "All services" } : null} />
+	<Head n={n} action={showAll && allHref ? { href: allHref, label: "All services" } : null} />
 	{variant === "carousel" ? (
 		<Carousel cols={3} label="Services">{items.map((s) => { const p = pic(s.data.featured_image); return (
 			<a class="ts-card ts-carousel-item" href={s.href} data-tidy-record={source === "categories" ? "service_categories" : "services"} data-tidy-record-id={s.id} data-tidy-record-label={source === "categories" ? "Category details" : "Service details"}>
