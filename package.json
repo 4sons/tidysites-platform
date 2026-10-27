@@ -1,6 +1,6 @@
 {
 	"name": "@tideworthy/tidysites-platform",
-	"version": "0.15.0",
+	"version": "0.16.0",
 	"description": "The Tidysites platform integration for EmDash sites: bootstrap, sessions, maintenance, health, and publish hooks under /_tidy/*.",
 	"license": "MIT",
 	"type": "module",
@@ -50,7 +50,9 @@
 		"./sections/form": "./src/sections/Form.astro",
 		"./frame/scripts": "./src/frame/Scripts.astro",
 		"./sections/row": "./src/sections/Row.astro",
-		"./sanitize": "./src/lib/sanitize.ts"
+		"./sanitize": "./src/lib/sanitize.ts",
+		"./frame/fonts": "./src/frame/Fonts.astro",
+		"./frame/consent": "./src/frame/Consent.astro"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.editor.json",

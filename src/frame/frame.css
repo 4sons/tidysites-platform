@@ -94,3 +94,12 @@
 .ts-footer .ts-hours-small th{text-align:left;font-weight:600;padding:2px 12px 2px 0}
 .ts-footer .ts-hours-small td{padding:2px 0;white-space:nowrap}
 .ts-popup .ts-dialog-box{max-width:520px}
+
+/* Cookie consent bar */
+.ts-consent{position:fixed;left:16px;right:16px;bottom:16px;z-index:60;display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;max-width:720px;margin:0 auto;padding:16px 20px;background:var(--ts-surface);color:var(--ts-ink);border:1px solid var(--ts-line);border-radius:var(--ts-radius);box-shadow:0 16px 40px -16px rgba(0,0,0,.35)}
+.ts-consent[hidden]{display:none}
+.ts-consent-text{margin:0;flex:1 1 320px;font-size:14px;line-height:1.5}
+.ts-consent-text a{text-decoration:underline;text-underline-offset:3px}
+.ts-consent-actions{display:flex;gap:8px}
+.ts-consent .ts-btn{padding:9px 14px;font-size:14px}
+@media (max-width:960px){.ts-consent{bottom:84px}}

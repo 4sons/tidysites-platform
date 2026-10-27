@@ -110,11 +110,31 @@ A site runs its live chat, reviews widget, booking embed and pixels by id, never
 | Live chat | Crisp, Tawk.to, Tidio, LiveChat, Podium | end of body |
 | Reviews widget | Trustindex, Elfsight, Birdeye | the reviews section's "provider widget" layout |
 | Booking embed | Calendly, Pike13, Square Appointments, Acuity, Jobber | the booking dialog, when the booking button opens "the booking embed"; only a URL on the provider's own host |
-| Pixels | Meta pixel, Google Ads tag | head |
+| Pixels | Meta pixel, Google Ads tag, TikTok pixel, LinkedIn Insight | head (LinkedIn at the end of body); held until consent when the cookie banner is on |
+| Analytics | Google Tag Manager container, or GA4 alone (the Business record's `gtm_id` / `ga4_id`) | head; held until consent when the cookie banner is on |
+| Call tracking | CallRail, WhatConverts | end of body; runs regardless of consent, the site cannot swap numbers without it |
+| Heatmaps and recordings | Hotjar, Microsoft Clarity | head; held until consent when the cookie banner is on |
 | Instagram feed | Elfsight, Behold | the gallery section's "instagram feed" layout |
 | Accessibility widget | UserWay (by account id), accessiBe (by switch) | end of body |
+| Adobe Fonts | a Typekit kit id, or the pasted `<link>` | `frame/fonts`, beside the Google Fonts stylesheet |
 
 Adding a provider is a pull request here: its id pattern, its embed pattern and its snippet, with a test.
+
+### Cookie consent
+
+The `frame` record's `cookie_banner` switch puts a consent bar on every page (`frame/consent`, placed before `frame/scripts` at the end of body; text, policy link and button labels on the same record). With it on, `frame/scripts` writes the trackers (pixels, GTM or GA4, heatmaps) as inert `<script type="text/plain" data-tidy-gated>` tags and the bar wakes them on Accept; the answer is kept in the visitor's browser for a year, and Decline leaves them inert. Chat, call tracking and the accessibility widget run either way. With the switch off, every snippet runs as before.
+
+### Fonts
+
+`frame/fonts` (placed once in `<head>`) emits the stylesheets the brand needs: Google Fonts for the Business record's named families, the Adobe kit when `integrations.adobe_fonts_kit` is set, and `@font-face` rules for font files uploaded to the `frame` record (`display_font_file`, `body_font_file`, woff2). An uploaded file takes over its token (`--brand-font-display`, `--brand-font-body`) under the family names "Brand Display" and "Brand Body", so a theme that reads the tokens needs no change.
+
+### Blog
+
+`sections/lib` exports `blogPage({ page, category, tag, author, size })` and `blogFacets()`: posts carry a `category`, comma-separated `tags` and an `author` (a people record), and the frame record's `blog_page_size` pages the list. A theme renders `/blog`, `/blog/page/N`, `/blog/category/<slug>`, `/blog/tag/<slug>` and `/blog/author/<slug>` from these; the slugs are `slugify()` of the names, so no extra records exist for them.
+
+### Languages
+
+The `frame` record's `site_language` is the `<html lang>` default. A page in another language sets `language` and names the page it translates in `translation_of` (by title); `pageLanguages(business, page, origin)` returns the page's language and the `hreflang` alternates for every page in that group, with `x-default` on the untranslated one. A theme passes the page record into its layout and emits the links; nothing else changes, and a site with no translations emits none.
 
 ## Custom rows
 

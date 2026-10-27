@@ -1,14 +1,18 @@
 ---
 /**
- * The third parties a business record names, as the package's own snippets:
- * pixels in the head slot, chat at the end of the body. Place <Scripts slot="head" />
- * inside <head> and <Scripts /> before </body>; a theme never pastes vendor code.
+ * The third parties the integrations record names, as the package's own
+ * snippets: trackers in the head, chat and call tracking at the end of the
+ * body. Place <Scripts where="head" /> inside <head> and <Scripts /> before
+ * </body>; a theme never pastes vendor code. With the cookie banner on, the
+ * trackers wait inert until the visitor accepts.
  */
 import type { Business } from "../sections/lib";
 import { providerSnippets } from "../lib/providers";
 interface Props { business: Business; where?: "head" | "body" }
 const { business: b, where = "body" } = Astro.props;
-const s = providerSnippets({ chatProvider: b.chatProvider, chatId: b.chatId, reviewsWidget: b.reviewsWidget, reviewsWidgetId: b.reviewsWidgetId, metaPixelId: b.metaPixelId, googleAdsId: b.googleAdsId, accessibilityWidget: b.accessibilityWidget, accessibilityWidgetId: b.accessibilityWidgetId });
-const html = (where === "head" ? s.head : s.body).join("");
+const s = providerSnippets({ chatProvider: b.chatProvider, chatId: b.chatId, reviewsWidget: b.reviewsWidget, reviewsWidgetId: b.reviewsWidgetId, metaPixelId: b.metaPixelId, googleAdsId: b.googleAdsId, accessibilityWidget: b.accessibilityWidget, accessibilityWidgetId: b.accessibilityWidgetId, callTracking: b.callTracking, callTrackingId: b.callTrackingId, heatmaps: b.heatmaps, heatmapsId: b.heatmapsId, tiktokPixelId: b.tiktokPixelId, linkedinInsightId: b.linkedinInsightId, gtmId: b.gtmId, ga4Id: b.ga4Id });
+// With the cookie banner on, trackers wait as inert scripts until the visitor accepts (frame/consent wakes them); off, they run as any script.
+const gate = (snippet: string) => (b.cookieBanner ? snippet.replace(/<script(?![^>]*\bsrc=)/g, '<script type="text/plain" data-tidy-gated').replace(/<script([^>]*\bsrc=[^>]*)>/g, '<script type="text/plain" data-tidy-gated$1>') : snippet);
+const html = (where === "head" ? [...s.head, ...s.gatedHead.map(gate)] : [...s.body, ...s.gatedBody.map(gate)]).join("");
 ---
 {html && <Fragment set:html={html} />}

@@ -1,0 +1,40 @@
+---
+/**
+ * The cookie consent bar, when the frame record turns it on: the trackers
+ * (pixels, heatmaps) sit in the page as inert scripts until the visitor
+ * accepts; chat, call tracking and the accessibility widget run regardless,
+ * as the site cannot work without them. The answer is remembered for a year.
+ */
+import type { Business } from "../sections/lib";
+import "./frame.css";
+interface Props { business: Business }
+const { business: b } = Astro.props;
+const text = b.cookieText || "We use cookies to see how the site is used and to measure our ads.";
+---
+{b.cookieBanner && (
+	<div class="ts-frame ts-consent" id="ts-consent" role="region" aria-label="Cookies" hidden>
+		<p class="ts-consent-text">{text}{b.cookiePolicyUrl && <> <a href={b.cookiePolicyUrl}>Learn more</a></>}</p>
+		<div class="ts-consent-actions">
+			<button class="ts-btn ts-btn-outline" type="button" data-tidy-consent="no">{b.cookieDeclineLabel || "Decline"}</button>
+			<button class="ts-btn ts-btn-accent" type="button" data-tidy-consent="yes">{b.cookieAcceptLabel || "Accept"}</button>
+		</div>
+	</div>
+)}
+<script is:inline>
+(function(){
+	if (window.__tidyConsent) return; window.__tidyConsent = true;
+	var KEY = "tidy-consent", bar = document.getElementById("ts-consent");
+	function activate() { document.querySelectorAll('script[type="text/plain"][data-tidy-gated]').forEach(function (s) { var n = document.createElement("script"); for (var i = 0; i < s.attributes.length; i++) { var a = s.attributes[i]; if (a.name !== "type" && a.name !== "data-tidy-gated") n.setAttribute(a.name, a.value); } n.text = s.text; s.parentNode.replaceChild(n, s); }); }
+	var saved = null; try { var raw = localStorage.getItem(KEY); if (raw) { var v = JSON.parse(raw); if (v && v.until > Date.now()) saved = v.answer; } } catch (e) {}
+	if (!bar) { activate(); return; }
+	if (saved === "yes") { activate(); return; }
+	if (saved === "no") return;
+	bar.hidden = false;
+	bar.addEventListener("click", function (e) {
+		var b = e.target instanceof Element ? e.target.closest("[data-tidy-consent]") : null; if (!b) return;
+		var answer = b.getAttribute("data-tidy-consent");
+		try { localStorage.setItem(KEY, JSON.stringify({ answer: answer, until: Date.now() + 365 * 864e5 })); } catch (e) {}
+		bar.hidden = true; if (answer === "yes") activate();
+	});
+})();
+</script>

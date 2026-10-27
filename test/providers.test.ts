@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bookingEmbedUrl, pixelId, providerId, providerSnippets, reviewsWidgetHtml } from "../src/lib/providers";
+import { adobeKitId, bookingEmbedUrl, pixelId, providerId, providerSnippets, reviewsWidgetHtml } from "../src/lib/providers";
 
 describe("providerId", () => {
 	it("reads a Crisp id from the pasted embed or takes it bare", () => {
@@ -49,11 +49,33 @@ describe("snippets", () => {
 		expect(s.body).toHaveLength(1);
 		expect(s.body[0]).toContain(`CRISP_WEBSITE_ID="a1b2c3d4-e5f6-7890-abcd-ef1234567890"`);
 		expect(s.body[0]).not.toContain("alert");
-		expect(s.head).toHaveLength(1);
-		expect(s.head[0]).toContain("fbq('init','1234567890123456')");
+		expect(s.head).toHaveLength(0);
+		expect(s.gatedHead).toHaveLength(1);
+		expect(s.gatedHead[0]).toContain("fbq('init','1234567890123456')");
 	});
 	it("renders nothing for an unknown or empty provider", () => {
-		expect(providerSnippets({ chatProvider: "Intercom", chatId: "x", reviewsWidget: "", reviewsWidgetId: "", metaPixelId: "", googleAdsId: "" })).toEqual({ head: [], body: [] });
+		expect(providerSnippets({ chatProvider: "Intercom", chatId: "x", reviewsWidget: "", reviewsWidgetId: "", metaPixelId: "", googleAdsId: "" })).toEqual({ head: [], body: [], gatedHead: [], gatedBody: [] });
 		expect(reviewsWidgetHtml("Trustindex", "")).toBeNull();
+	});
+});
+
+describe("more providers", () => {
+	it("reads call tracking, heatmaps, TikTok and LinkedIn ids from their embeds", () => {
+		expect(providerId("calls", "CallRail", `<script type="text/javascript" src="//cdn.callrail.com/companies/123456789/abcdef0123456789abcd/12/swap.js"></script>`)).toBe("123456789/abcdef0123456789abcd");
+		expect(providerId("heatmaps", "Hotjar", `h._hjSettings={hjid:1234567,hjsv:6};`)).toBe("1234567");
+		expect(providerId("heatmaps", "Microsoft Clarity", `t.src="https://www.clarity.ms/tag/"+i})(window, document, "clarity", "script", "abc123def4");`)).toBe("abc123def4");
+		expect(providerId("heatmaps", "Microsoft Clarity", `abc123def4`)).toBe("abc123def4");
+		expect(pixelId("tiktok", `ttq.load('C1ABCDEFGHIJKLMNOP');`)).toBe("C1ABCDEFGHIJKLMNOP");
+		expect(pixelId("linkedin", `_linkedin_partner_id = "1234567";`)).toBe("1234567");
+	});
+	it("reads an Adobe Fonts kit from its embed", () => {
+		expect(adobeKitId(`<link rel="stylesheet" href="https://use.typekit.net/abc1def.css">`)).toBe("abc1def");
+		expect(adobeKitId("abc1def")).toBe("abc1def");
+	});
+	it("holds the trackers as gated and runs chat and call tracking regardless", () => {
+		const s = providerSnippets({ chatProvider: "Crisp", chatId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890", reviewsWidget: "", reviewsWidgetId: "", metaPixelId: "1234567890123456", googleAdsId: "", callTracking: "CallRail", callTrackingId: "123456789/abcdef0123456789abcd", heatmaps: "Hotjar", heatmapsId: "1234567" });
+		expect(s.body).toHaveLength(2);
+		expect(s.gatedHead).toHaveLength(2);
+		expect(s.gatedHead.join("")).toContain("hjid:1234567");
 	});
 });

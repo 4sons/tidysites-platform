@@ -1,5 +1,6 @@
 /** Helpers every section component shares: reading a stored block, images, lists, and the business record. */
 import { getEmDashCollection, getSiteSettings } from "emdash";
+import { adobeKitId } from "../lib/providers";
 
 export type Node = Record<string, unknown>;
 
@@ -99,6 +100,11 @@ export interface Business {
 	/** Third parties by id (or the pasted embed the id is read from): see lib/providers. */
 	chatProvider: string; chatId: string; reviewsWidget: string; reviewsWidgetId: string; bookingEmbed: string; bookingEmbedId: string; metaPixelId: string; googleAdsId: string;
 	instagramWidget: string; instagramWidgetId: string; accessibilityWidget: string; accessibilityWidgetId: string;
+	callTracking: string; callTrackingId: string; heatmaps: string; heatmapsId: string; tiktokPixelId: string; linkedinInsightId: string; adobeFontsKit: string;
+	/** Uploaded font files (urls), the cookie banner, and the blog's page size, from the frame record. */
+	displayFontFile: string; bodyFontFile: string;
+	cookieBanner: boolean; cookieText: string; cookiePolicyUrl: string; cookieAcceptLabel: string; cookieDeclineLabel: string; blogPageSize: number;
+	footerServicesLabel: string; footerServices: boolean; footerMenuLabel: string; siteLanguage: string;
 	/** The pop-up the frame opens on its own: what, when, how often. */
 	/** A custom row that stands in for the site's header or footer everywhere; a page may say otherwise. */
 	headerRow: string; footerRow: string;
@@ -162,6 +168,10 @@ async function readBusiness(): Promise<Business> {
 		callBar: pickOne(fr.call_bar, ["call and book", "call only", "book only", "off"], "call and book"), topBarText: str(fr.top_bar_text), topBarLink: str(fr.top_bar_link),
 		chatProvider: str(ig.chat_provider), chatId: str(ig.chat_id), reviewsWidget: str(ig.reviews_widget), reviewsWidgetId: str(ig.reviews_widget_id), bookingEmbed: str(ig.booking_embed), bookingEmbedId: str(ig.booking_embed_id), metaPixelId: str(ig.meta_pixel_id), googleAdsId: str(ig.google_ads_id),
 		instagramWidget: str(ig.instagram_widget), instagramWidgetId: str(ig.instagram_widget_id), accessibilityWidget: str(ig.accessibility_widget), accessibilityWidgetId: str(ig.accessibility_widget_id),
+		callTracking: str(ig.call_tracking), callTrackingId: str(ig.call_tracking_id), heatmaps: str(ig.heatmaps), heatmapsId: str(ig.heatmaps_id), tiktokPixelId: str(ig.tiktok_pixel_id), linkedinInsightId: str(ig.linkedin_insight_id), adobeFontsKit: str(ig.adobe_fonts_kit),
+		displayFontFile: mediaUrl(fr.display_font_file) ?? "", bodyFontFile: mediaUrl(fr.body_font_file) ?? "",
+		cookieBanner: fr.cookie_banner === "on", cookieText: str(fr.cookie_text), cookiePolicyUrl: str(fr.cookie_policy_url), cookieAcceptLabel: str(fr.cookie_accept_label), cookieDeclineLabel: str(fr.cookie_decline_label), blogPageSize: int(fr.blog_page_size, 12),
+		footerServicesLabel: str(fr.footer_services_label), footerServices: fr.footer_services !== "off", footerMenuLabel: str(fr.footer_menu_label), siteLanguage: str(fr.site_language) || "en",
 		headerRow: str(fr.header_row), footerRow: str(fr.footer_row),
 		popupShows: pickOne(fr.popup_shows, ["nothing", "an offer", "a form"], "nothing"), popupTitle: str(fr.popup_title), popupOffer: str(fr.popup_offer), popupForm: str(fr.popup_form), popupTrigger: pickOne(fr.popup_trigger, ["on arrival", "after ten seconds", "after thirty seconds", "after scrolling halfway", "on leaving"], "after ten seconds"), popupEvery: pickOne(fr.popup_every, ["once a visit", "once a day", "every time"], "once a visit"),
 		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), customCss: s("custom_css"), raw: d,
@@ -186,7 +196,7 @@ export function brandTokens(b: Business): Record<string, string> {
 	const t: Record<string, string> = {
 		"--brand-primary": b.brandPrimary, "--brand-primary-ink": inkFor(b.brandPrimary),
 		"--brand-accent": b.brandAccent, "--brand-accent-ink": inkFor(b.brandAccent),
-		"--brand-font-display": font(b.fontDisplay, "Arial, sans-serif"), "--brand-font-body": font(b.fontBody, '"Helvetica Neue", Arial, sans-serif'),
+		"--brand-font-display": font(b.displayFontFile ? "Brand Display" : b.fontDisplay, "Arial, sans-serif"), "--brand-font-body": font(b.bodyFontFile ? "Brand Body" : b.fontBody, '"Helvetica Neue", Arial, sans-serif'),
 	};
 	if (b.brandRadius) t["--brand-radius"] = { sharp: "2px", soft: "10px", rounded: "18px", pill: "28px" }[b.brandRadius];
 	if (b.brandDensity) t["--brand-space"] = { compact: "clamp(36px,5vw,64px)", regular: "clamp(48px,7vw,96px)", airy: "clamp(64px,9vw,128px)", large: "clamp(64px,9vw,128px)" }[b.brandDensity];
@@ -206,6 +216,18 @@ export function brandTokens(b: Business): Record<string, string> {
 /** Inline style for <html>: the brand tokens from the business record. */
 export function brandStyle(b: Business): string {
 	return Object.entries(brandTokens(b)).map(([k, v]) => `${k}:${v}`).join(";");
+}
+/** Every stylesheet the brand fonts need: Google for the named families, Adobe when a kit is set. Uploaded files come as @font-face from fontFaces(). */
+export function fontLinks(b: Business): string[] {
+	const links = [fontsHref(b)];
+	const kit = adobeKitId(b.adobeFontsKit);
+	if (kit) links.push(`https://use.typekit.net/${kit}.css`);
+	return links;
+}
+/** @font-face rules for uploaded font files; the family names "Brand Display" and "Brand Body" then take over the tokens. */
+export function fontFaces(b: Business): string {
+	const face = (family: string, url: string) => `@font-face{font-family:"${family}";src:url("${url.replace(/"/g, "")}") format("woff2");font-display:swap}`;
+	return [b.displayFontFile ? face("Brand Display", b.displayFontFile) : "", b.bodyFontFile ? face("Brand Body", b.bodyFontFile) : ""].join("");
 }
 /** Google Fonts stylesheet for the two brand families. */
 export function fontsHref(b: Business): string {
@@ -271,4 +293,49 @@ export function pageFrame(data: Record<string, unknown> | null | undefined): { h
 		return { kind: "site" };
 	};
 	return { header: pick(data?.header, data?.header_row), footer: pick(data?.footer, data?.footer_row) };
+}
+
+/** The blog, filtered and paged: by category, tag or author (as slugs of their names), with the frame record's page size. */
+export interface BlogPage { posts: Entry[]; page: number; pages: number; total: number; filter: { kind: "category" | "tag" | "author"; slug: string; label: string } | null }
+export async function blogPage(opts: { page?: number; category?: string; tag?: string; author?: string; size?: number } = {}): Promise<BlogPage> {
+	const [all, people] = await Promise.all([entries("posts", { limit: 500, orderBy: { published_at: "desc" } as never }), entries("people", { limit: 100 })]);
+	const tagsOf = (p: Entry) => str(p.data.tags).split(",").map((t) => t.trim()).filter(Boolean);
+	const authorOf = (p: Entry) => authorName(people, p.data.author);
+	let posts = all; let filter: BlogPage["filter"] = null;
+	if (opts.category) { posts = all.filter((p) => slugify(str(p.data.category)) === opts.category); filter = { kind: "category", slug: opts.category, label: str(posts[0]?.data.category) || opts.category }; }
+	else if (opts.tag) { posts = all.filter((p) => tagsOf(p).some((t) => slugify(t) === opts.tag)); filter = { kind: "tag", slug: opts.tag, label: posts.flatMap(tagsOf).find((t) => slugify(t) === opts.tag) ?? opts.tag }; }
+	else if (opts.author) { posts = all.filter((p) => slugify(authorOf(p)) === opts.author); filter = { kind: "author", slug: opts.author, label: (posts[0] && authorOf(posts[0])) || opts.author }; }
+	const size = Math.max(1, opts.size ?? 12);
+	const pages = Math.max(1, Math.ceil(posts.length / size));
+	const page = Math.min(Math.max(1, opts.page ?? 1), pages);
+	return { posts: posts.slice((page - 1) * size, page * size), page, pages, total: posts.length, filter };
+}
+/** The categories, tags and authors across the blog, each with its slug and count, for the sidebar and the index. */
+export async function blogFacets(): Promise<{ categories: Array<{ label: string; slug: string; count: number }>; tags: Array<{ label: string; slug: string; count: number }>; authors: Array<{ label: string; slug: string; count: number }> }> {
+	const [all, people] = await Promise.all([entries("posts", { limit: 500 }), entries("people", { limit: 100 })]);
+	const tally = (values: string[]) => { const m = new Map<string, { label: string; slug: string; count: number }>(); for (const v of values) { const slug = slugify(v); if (!slug) continue; const cur = m.get(slug) ?? { label: v, slug, count: 0 }; cur.count++; m.set(slug, cur); } return [...m.values()].sort((a, b) => b.count - a.count); };
+	return { categories: tally(all.map((p) => str(p.data.category))), tags: tally(all.flatMap((p) => str(p.data.tags).split(",").map((t) => t.trim()))), authors: tally(all.map((p) => authorName(people, p.data.author))) };
+}
+/** A post's author as a name: the people record it references (by id or title), or the plain text. */
+export function authorName(people: Entry[], v: unknown): string {
+	const raw = typeof v === "object" && v && "id" in v ? str((v as { id?: unknown }).id) : str(v);
+	if (!raw) return "";
+	const hit = people.find((p) => p.id === raw || str(p.data.id) === raw || str(p.data.title) === raw);
+	return hit ? str(hit.data.title) : raw;
+}
+
+/** The page's language and its translations for <html lang> and hreflang: pages sharing a title through `translation_of`. */
+export async function pageLanguages(b: Business, data: Record<string, unknown> | null | undefined, origin: string): Promise<{ lang: string; alternates: Array<{ lang: string; href: string }> }> {
+	const lang = str(data?.language) || b.siteLanguage;
+	if (!data) return { lang, alternates: [] };
+	const root = str(data.translation_of) || str(data.title);
+	if (!root) return { lang, alternates: [] };
+	const pages = await entries("pages", { limit: 500 });
+	const group = pages.filter((p) => str(p.data.title) === root || str(p.data.translation_of) === root);
+	if (group.length < 2) return { lang, alternates: [] };
+	const href = (p: Entry) => `${origin}${p.slug === "home" ? "/" : `/${p.slug ?? p.id}`}`;
+	const alternates = group.map((p) => ({ lang: str(p.data.language) || b.siteLanguage, href: href(p) }));
+	const def = group.find((p) => !str(p.data.translation_of));
+	if (def) alternates.push({ lang: "x-default", href: href(def) });
+	return { lang, alternates };
 }
