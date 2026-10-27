@@ -56,6 +56,7 @@ const formName = form?.title || (onlyEmail ? tx("Newsletter") : tx("Contact"));
 			if (q.kind === "several choices" && opts.length) return <div class="ts-full"><span style="font-size:13px;font-weight:600;color:var(--ts-ink-2);display:block;margin-bottom:8px">{q.label}</span><div class="ts-choices">{opts.map((o) => <label><input type="checkbox" name={key} value={o} />{o}</label>)}</div></div>;
 			if (q.kind === "date") return <label>{q.label}<input name={key} type="date" required={q.required} /></label>;
 			if (q.kind === "number") return <label>{q.label}<input name={key} type="number" inputmode="numeric" required={q.required} placeholder={q.placeholder || undefined} /></label>;
+			if (q.kind === "file upload") return <label class="ts-full">{q.label}<input name={key} type="file" required={q.required} accept=".pdf,.doc,.docx,.txt,.rtf,.jpg,.jpeg,.png,.gif,.webp,.heic" /></label>;
 			return <label class={i === questions.length - 1 && questions.length % 2 ? "ts-full" : ""}>{q.label}<input name={key} required={q.required} placeholder={q.placeholder || undefined} /></label>;
 		})}
 		{questions.map((q) => <input type="hidden" name={`label:q_${slugOf(q.label)}`} value={q.label} />)}

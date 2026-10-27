@@ -15,6 +15,8 @@ export interface LeadEnv {
 	TURNSTILE_SECRET?: string;
 	/** Service binding to the control plane (platform-hosted sites); plain fetch otherwise. */
 	PLATFORM?: { fetch(input: string | URL | Request, init?: RequestInit): Promise<Response> };
+	/** The site's media bucket: a file a visitor attaches to a form is kept here under leads/. */
+	MEDIA?: { put(key: string, value: ArrayBuffer | ReadableStream | string, options?: { httpMetadata?: { contentType?: string } }): Promise<unknown>; get(key: string): Promise<{ body: ReadableStream | null; httpMetadata?: { contentType?: string }; size?: number } | null> };
 }
 
 export interface Lead {
@@ -25,9 +27,16 @@ export interface Lead {
 	form: string | null;
 	/** Every other answer, under the question's label. */
 	fields: Record<string, string>;
+	/** Files the visitor attached: the question's label, the file's name, size and type, and its key in the site's bucket. */
+	files: LeadFile[];
 	page: string | null;
 	submittedAt: string;
 }
+export interface LeadFile { label: string; name: string; size: number; type: string; key: string }
+
+/** What a form may attach: documents and photos, up to this size. */
+export const LEAD_FILE_TYPES = /^(application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document|text\/plain|text\/rtf|application\/rtf|image\/(jpeg|png|gif|webp|heic|heif))$/i;
+export const LEAD_FILE_MAX = 10 * 1024 * 1024;
 
 export interface LeadOutcome { ok: boolean; status: number; error?: string; lead?: Lead; forwarded?: boolean; forwardStatus?: number | string }
 
@@ -49,16 +58,48 @@ export async function readLeadBody(request: Request): Promise<Record<string, str
 	const form = await request.formData();
 	const out: Record<string, string> = {};
 	for (const [k, v] of form.entries()) {
-		const s = typeof v === "string" ? v : "";
-		out[k] = k in out && out[k] ? `${out[k]}, ${s}` : s;
+		if (typeof v !== "string") continue;
+		out[k] = k in out && out[k] ? `${out[k]}, ${v}` : v;
 	}
 	return out;
 }
 
+/** The files a multipart post carries, by field name; empty for JSON and plain form posts. */
+export async function readLeadFiles(request: Request): Promise<Array<{ field: string; file: File }>> {
+	const ct = request.headers.get("content-type") ?? "";
+	if (!ct.includes("multipart/form-data")) return [];
+	const form = await request.formData().catch(() => null);
+	if (!form) return [];
+	const out: Array<{ field: string; file: File }> = [];
+	for (const [k, v] of form.entries()) if (typeof v !== "string" && v.size > 0) out.push({ field: k, file: v });
+	return out;
+}
+
+/** Keep the attached files in the site's bucket under leads/, refusing what is not a document or a photo or is too big; the lead names each one. */
+export async function storeLeadFiles(env: LeadEnv, files: Array<{ field: string; file: File }>, labels: Record<string, string>, now = () => new Date()): Promise<{ files: LeadFile[]; refused: string[] }> {
+	const out: LeadFile[] = []; const refused: string[] = [];
+	if (!env.MEDIA || !files.length) return { files: out, refused: files.map((f) => f.file.name) };
+	const stamp = now().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
+	for (const { field, file } of files.slice(0, 5)) {
+		if (!LEAD_FILE_TYPES.test(file.type) || file.size > LEAD_FILE_MAX) { refused.push(file.name); continue; }
+		const name = file.name.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120) || "file";
+		const key = `leads/${stamp}-${Math.random().toString(36).slice(2, 8)}/${name}`;
+		await env.MEDIA.put(key, await file.arrayBuffer(), { httpMetadata: { contentType: file.type } });
+		out.push({ label: (labels[field] ?? field).trim().slice(0, 100), name: file.name.slice(0, 200), size: file.size, type: file.type, key });
+	}
+	return { files: out, refused };
+}
+
 /** The lead a posted body describes: contact columns, the form's name, and every other answer labelled. */
-export function leadFrom(body: Record<string, string>, page: string | null, now = () => new Date()): Lead {
+/** The question labels a form posts beside its answers (label:<field> → label). */
+export function leadLabels(body: Record<string, string>): Record<string, string> {
 	const labels: Record<string, string> = {};
 	for (const [k, v] of Object.entries(body)) if (k.startsWith("label:")) labels[k.slice(6)] = v;
+	return labels;
+}
+
+export function leadFrom(body: Record<string, string>, page: string | null, now = () => new Date(), files: LeadFile[] = []): Lead {
+	const labels = leadLabels(body);
 	const fields: Record<string, string> = {};
 	for (const [k, v] of Object.entries(body)) {
 		if (RESERVED.has(k) || k.startsWith("label:")) continue;
@@ -67,12 +108,14 @@ export function leadFrom(body: Record<string, string>, page: string | null, now 
 		const label = (labels[k] ?? k).trim().slice(0, 100);
 		fields[label] = value.slice(0, 5000);
 	}
+	for (const f of files) fields[f.label] = f.name;
 	return {
 		name: (body.name ?? "").trim().slice(0, 300),
 		email: (body.email ?? "").trim().slice(0, 320) || null,
 		phone: (body.phone ?? "").trim().slice(0, 50) || null,
 		form: (body.form ?? "").trim().slice(0, 100) || null,
 		fields,
+		files,
 		page,
 		submittedAt: now().toISOString(),
 	};
@@ -114,11 +157,14 @@ export async function forwardLead(env: LeadEnv, lead: Lead, doFetch: typeof fetc
  */
 export async function handleLead(request: Request, env: LeadEnv, opts: { fetch?: typeof fetch; thankYouPath?: string } = {}): Promise<Response> {
 	if (request.method !== "POST") return json({ error: "method not allowed" }, 405);
+	const attachments = request.clone() as Request;
 	const body = await readLeadBody(request);
 	if (body.website_hp) return json({ ok: true });
 	const ts = await turnstileOk(env, body["cf-turnstile-response"], request.headers.get("cf-connecting-ip"), opts.fetch);
 	if (!ts.ok) return json({ ok: false, error: ts.error }, 400);
-	const lead = leadFrom(body, request.headers.get("referer"));
+	const stored = await storeLeadFiles(env, await readLeadFiles(attachments), leadLabels(body));
+	const lead = leadFrom(body, request.headers.get("referer"), undefined, stored.files);
+	if (stored.refused.length) lead.fields["Files not accepted"] = stored.refused.join(", ");
 	// A name is wanted whenever there is a phone (someone will call); an email alone is enough (a newsletter signup).
 	if (!(lead.email || lead.phone)) return json({ ok: false, error: "An email or phone is required." }, 400);
 	if (!lead.name && !lead.email) return json({ ok: false, error: "A name is required." }, 400);

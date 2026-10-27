@@ -43,20 +43,21 @@ export const pageType = (collection: string): PageType | undefined => PAGE_TYPES
 /** The addresses a path can be, in the order the themes try them. */
 export type Route =
 	| { kind: "home" }
-	| { kind: "page"; slug: string }
+	| { kind: "page"; slug: string; /** The slugs of the parents above it, top first, for a page at a nested address. */ parents?: string[] }
 	| { kind: "index"; collection: string }
 	| { kind: "blog"; base: string; page: number; filter: { kind: "category" | "tag" | "author"; slug: string } | null }
 	| { kind: "entry"; collection: string; slug: string };
 
 /** A pattern's placeholders become `([^/]+)` groups, one per segment, as EmDash compiles them. */
-export function compilePattern(pattern: string): { regex: RegExp; params: string[] } {
+export function compilePattern(pattern: string, nested = false): { regex: RegExp; params: string[] } {
 	const params: string[] = [];
 	let src = "";
 	let last = 0;
 	for (const m of pattern.matchAll(/\{(\w+)\}/g)) {
 		src += escapeRegex(pattern.slice(last, m.index));
 		params.push(m[1]!);
-		src += "([^/]+)";
+		// A nested slug (a page under a parent) carries slashes; every other placeholder is one segment.
+		src += nested && m[1] === "slug" ? "(.+)" : "([^/]+)";
 		last = m.index + m[0].length;
 	}
 	src += escapeRegex(pattern.slice(last));
@@ -75,9 +76,9 @@ export function indexPath(pattern: string): string | null {
 	return p && p !== "/" ? p : null;
 }
 
-/** The slug a path carries under a pattern, or null when it does not match. */
-export function matchPattern(pattern: string, path: string): string | null {
-	const { regex, params } = compilePattern(pattern);
+/** The slug a path carries under a pattern, or null when it does not match; `nested` lets the slug span segments (a page under a parent). */
+export function matchPattern(pattern: string, path: string, nested = false): string | null {
+	const { regex, params } = compilePattern(pattern, nested);
 	const m = regex.exec(path);
 	if (!m) return null;
 	const i = params.indexOf("slug");
@@ -130,13 +131,17 @@ export function blogRoute(base: string, path: string): Extract<Route, { kind: "b
  * blog's facets, then a record under each pattern. The runtime takes the
  * first candidate whose record exists and has its page on.
  */
+/** How deep a page can sit under parents (a parent's parent's parent). */
+export const MAX_PAGE_DEPTH = 4;
+
 export function routeCandidates(path: string, patterns: Record<string, string>, frame: Record<string, unknown> | null | undefined): Route[] {
 	const p = normalizePath(path);
 	if (p === "/") return [{ kind: "home" }];
 	const out: Route[] = [];
 	const pagesPattern = patterns.pages ?? "/{slug}";
-	const pageSlug = matchPattern(pagesPattern, p);
-	if (pageSlug && pageSlug !== "home") out.push({ kind: "page", slug: pageSlug });
+	const pageSlug = matchPattern(pagesPattern, p, true);
+	const chain = pageSlug && pageSlug !== "home" ? pageSlug.split("/").filter(Boolean) : [];
+	if (chain.length === 1) out.push({ kind: "page", slug: chain[0]! });
 	for (const t of PAGE_TYPES) {
 		const pattern = patterns[t.collection] ?? t.pattern;
 		if (t.index && indexPath(pattern) === p && indexOn(t, frame)) out.push({ kind: "index", collection: t.collection });
@@ -148,5 +153,7 @@ export function routeCandidates(path: string, patterns: Record<string, string>, 
 		const slug = matchPattern(patterns[t.collection] ?? t.pattern, p);
 		if (slug) out.push({ kind: "entry", collection: t.collection, slug });
 	}
+	// A page under a parent, tried last: the records' own patterns answer first.
+	if (chain.length > 1 && chain.length <= MAX_PAGE_DEPTH) out.push({ kind: "page", slug: chain[chain.length - 1]!, parents: chain.slice(0, -1) });
 	return out;
 }

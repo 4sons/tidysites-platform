@@ -58,9 +58,9 @@ describe("routes", () => {
 		expect(routeCandidates("/", patterns, null)).toEqual([{ kind: "home" }]);
 		expect(routeCandidates("/services", patterns, null)).toEqual([{ kind: "page", slug: "services" }, { kind: "index", collection: "services" }]);
 		expect(routeCandidates("/services", patterns, { services_index: "off" })).toEqual([{ kind: "page", slug: "services" }]);
-		expect(routeCandidates("/services/crowns", patterns, null)).toEqual([{ kind: "entry", collection: "services", slug: "crowns" }]);
-		expect(routeCandidates("/blog/category/print", patterns, null)).toEqual([{ kind: "blog", base: "/blog", page: 1, filter: { kind: "category", slug: "print" } }]);
-		expect(routeCandidates("/blog/paper-stocks", patterns, null)).toEqual([{ kind: "entry", collection: "posts", slug: "paper-stocks" }]);
+		expect(routeCandidates("/services/crowns", patterns, null)).toEqual([{ kind: "entry", collection: "services", slug: "crowns" }, { kind: "page", slug: "crowns", parents: ["services"] }]);
+		expect(routeCandidates("/blog/category/print", patterns, null)).toEqual([{ kind: "blog", base: "/blog", page: 1, filter: { kind: "category", slug: "print" } }, { kind: "page", slug: "print", parents: ["blog", "category"] }]);
+		expect(routeCandidates("/blog/paper-stocks", patterns, null)).toEqual([{ kind: "entry", collection: "posts", slug: "paper-stocks" }, { kind: "page", slug: "paper-stocks", parents: ["blog"] }]);
 		expect(routeCandidates("/home", patterns, null)).toEqual([]);
 	});
 	it("follows the site's own patterns, a type at the root included", () => {
@@ -68,5 +68,18 @@ describe("routes", () => {
 		expect(routeCandidates("/halifax", patterns, null)).toEqual([{ kind: "page", slug: "halifax" }, { kind: "entry", collection: "service_areas", slug: "halifax" }]);
 		expect(routeCandidates("/news", patterns, null)).toEqual([{ kind: "page", slug: "news" }, { kind: "blog", base: "/news", page: 1, filter: null }, { kind: "entry", collection: "service_areas", slug: "news" }]);
 		expect(routeCandidates("/service-areas", patterns, null)).toEqual([{ kind: "page", slug: "service-areas" }, { kind: "entry", collection: "service_areas", slug: "service-areas" }]);
+	});
+});
+
+describe("pages under a parent", () => {
+	it("reads a nested address as the last slug with its parents, up to the depth limit", () => {
+		const patterns = { pages: "/{slug}" };
+		expect(routeCandidates("/service-area/livonia", patterns, null).at(-1)).toEqual({ kind: "page", slug: "livonia", parents: ["service-area"] });
+		expect(routeCandidates("/a/b/c/d", patterns, null).at(-1)).toEqual({ kind: "page", slug: "d", parents: ["a", "b", "c"] });
+		expect(routeCandidates("/a/b/c/d/e", patterns, null).some((c) => c.kind === "page")).toBe(false);
+		expect(routeCandidates("/about", patterns, null)[0]).toEqual({ kind: "page", slug: "about" });
+		expect(entryPath("/{slug}", "service-area/livonia")).toBe("/service-area/livonia");
+		expect(matchPattern("/{slug}", "/a/b")).toBeNull();
+		expect(matchPattern("/{slug}", "/a/b", true)).toBe("a/b");
 	});
 });

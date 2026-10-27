@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.20.0
+
+What a port kept running into.
+
+- **Pages under a parent.** A page names its parent by slug (`parent`); its address is the parent's address plus its own (`/service-area/livonia`), up to four levels, and the breadcrumb and structured data follow. A page with a parent answers only at that address.
+- **Rich copy on sections.** Every section with a Text field gains `copy`, rich text (links, lists, bold) shown instead of the plain text when set; the connector sends markdown for it as it does for a record's content.
+- **File uploads on forms.** A question of kind "file upload" takes a document or photo (10 MB); the file is kept in the site's bucket under leads/, the lead names it, and `GET /_tidy/lead-file?key=` serves it to the platform.
+- **A second Tag Manager container** (`gtm_id_2` on the integrations record) and **CallTrackingMetrics** as a call tracking provider (by account id, or the swap script pasted).
+
 ## 0.19.1
 
 - Labels the first pass missed go through the wording too: the call bar's "Call" and "Call or text", "Address", the built-in form's labels and its error line, "Read them all".

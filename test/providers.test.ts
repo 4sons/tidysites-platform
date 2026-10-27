@@ -79,3 +79,18 @@ describe("more providers", () => {
 		expect(s.gatedHead.join("")).toContain("hjid:1234567");
 	});
 });
+
+describe("second container and CallTrackingMetrics", () => {
+	it("prints both Tag Manager containers once each, and GA4 only when there is no container", async () => {
+		const { providerSnippets, providerId } = await import("../src/lib/providers");
+		const base = { chatProvider: "", chatId: "", reviewsWidget: "", reviewsWidgetId: "", metaPixelId: "", googleAdsId: "" };
+		const two = providerSnippets({ ...base, gtmId: "GTM-AAA111", gtmId2: "GTM-BBB222", ga4Id: "G-XYZ" });
+		expect(two.gatedHead.join("")).toContain("GTM-AAA111");
+		expect(two.gatedHead.join("")).toContain("GTM-BBB222");
+		expect(two.gatedHead.join("")).not.toContain("gtag/js?id=G-XYZ");
+		expect(providerSnippets({ ...base, gtmId: "GTM-AAA111", gtmId2: "GTM-AAA111" }).gatedHead).toHaveLength(1);
+		expect(providerId("calls", "CallTrackingMetrics", '<script async src="//206569352.tctm.co/t.js"></script>')).toBe("206569352");
+		expect(providerId("calls", "CallTrackingMetrics", "206569352")).toBe("206569352");
+		expect(providerSnippets({ ...base, callTracking: "CallTrackingMetrics", callTrackingId: "206569352" }).body.join("")).toContain("https://206569352.tctm.co/t.js");
+	});
+});
