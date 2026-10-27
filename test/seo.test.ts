@@ -124,6 +124,9 @@ describe("canonicalUrl and parseSchemaOverride", () => {
 	});
 	it("accepts one object or a list, nothing else", () => {
 		expect(parseSchemaOverride('[{"a":1},5,"x"]')).toEqual([{ a: 1 }]);
+		expect(parseSchemaOverride({ "@type": "Thing" })).toEqual([{ "@type": "Thing" }]);
+		expect(parseSchemaOverride([{ a: 1 }])).toEqual([{ a: 1 }]);
+		expect(parseSchemaOverride("[]")).toBeNull();
 		expect(parseSchemaOverride("42")).toBeNull();
 		expect(parseSchemaOverride("   ")).toBeNull();
 	});
