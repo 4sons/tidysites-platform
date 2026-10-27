@@ -111,12 +111,20 @@ A site runs its live chat, reviews widget, booking embed and pixels by id, never
 | Reviews widget | Trustindex, Elfsight, Birdeye | the reviews section's "provider widget" layout |
 | Booking embed | Calendly, Pike13, Square Appointments, Acuity, Jobber | the booking dialog, when the booking button opens "the booking embed"; only a URL on the provider's own host |
 | Pixels | Meta pixel, Google Ads tag | head |
+| Instagram feed | Elfsight, Behold | the gallery section's "instagram feed" layout |
+| Accessibility widget | UserWay (by account id), accessiBe (by switch) | end of body |
 
 Adding a provider is a pull request here: its id pattern, its embed pattern and its snippet, with a test.
 
+## The sections that are not records
+
+Three sections carry their own content instead of reading a collection, and they are the answer to "I just need a row of things here": Cards (the feature section: 2, 3 or 4 cards per row, each with a heading, text, an icon, an image and a link; or a checklist, points beside an image, or one statement), Steps, and Stats. A thing gets a collection when it is reused across pages or has a page of its own; it gets a repeater in its section when it lives only in that spot.
+
+`details` is the Business details section: name, address, phone, email, hours day by day, socials and the map, each on or off, from the Business record or a named location, as a row, a card or two columns (`ts-details-*`, `ts-hours`). `audiences` lists the Who we serve records (the people or industries a service is for, each with a page at `/for/<slug>`, which a theme serves with a `for/[slug]` page) as cards, chips or a list.
+
 ## Layouts every section shares
 
-Reviews, team, services, brands, clients and gallery offer a `carousel` layout (a scroll-snap track with arrows, `ts-carousel-*`); the FAQ offers `tabs` and `two columns` (`ts-tabs`, `ts-tab`, `ts-tab-panel`). The header renders a top bar from the `frame` record's "line above the header" and the phone call bar at the bottom of small screens from its "bar at the bottom of the phone screen" setting (`ts-topbar-*`, `ts-callbar-*`).
+Reviews, team, services, brands, clients and gallery offer a `carousel` layout (a scroll-snap track with arrows, `ts-carousel-*`); the FAQ offers `tabs` and `two columns` (`ts-tabs`, `ts-tab`, `ts-tab-panel`); plans and products offer `compare` (`ts-compare`); the CTA offers `band with email` (an email-only form). Galleries open in a lightbox unless the section turns it off (`ts-lightbox-*`). The header renders a top bar from the `frame` record's "line above the header" and the phone call bar at the bottom of small screens from its "bar at the bottom of the phone screen" setting (`ts-topbar-*`, `ts-callbar-*`). The same record sets the pop-up: what it shows (an offer by name, or a form by name), when it opens (on arrival, after ten or thirty seconds, after scrolling halfway, on leaving) and how often (once a visit, once a day, every time); the frame renders it in the dialog (`ts-popup`).
 
 ## Forms
 

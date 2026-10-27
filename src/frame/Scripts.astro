@@ -8,7 +8,7 @@ import type { Business } from "../sections/lib";
 import { providerSnippets } from "../lib/providers";
 interface Props { business: Business; where?: "head" | "body" }
 const { business: b, where = "body" } = Astro.props;
-const s = providerSnippets({ chatProvider: b.chatProvider, chatId: b.chatId, reviewsWidget: b.reviewsWidget, reviewsWidgetId: b.reviewsWidgetId, metaPixelId: b.metaPixelId, googleAdsId: b.googleAdsId });
+const s = providerSnippets({ chatProvider: b.chatProvider, chatId: b.chatId, reviewsWidget: b.reviewsWidget, reviewsWidgetId: b.reviewsWidgetId, metaPixelId: b.metaPixelId, googleAdsId: b.googleAdsId, accessibilityWidget: b.accessibilityWidget, accessibilityWidgetId: b.accessibilityWidgetId });
 const html = (where === "head" ? s.head : s.body).join("");
 ---
 {html && <Fragment set:html={html} />}

@@ -54,9 +54,14 @@ describe("handleLead", () => {
 		expect(await res.json()).toEqual({ ok: true });
 		expect(f).not.toHaveBeenCalled();
 	});
-	it("refuses without a name and a way to reply", async () => {
-		const res = await handleLead(post({ name: "Ada" }, { accept: "application/json" }), env);
-		expect(res.status).toBe(400);
+	it("refuses without a way to reply, and a phone without a name", async () => {
+		expect((await handleLead(post({ name: "Ada" }, { accept: "application/json" }), env)).status).toBe(400);
+		expect((await handleLead(post({ phone: "248" }, { accept: "application/json" }), env)).status).toBe(400);
+	});
+	it("takes an email alone, as a newsletter signup", async () => {
+		const f = vi.fn(async () => Response.json({ ok: true }));
+		const res = await handleLead(post({ email: "a@x.test", form: "Newsletter" }, { accept: "application/json" }), env, { fetch: f as unknown as typeof fetch });
+		expect(res.status).toBe(200);
 	});
 	it("requires a Turnstile token when a secret is bound", async () => {
 		const res = await handleLead(post({ name: "Ada", email: "a@x.test" }, { accept: "application/json" }), { ...env, TURNSTILE_SECRET: "t" });

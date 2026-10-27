@@ -16,17 +16,22 @@ interface Props {
 	class?: string;
 	/** Fields to post along with the answers, for example which page or section sent it. */
 	hidden?: Record<string, string>;
+	/** Ask for an email and nothing else (a newsletter band); the form record's own setting wins when it names one. */
+	emailOnly?: boolean;
 }
-const { name = "", submitLabel = null, class: cls = "", hidden = {} } = Astro.props;
+const { name = "", submitLabel = null, class: cls = "", hidden = {}, emailOnly = false } = Astro.props;
 const form: FormRecord | null = name ? await getForm(name) : null;
 const d = form?.data ?? {};
-const contact = str(d.contact_fields, "name, phone and email");
+const contact = str(d.contact_fields, emailOnly ? "email only" : "name, phone and email");
+const onlyEmail = contact === "email only";
 const askPhone = contact.includes("phone"), askEmail = contact.includes("email");
 type Q = { label: string; kind: string; options: string; required: boolean; placeholder: string };
-const questions: Q[] = form
+const questions: Q[] = onlyEmail && !form
+	? []
+	: form
 	? list<Record<string, unknown>>(d.questions).map((q) => ({ label: str(q.label), kind: str(q.kind, "short answer"), options: str(q.options), required: bool(q.required), placeholder: str(q.placeholder) })).filter((q) => q.label)
 	: [{ label: "How can we help?", kind: "long answer", options: "", required: false, placeholder: "" }];
-const submit = submitLabel || str(d.submit_label) || "Send";
+const submit = submitLabel || str(d.submit_label) || (onlyEmail ? "Subscribe" : "Send");
 const doneTitle = str(d.success_title) || "Thank you";
 const doneText = str(d.success_message) || "We have your message and will be in touch soon.";
 const consent = str(d.consent_text);
@@ -34,12 +39,12 @@ const intro = str(d.intro);
 const slugOf = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 60) || "answer";
 let turnstile: string | undefined;
 try { const m = (await import("cloudflare:workers")) as unknown as { env?: Record<string, unknown> }; turnstile = typeof m.env?.TURNSTILE_SITEKEY === "string" ? m.env.TURNSTILE_SITEKEY : undefined; } catch { turnstile = undefined; }
-const formName = form?.title || "Contact";
+const formName = form?.title || (onlyEmail ? "Newsletter" : "Contact");
 ---
 <form class={`ts-form ${cls}`} action="/api/lead" method="post" data-tidy-form={form?.slug ?? form?.id ?? "contact"}>
 	<div class="ts-form-fields">
 		{intro && <p class="ts-form-intro">{intro}</p>}
-		<label class={askPhone && askEmail ? "ts-full" : ""}>Name<input name="name" autocomplete="name" required /></label>
+		{!onlyEmail && <label class={askPhone && askEmail ? "ts-full" : ""}>Name<input name="name" autocomplete="name" required /></label>}
 		{askPhone && <label>Phone<input name="phone" type="tel" autocomplete="tel" required={!askEmail} /></label>}
 		{askEmail && <label>Email<input name="email" type="email" autocomplete="email" required={!askPhone} /></label>}
 		{questions.map((q, i) => {

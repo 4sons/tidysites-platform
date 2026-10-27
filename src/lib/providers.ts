@@ -10,6 +10,8 @@
 export type ChatProvider = "Crisp" | "Tawk.to" | "Tidio" | "LiveChat" | "Podium";
 export type ReviewsProvider = "Trustindex" | "Elfsight" | "Birdeye";
 export type BookingProvider = "Calendly" | "Pike13" | "Square Appointments" | "Acuity" | "Jobber";
+export type InstagramProvider = "Elfsight" | "Behold";
+export type AccessibilityProvider = "UserWay" | "accessiBe";
 
 const esc = (s: string) => s.replace(/[^A-Za-z0-9_\-:./]/g, "");
 const first = (s: string, res: RegExp[]): string => { for (const re of res) { const m = re.exec(s); if (m?.[1]) return m[1]; } return ""; };
@@ -19,7 +21,9 @@ const bare = (s: string, re: RegExp) => (re.test(s.trim()) ? s.trim() : "");
 export function providerId(kind: "chat", provider: ChatProvider | string, pasted: string): string;
 export function providerId(kind: "reviews", provider: ReviewsProvider | string, pasted: string): string;
 export function providerId(kind: "booking", provider: BookingProvider | string, pasted: string): string;
-export function providerId(kind: "chat" | "reviews" | "booking", provider: string, pasted: string): string {
+export function providerId(kind: "instagram", provider: InstagramProvider | string, pasted: string): string;
+export function providerId(kind: "accessibility", provider: AccessibilityProvider | string, pasted: string): string;
+export function providerId(kind: "chat" | "reviews" | "booking" | "instagram" | "accessibility", provider: string, pasted: string): string {
 	const s = (pasted ?? "").trim();
 	if (!s) return "";
 	switch (`${kind}:${provider}`) {
@@ -36,6 +40,11 @@ export function providerId(kind: "chat" | "reviews" | "booking", provider: strin
 		case "booking:Square Appointments": return first(s, [/(https:\/\/(?:app\.)?squareup\.com\/appointments\/[A-Za-z0-9_\-/]+|https:\/\/book\.squareup\.com\/[A-Za-z0-9_\-/]+)/]);
 		case "booking:Acuity": return first(s, [/(https:\/\/[a-z0-9-]+\.as\.me\/[A-Za-z0-9_\-/?=&]*|https:\/\/app\.acuityscheduling\.com\/schedule\.php\?owner=\d+)/i]);
 		case "booking:Jobber": return first(s, [/(https:\/\/clienthub\.getjobber\.com\/[A-Za-z0-9_\-/]+)/]);
+		case "instagram:Elfsight": return first(s, [/elfsight-app-([0-9a-f-]{36})/i]) || bare(s, /^[0-9a-f-]{36}$/i);
+		case "instagram:Behold": return first(s, [/feeds\.behold\.so\/([A-Za-z0-9]+)/, /feed-id=["']([A-Za-z0-9]+)["']/]) || bare(s, /^[A-Za-z0-9]{10,}$/);
+		case "accessibility:UserWay": return first(s, [/data-account=["']([A-Za-z0-9]+)["']/]) || bare(s, /^[A-Za-z0-9]{8,}$/);
+		// accessiBe keys its widget by domain; the snippet carries no id, so any paste (or "on") turns it on.
+		case "accessibility:accessiBe": return s ? "on" : "";
 		default: return "";
 	}
 }
@@ -51,8 +60,11 @@ export function pixelId(kind: "meta" | "google_ads", pasted: string): string {
 export interface Snippets { head: string[]; body: string[] }
 
 /** The frame's own snippets for the providers a business record names. Every id goes through `esc`; the snippets are fixed. */
-export function providerSnippets(input: { chatProvider: string; chatId: string; reviewsWidget: string; reviewsWidgetId: string; metaPixelId: string; googleAdsId: string }): Snippets {
+export function providerSnippets(input: { chatProvider: string; chatId: string; reviewsWidget: string; reviewsWidgetId: string; metaPixelId: string; googleAdsId: string; accessibilityWidget?: string; accessibilityWidgetId?: string }): Snippets {
 	const out: Snippets = { head: [], body: [] };
+	const a11y = providerId("accessibility", input.accessibilityWidget ?? "", input.accessibilityWidgetId ?? "");
+	if (a11y && input.accessibilityWidget === "UserWay") out.body.push(`<script src="https://cdn.userway.org/widget.js" data-account="${esc(a11y)}"></script>`);
+	if (a11y && input.accessibilityWidget === "accessiBe") out.body.push(`<script>(function(){var s=document.createElement("script");s.src="https://acsbapp.com/apps/app/dist/js/app.js";s.async=true;s.onload=function(){acsbJS.init({});};document.body.appendChild(s);})();</script>`);
 	const chat = providerId("chat", input.chatProvider, input.chatId);
 	if (chat) {
 		const id = esc(chat);
@@ -84,4 +96,13 @@ export function bookingEmbedUrl(provider: string, pasted: string): string | null
 	const url = providerId("booking", provider, pasted);
 	if (!url) return null;
 	try { const u = new URL(url); if (u.protocol !== "https:") return null; return u.toString(); } catch { return null; }
+}
+
+/** The markup for an Instagram feed placed in a page, or null when none is set. */
+export function instagramFeedHtml(provider: string, pasted: string): string | null {
+	const id = esc(providerId("instagram", provider, pasted));
+	if (!id) return null;
+	if (provider === "Elfsight") return `<script src="https://static.elfsight.com/platform/platform.js" async></script><div class="elfsight-app-${id}" data-elfsight-app-lazy></div>`;
+	if (provider === "Behold") return `<script type="module" src="https://w.behold.so/widget.js"></script><behold-widget feed-id="${id}"></behold-widget>`;
+	return null;
 }

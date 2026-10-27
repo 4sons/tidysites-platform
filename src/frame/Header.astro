@@ -8,7 +8,7 @@
  * it and a site's custom CSS carries between themes.
  */
 import type { Business } from "../sections/lib";
-import { mediaUrl } from "../sections/lib";
+import { getOffer, mediaUrl, str } from "../sections/lib";
 import { bookingEmbedUrl } from "../lib/providers";
 import Dialog from "./Dialog.astro";
 import Form from "../sections/Form.astro";
@@ -37,6 +37,8 @@ const bookInDialog = b.bookingOpens === "form" || Boolean(embedUrl);
 const portal = b.portalUrl ? { href: b.portalUrl, label: b.portalLabel } : null;
 const topBar = b.topBarText ? { text: b.topBarText, href: b.topBarLink || null } : null;
 const callBar = b.callBar !== "off" && (b.phone || b.callBar !== "call only") ? b.callBar : null;
+const popupOffer = b.popupShows === "an offer" ? await getOffer(b.popupOffer) : null;
+const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, trigger: b.popupTrigger, every: b.popupEvery, title: b.popupTitle || (popupOffer ? str(popupOffer.data.title) : "") } : null;
 ---
 <header class={`ts-frame ts-header ${sticky ? "ts-header-sticky" : ""} ${cls}`} data-tidy-frame="header">
 	{topBar && <div class="ts-topbar"><div class="ts-topbar-wrap">{topBar.href ? <a class="ts-topbar-link" href={topBar.href}>{topBar.text}</a> : <span>{topBar.text}</span>}</div></div>}
@@ -89,6 +91,26 @@ const callBar = b.callBar !== "off" && (b.phone || b.callBar !== "call only") ? 
 	</nav>
 </header>
 {bookInDialog && <Dialog id="ts-booking" title={b.bookingLabel} class={embedUrl ? "ts-dialog-embed" : ""}>{embedUrl ? <iframe class="ts-booking-embed" src={embedUrl} title={b.bookingLabel} loading="lazy"></iframe> : <Form name={b.bookingForm} hidden={{ section: "header" }} />}</Dialog>}
+{popup && (
+	<Dialog id="ts-popup" title={popup.title || null} class="ts-popup">
+		{popupOffer ? (
+			<div class="ts-popup-offer">{str(popupOffer.data.summary) && <p class="ts-lede" style="margin:0 0 16px">{str(popupOffer.data.summary)}</p>}{str(popupOffer.data.how_to_claim) && <p class="ts-muted" style="margin:0 0 16px">{str(popupOffer.data.how_to_claim)}</p>}<a class="ts-btn ts-btn-accent" href={str(popupOffer.data.cta_url) || "/contact"}>{str(popupOffer.data.cta_label) || "Claim this offer"}</a></div>
+		) : <Form name={b.popupForm} hidden={{ section: "popup" }} />}
+	</Dialog>
+	<script is:inline define:vars={{ trigger: popup.trigger, every: popup.every }}>
+	(function(){
+		var key = "tidy-popup"; var seen = every === "every time" ? null : every === "once a day" ? localStorage.getItem(key) : sessionStorage.getItem(key);
+		if (seen && (every !== "once a day" || Date.now() - Number(seen) < 864e5)) return;
+		var d = document.getElementById("ts-popup"); if (!d || typeof d.showModal !== "function") return;
+		var shown = false; function open() { if (shown) return; shown = true; d.showModal(); if (every === "once a day") localStorage.setItem(key, String(Date.now())); else if (every === "once a visit") sessionStorage.setItem(key, "1"); }
+		if (trigger === "on arrival") setTimeout(open, 800);
+		else if (trigger === "after ten seconds") setTimeout(open, 10000);
+		else if (trigger === "after thirty seconds") setTimeout(open, 30000);
+		else if (trigger === "after scrolling halfway") window.addEventListener("scroll", function f() { if (window.scrollY > (document.body.scrollHeight - window.innerHeight) / 2) { window.removeEventListener("scroll", f); open(); } }, { passive: true });
+		else if (trigger === "on leaving") document.addEventListener("mouseleave", function f(e) { if (e.clientY <= 0) { document.removeEventListener("mouseleave", f); open(); } });
+	})();
+	</script>
+)}
 {callBar && (
 	<div class="ts-frame ts-callbar" data-tidy-frame="callbar">
 		{callBar !== "book only" && b.phone && <a class="ts-btn ts-btn-outline ts-callbar-call" href={b.phoneHref}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z" fill="currentColor"/></svg>Call{b.phoneText ? " or text" : ""}</a>}

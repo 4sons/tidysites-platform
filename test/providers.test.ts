@@ -24,6 +24,11 @@ describe("providerId", () => {
 		expect(bookingEmbedUrl("Calendly", "https://evil.example/calendly.com/x")).toBeNull();
 		expect(bookingEmbedUrl("Pike13", "https://atelier.pike13.com/schedule")).toBe("https://atelier.pike13.com/schedule");
 	});
+	it("reads Instagram and accessibility widget ids", () => {
+		expect(providerId("instagram", "Behold", `<behold-widget feed-id="AbCdEf123456"></behold-widget>`)).toBe("AbCdEf123456");
+		expect(providerId("accessibility", "UserWay", `<script src="https://cdn.userway.org/widget.js" data-account="xYz12345"></script>`)).toBe("xYz12345");
+		expect(providerId("accessibility", "accessiBe", "on")).toBe("on");
+	});
 	it("refuses a provider not on the list", () => {
 		expect(providerId("chat", "Intercom", "abc")).toBe("");
 	});

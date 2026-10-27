@@ -5,7 +5,7 @@
  * from the frame contract (ts-footer-*).
  */
 import type { Business } from "../sections/lib";
-import { addressLine, entries, mediaUrl } from "../sections/lib";
+import { addressLine, entries, getLocation, hoursRows, mediaUrl } from "../sections/lib";
 import type { MenuItem } from "./Header.astro";
 import "../sections/defaults.css";
 import "./frame.css";
@@ -22,6 +22,8 @@ interface Props {
 }
 const { business: b, footerMenu = null, siteTitle = b.title, footerMenuLabel = "More", services: count = 6, class: cls = "" } = Astro.props;
 const services = count > 0 ? await entries("services", { limit: count }) : [];
+const loc = await getLocation();
+const hours = loc ? hoursRows(loc.data) : [];
 const logo = b.logo ? mediaUrl(b.logo) ?? b.logo.src : null;
 const initial = siteTitle.trim().charAt(0).toUpperCase();
 const year = new Date().getFullYear();
@@ -39,7 +41,7 @@ const year = new Date().getFullYear();
 			{addressLine(b) && <li>{addressLine(b)}</li>}
 			{b.phone && <li><a href={b.phoneHref}>{b.phone}</a></li>}
 			{b.email && <li><a href={`mailto:${b.email}`}>{b.email}</a></li>}
-			{b.hours && <li class="ts-footer-hours">{b.hours}</li>}
+			{hours.length > 0 ? <li class="ts-footer-hours"><table class="ts-hours ts-hours-small"><tbody>{hours.map((r) => <tr><th scope="row">{r.day.slice(0, 3)}</th><td>{r.value}</td></tr>)}</tbody></table></li> : b.hours && <li class="ts-footer-hours">{b.hours}</li>}
 		</ul></div>
 		<div class="ts-footer-legal">
 			<span>© {year} {siteTitle}{b.licenseLine ? ` · ${b.licenseLine}` : ""}</span>

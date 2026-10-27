@@ -10,8 +10,9 @@ const href = str(n.button_url) || b.bookingUrl || "/contact";
 	<div>
 		<h2>{str(n.headline) || b.ctaLabel}</h2>
 		{str(n.body) && <p class="ts-lede">{str(n.body)}</p>}
-		<div class="ts-actions"><a class="ts-btn ts-btn-accent ts-btn-lg" href={href}>{str(n.button_label) || b.ctaLabel}</a>{str(n.button2_label) ? <a class="ts-btn ts-btn-outline ts-btn-lg" href={str(n.button2_url, "#")}>{str(n.button2_label)}</a> : bool(n.show_phone, true) && b.phone && <a class="ts-btn ts-btn-outline ts-btn-lg" href={b.phoneHref}>{b.phone}</a>}</div>
+		{variant !== "band with email" && <div class="ts-actions"><a class="ts-btn ts-btn-accent ts-btn-lg" href={href}>{str(n.button_label) || b.ctaLabel}</a>{str(n.button2_label) ? <a class="ts-btn ts-btn-outline ts-btn-lg" href={str(n.button2_url, "#")}>{str(n.button2_label)}</a> : bool(n.show_phone, true) && b.phone && <a class="ts-btn ts-btn-outline ts-btn-lg" href={b.phoneHref}>{b.phone}</a>}</div>}
 	</div>
 	{variant === "band with facts" && <dl class="ts-kv ts-card">{b.hours && <><dt>Hours</dt><dd>{b.hours}</dd></>}{b.sameDayLine && <><dt>Same day</dt><dd>{b.sameDayLine}</dd></>}{b.newPatientsLine && <><dt></dt><dd>{b.newPatientsLine}</dd></>}</dl>}
+	{variant === "band with email" && <Form name={str(n.form)} class="ts-card ts-form-email" submitLabel={str(n.button_label) || "Subscribe"} emailOnly hidden={{ section: "cta" }} />}
 	{variant === "band with form" && (str(n.form) ? <Form name={str(n.form)} class="ts-card" submitLabel={str(n.button_label) || null} hidden={{ section: "cta" }} /> : <form class="ts-form ts-card" action="/api/lead" method="post"><label class="ts-full">Name<input name="name" required /></label><label class="ts-full">Phone<input name="phone" type="tel" /></label><input class="ts-hp" type="text" name="website_hp" tabindex="-1" autocomplete="off" aria-hidden="true" /><div class="ts-full"><button class="ts-btn ts-btn-accent" type="submit">{str(n.button_label) || b.ctaLabel}</button></div></form>)}
 </div></section>

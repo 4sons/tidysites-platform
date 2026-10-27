@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.14.0
+
+What a second survey of client sites showed the template forcing into sections, now data.
+
+- `details`, the Business details section: name, address, phone, email, hours day by day (today marked), socials and the map, each on or off, as a row, a card or two columns, from the Business record or a named location. The footer renders the per-day hours table when a location has one.
+- Cards: the feature section is called Cards in the editor, takes 2, 3 or 4 per row, and each card may carry an image and a link. The free-form row of N things.
+- `audiences`, Who we serve: a collection for the people or industries a service is for (coaching for executives, bookkeeping for dentists), with its own pages at `/for/<slug>`, and a section that lists them as cards, chips or a list.
+- Compare layouts: plans as a table (one column a plan, one row an inclusion, ticks where it is in) and products as a specs table.
+- Galleries open in a lightbox (a switch on the section, on by default), and a gallery can be an Instagram feed (Elfsight or Behold, by id on Integrations).
+- The pop-up: the `frame` record says what it shows (an offer or a form), when (on arrival, after ten or thirty seconds, after scrolling halfway, on leaving) and how often (once a visit, once a day, every time); the frame renders it in the dialog.
+- Email-only forms: a form may ask for an email and nothing else, the lead route takes an email alone, and the CTA has a "band with email" layout.
+- Accessibility widget (UserWay by id, accessiBe by switch) on Integrations, rendered by `frame/scripts`.
+
 ## 0.13.0
 
 - `chrome/*` is `frame/*` (`frame/header`, `frame/footer`, `frame/dialog`, `frame/scripts`, `frame/frame.css`) and the wrapper class is `ts-frame`: the header, footer, dialog and call bar are the frame around a page.

@@ -251,8 +251,8 @@
     },
     {
       "slug": "feature",
-      "label": "Why choose us",
-      "description": "Points with an optional image",
+      "label": "Cards",
+      "description": "A row of cards, a checklist, points beside an image, or one statement",
       "category": "Sections",
       "currentVersion": 1,
       "versions": [
@@ -272,6 +272,19 @@
                 ]
               },
               "defaultValue": "cards"
+            },
+            {
+              "slug": "columns",
+              "label": "Cards per row",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "2",
+                  "3",
+                  "4"
+                ]
+              },
+              "defaultValue": "3"
             },
             {
               "slug": "eyebrow",
@@ -312,6 +325,21 @@
                   {
                     "slug": "icon",
                     "label": "Icon",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "image",
+                    "label": "Image",
+                    "type": "image"
+                  },
+                  {
+                    "slug": "link_url",
+                    "label": "Link",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "link_label",
+                    "label": "Link label",
                     "type": "string"
                   }
                 ]
@@ -972,6 +1000,18 @@
           "version": 1,
           "fields": [
             {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "cards",
+                  "compare"
+                ]
+              },
+              "defaultValue": "cards"
+            },
+            {
               "slug": "eyebrow",
               "label": "Small label above the headline",
               "type": "string"
@@ -1216,6 +1256,92 @@
       ]
     },
     {
+      "slug": "details",
+      "label": "Business details",
+      "description": "Name, address, phone, email, hours and socials, each on or off",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "row",
+                  "card",
+                  "two columns"
+                ]
+              },
+              "defaultValue": "row"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "location",
+              "label": "Which location (its name); empty for the main one",
+              "type": "string"
+            },
+            {
+              "slug": "show_name",
+              "label": "Show the business name",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_address",
+              "label": "Show the address",
+              "type": "boolean",
+              "defaultValue": true
+            },
+            {
+              "slug": "show_phone",
+              "label": "Show the phone",
+              "type": "boolean",
+              "defaultValue": true
+            },
+            {
+              "slug": "show_email",
+              "label": "Show the email",
+              "type": "boolean",
+              "defaultValue": true
+            },
+            {
+              "slug": "show_hours",
+              "label": "Show hours, day by day",
+              "type": "boolean",
+              "defaultValue": true
+            },
+            {
+              "slug": "show_socials",
+              "label": "Show social links",
+              "type": "boolean"
+            },
+            {
+              "slug": "show_map",
+              "label": "Show the map",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "slug": "cta",
       "label": "Call to action band",
       "description": "A headline and a button",
@@ -1233,7 +1359,8 @@
                 "options": [
                   "band",
                   "band with facts",
-                  "band with form"
+                  "band with form",
+                  "band with email"
                 ]
               },
               "defaultValue": "band"
@@ -1316,7 +1443,8 @@
                   "strip",
                   "grid",
                   "with captions",
-                  "carousel"
+                  "carousel",
+                  "instagram feed"
                 ]
               },
               "defaultValue": "strip"
@@ -1354,6 +1482,12 @@
                   }
                 ]
               }
+            },
+            {
+              "slug": "lightbox",
+              "label": "Open images in a lightbox",
+              "type": "boolean",
+              "defaultValue": true
             }
           ]
         }
@@ -1569,6 +1703,76 @@
               "slug": "limit",
               "label": "How many",
               "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "audiences",
+      "label": "Who we serve",
+      "description": "The people or industries a service is for, from the records",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "variant",
+              "label": "Layout",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "cards",
+                  "chips",
+                  "list"
+                ]
+              },
+              "defaultValue": "cards"
+            },
+            {
+              "slug": "eyebrow",
+              "label": "Small label above the headline",
+              "type": "string"
+            },
+            {
+              "slug": "headline",
+              "label": "Headline",
+              "type": "string"
+            },
+            {
+              "slug": "body",
+              "label": "Text",
+              "type": "text"
+            },
+            {
+              "slug": "service",
+              "label": "Only for one service (its slug)",
+              "type": "string"
+            },
+            {
+              "slug": "limit",
+              "label": "How many",
+              "type": "integer"
+            },
+            {
+              "slug": "featured_only",
+              "label": "Featured only",
+              "type": "boolean"
+            },
+            {
+              "slug": "columns",
+              "label": "Cards per row",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "2",
+                  "3",
+                  "4"
+                ]
+              },
+              "defaultValue": "3"
             }
           ]
         }
@@ -1869,7 +2073,8 @@
                 "options": [
                   "grid",
                   "list",
-                  "featured"
+                  "featured",
+                  "compare"
                 ]
               },
               "defaultValue": "grid"
@@ -2604,6 +2809,59 @@
           "slug": "top_bar_link",
           "label": "Where the line links",
           "type": "string"
+        },
+        {
+          "slug": "popup_shows",
+          "label": "Pop-up shows",
+          "type": "select",
+          "validation": {
+            "options": [
+              "nothing",
+              "an offer",
+              "a form"
+            ]
+          }
+        },
+        {
+          "slug": "popup_title",
+          "label": "Pop-up headline",
+          "type": "string"
+        },
+        {
+          "slug": "popup_offer",
+          "label": "The offer (its name)",
+          "type": "string"
+        },
+        {
+          "slug": "popup_form",
+          "label": "The form (its name)",
+          "type": "string"
+        },
+        {
+          "slug": "popup_trigger",
+          "label": "Pop-up opens",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on arrival",
+              "after ten seconds",
+              "after thirty seconds",
+              "after scrolling halfway",
+              "on leaving"
+            ]
+          }
+        },
+        {
+          "slug": "popup_every",
+          "label": "Pop-up repeats",
+          "type": "select",
+          "validation": {
+            "options": [
+              "once a visit",
+              "once a day",
+              "every time"
+            ]
+          }
         }
       ]
     },
@@ -2685,6 +2943,38 @@
           "slug": "google_ads_id",
           "label": "Google Ads tag id",
           "type": "string"
+        },
+        {
+          "slug": "instagram_widget",
+          "label": "Instagram feed",
+          "type": "select",
+          "validation": {
+            "options": [
+              "Elfsight",
+              "Behold"
+            ]
+          }
+        },
+        {
+          "slug": "instagram_widget_id",
+          "label": "Instagram feed id, or the whole embed code pasted",
+          "type": "text"
+        },
+        {
+          "slug": "accessibility_widget",
+          "label": "Accessibility widget",
+          "type": "select",
+          "validation": {
+            "options": [
+              "UserWay",
+              "accessiBe"
+            ]
+          }
+        },
+        {
+          "slug": "accessibility_widget_id",
+          "label": "Accessibility widget id, or the whole embed code pasted",
+          "type": "text"
         }
       ]
     },
@@ -2886,7 +3176,9 @@
               "case_studies",
               "clients",
               "signs",
-              "options"
+              "options",
+              "details",
+              "audiences"
             ],
             "maxItems": 40
           }
@@ -2984,7 +3276,9 @@
               "case_studies",
               "clients",
               "signs",
-              "options"
+              "options",
+              "details",
+              "audiences"
             ],
             "maxItems": 40
           }
@@ -3122,7 +3416,9 @@
               "case_studies",
               "clients",
               "signs",
-              "options"
+              "options",
+              "details",
+              "audiences"
             ],
             "maxItems": 40
           }
@@ -3265,7 +3561,9 @@
               "case_studies",
               "clients",
               "signs",
-              "options"
+              "options",
+              "details",
+              "audiences"
             ],
             "maxItems": 40
           }
@@ -3321,6 +3619,117 @@
           "slug": "sort",
           "label": "Order",
           "type": "integer"
+        }
+      ]
+    },
+    {
+      "slug": "audiences",
+      "label": "Who we serve",
+      "labelSingular": "Audience",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "description": "The people or industries a service is for: coaching for executives, bookkeeping for dentists, aligners for teens",
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Who it is for",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "tagline",
+          "label": "One line",
+          "type": "string"
+        },
+        {
+          "slug": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "slug": "featured_image",
+          "label": "Image",
+          "type": "image"
+        },
+        {
+          "slug": "service",
+          "label": "The service it is about",
+          "type": "reference"
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText"
+        },
+        {
+          "slug": "sections",
+          "label": "Sections",
+          "type": "blocks",
+          "validation": {
+            "allowedTypes": [
+              "hero",
+              "intro",
+              "services",
+              "feature",
+              "steps",
+              "team",
+              "reviews",
+              "cases",
+              "faq",
+              "stats",
+              "badges",
+              "insurance",
+              "financing",
+              "plans",
+              "contact",
+              "form",
+              "location",
+              "cta",
+              "gallery",
+              "video",
+              "technologies",
+              "brands",
+              "offer",
+              "conditions",
+              "downloads",
+              "policies",
+              "posts",
+              "locations",
+              "related",
+              "custom",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options",
+              "details",
+              "audiences"
+            ],
+            "maxItems": 40
+          }
+        },
+        {
+          "slug": "featured",
+          "label": "Featured",
+          "type": "boolean"
+        },
+        {
+          "slug": "sort",
+          "label": "Order",
+          "type": "integer"
+        },
+        {
+          "slug": "meta_title",
+          "label": "Meta title",
+          "type": "string"
+        },
+        {
+          "slug": "meta_description",
+          "label": "Meta description",
+          "type": "text"
         }
       ]
     },
@@ -3674,7 +4083,8 @@
               "name, phone and email",
               "name and email",
               "name and phone",
-              "name only"
+              "name only",
+              "email only"
             ]
           }
         },
@@ -4409,7 +4819,9 @@
               "case_studies",
               "clients",
               "signs",
-              "options"
+              "options",
+              "details",
+              "audiences"
             ],
             "maxItems": 40
           }

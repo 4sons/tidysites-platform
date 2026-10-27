@@ -1,0 +1,32 @@
+---
+/** Who we serve: the people or industries a service is for, from the records, as cards, chips or a list. */
+import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import Photo from "../Photo.astro";
+import Head from "./_Head.astro";
+const n = nodeOf(Astro.props);
+const variant = str(n.variant, "cards");
+let items = await entries("audiences", { limit: int(n.limit, 12) });
+if (bool(n.featured_only)) items = items.filter((a) => bool(a.data.featured));
+const svc = str(n.service);
+if (svc) { const services = await entries("services", { limit: 100 }); const s = services.find((x) => (x.slug ?? x.id) === svc); if (s) items = items.filter((a) => String(a.data.service ?? "") === String(s.data.id ?? s.id) || String(a.data.service ?? "") === s.id); }
+const cols = int(Number(str(n.columns, "3")), 3);
+const href = (a: { slug?: string | null; id: string }) => `/for/${a.slug ?? a.id}`;
+---
+{items.length > 0 && (
+<section class="ts ts-audiences" id="audiences"><div class="ts-wrap">
+	<Head n={n} />
+	{variant === "chips" ? (
+		<div class="ts-chips">{items.map((a) => <a class="ts-chip" href={href(a)} data-tidy-record="audiences" data-tidy-record-id={a.id} data-tidy-record-label="Audience">{str(a.data.title)}</a>)}</div>
+	) : variant === "list" ? (
+		<ul class="ts-list" style="columns:2;gap:28px">{items.map((a) => <li><a href={href(a)}>{str(a.data.title)}</a>{str(a.data.tagline) && <span class="ts-muted"> · {str(a.data.tagline)}</span>}</li>)}</ul>
+	) : (
+		<div class="ts-grid" style={`--cols:${cols}`}>{items.map((a) => { const p = pic(a.data.featured_image); return (
+			<a class="ts-card" href={href(a)} data-tidy-record="audiences" data-tidy-record-id={a.id} data-tidy-record-label="Audience">
+				{(p.image || p.url) && <Photo image={p.image} url={p.url} alt={str(a.data.title)} ratio="wide" />}
+				<h3>{str(a.data.title)}</h3>
+				{(str(a.data.tagline) || str(a.data.summary)) && <p>{str(a.data.tagline) || str(a.data.summary)}</p>}
+			</a>
+		); })}</div>
+	)}
+</div></section>
+)}
