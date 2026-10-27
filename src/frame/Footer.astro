@@ -7,6 +7,7 @@
 import type { Business } from "../sections/lib";
 import { addressLine, entries, getLocation, hoursRows, mediaUrl } from "../sections/lib";
 import type { MenuItem } from "./Header.astro";
+import Row from "../sections/Row.astro";
 import "../sections/defaults.css";
 import "./frame.css";
 interface Props {
@@ -28,6 +29,7 @@ const logo = b.logo ? mediaUrl(b.logo) ?? b.logo.src : null;
 const initial = siteTitle.trim().charAt(0).toUpperCase();
 const year = new Date().getFullYear();
 ---
+{b.footerRow ? <Row name={b.footerRow} as="footer" fullWidth /> : (
 <footer class={`ts-frame ts-footer ${cls}`} data-tidy-frame="footer">
 	<div class="ts-footer-wrap">
 		<div class="ts-footer-brand">
@@ -49,3 +51,4 @@ const year = new Date().getFullYear();
 		</div>
 	</div>
 </footer>
+)}

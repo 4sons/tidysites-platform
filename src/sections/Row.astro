@@ -1,0 +1,26 @@
+---
+/**
+ * A custom row: HTML and CSS written by a person or an agent, rendered as
+ * part of the page through the sanitizer (nothing runs) with its CSS scoped
+ * to the row. By a saved row's name, or inline. Used by the `row` section and
+ * in place of the header or footer.
+ */
+import { getRow, str } from "./lib";
+import { sanitizeHtml, scopeCss } from "../lib/sanitize";
+import "./defaults.css";
+interface Props { name?: string | null; html?: string | null; css?: string | null; blockKey?: string | null; fullWidth?: boolean; as?: "header" | "footer" | "section" }
+const { name = "", html: inlineHtml = "", css: inlineCss = "", blockKey = null, fullWidth = false, as = "section" } = Astro.props;
+const row = name ? await getRow(name) : null;
+const html = row ? str(row.data.html) : (inlineHtml ?? "");
+const css = row ? str(row.data.css) : (inlineCss ?? "");
+const key = (blockKey || row?.slug || row?.id || "inline").replace(/[^A-Za-z0-9_-]/g, "");
+const safe = sanitizeHtml(html);
+const scoped = css ? scopeCss(css, `.ts-row[data-row="${key}"]`) : "";
+const Tag = as === "header" ? "header" : as === "footer" ? "footer" : "div";
+---
+{safe && (
+	<Tag class={`ts-row ts-row-${as} ${fullWidth ? "ts-row-full" : ""}`} data-row={key} data-tidy-row={row ? (row.slug ?? row.id) : undefined} {...(row ? { "data-tidy-record": "rows", "data-tidy-record-id": row.id, "data-tidy-record-label": "Custom row" } : {})}>
+		{scoped && <style set:html={scoped} />}
+		<div class={fullWidth ? "" : "ts-row-wrap"}><Fragment set:html={safe} /></div>
+	</Tag>
+)}

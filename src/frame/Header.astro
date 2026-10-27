@@ -11,6 +11,7 @@ import type { Business } from "../sections/lib";
 import { getOffer, mediaUrl, str } from "../sections/lib";
 import { bookingEmbedUrl } from "../lib/providers";
 import Dialog from "./Dialog.astro";
+import Row from "../sections/Row.astro";
 import Form from "../sections/Form.astro";
 import "../sections/defaults.css";
 import "./frame.css";
@@ -40,6 +41,7 @@ const callBar = b.callBar !== "off" && (b.phone || b.callBar !== "call only") ? 
 const popupOffer = b.popupShows === "an offer" ? await getOffer(b.popupOffer) : null;
 const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, trigger: b.popupTrigger, every: b.popupEvery, title: b.popupTitle || (popupOffer ? str(popupOffer.data.title) : "") } : null;
 ---
+{b.headerRow ? <Row name={b.headerRow} as="header" fullWidth /> : (
 <header class={`ts-frame ts-header ${sticky ? "ts-header-sticky" : ""} ${cls}`} data-tidy-frame="header">
 	{topBar && <div class="ts-topbar"><div class="ts-topbar-wrap">{topBar.href ? <a class="ts-topbar-link" href={topBar.href}>{topBar.text}</a> : <span>{topBar.text}</span>}</div></div>}
 	<div class="ts-header-wrap">
@@ -90,6 +92,7 @@ const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, tr
 		</div>
 	</nav>
 </header>
+)}
 {bookInDialog && <Dialog id="ts-booking" title={b.bookingLabel} class={embedUrl ? "ts-dialog-embed" : ""}>{embedUrl ? <iframe class="ts-booking-embed" src={embedUrl} title={b.bookingLabel} loading="lazy"></iframe> : <Form name={b.bookingForm} hidden={{ section: "header" }} />}</Dialog>}
 {popup && (
 	<Dialog id="ts-popup" title={popup.title || null} class="ts-popup">

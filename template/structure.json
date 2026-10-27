@@ -1960,8 +1960,8 @@
     },
     {
       "slug": "custom",
-      "label": "Custom section",
-      "description": "Your own HTML, CSS and script in an isolated frame",
+      "label": "Embed (sandboxed)",
+      "description": "HTML, CSS and script in an isolated frame, for a calculator or an embed that needs script; for your own markup as part of the page use Custom row",
       "category": "Sections",
       "currentVersion": 1,
       "versions": [
@@ -1992,6 +1992,40 @@
               "slug": "height",
               "label": "Height in pixels",
               "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "row",
+      "label": "Custom row",
+      "description": "Your own HTML and CSS as part of the page: a saved custom row by name, or written here",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "row",
+              "label": "A saved custom row (its name)",
+              "type": "string"
+            },
+            {
+              "slug": "html",
+              "label": "HTML",
+              "type": "text"
+            },
+            {
+              "slug": "css",
+              "label": "CSS",
+              "type": "text"
+            },
+            {
+              "slug": "full_width",
+              "label": "Edge to edge (no page margins)",
+              "type": "boolean"
             }
           ]
         }
@@ -2862,6 +2896,16 @@
               "every time"
             ]
           }
+        },
+        {
+          "slug": "header_row",
+          "label": "Replace the header with a custom row (its name)",
+          "type": "string"
+        },
+        {
+          "slug": "footer_row",
+          "label": "Replace the footer with a custom row (its name)",
+          "type": "string"
         }
       ]
     },
@@ -3178,7 +3222,8 @@
               "signs",
               "options",
               "details",
-              "audiences"
+              "audiences",
+              "row"
             ],
             "maxItems": 40
           }
@@ -3202,6 +3247,40 @@
           "slug": "custom_css",
           "label": "Custom CSS",
           "type": "text"
+        },
+        {
+          "slug": "header",
+          "label": "Header",
+          "type": "select",
+          "validation": {
+            "options": [
+              "the site's",
+              "none",
+              "a custom row"
+            ]
+          }
+        },
+        {
+          "slug": "header_row",
+          "label": "Header custom row (its name)",
+          "type": "string"
+        },
+        {
+          "slug": "footer",
+          "label": "Footer",
+          "type": "select",
+          "validation": {
+            "options": [
+              "the site's",
+              "none",
+              "a custom row"
+            ]
+          }
+        },
+        {
+          "slug": "footer_row",
+          "label": "Footer custom row (its name)",
+          "type": "string"
         }
       ]
     },
@@ -3278,7 +3357,8 @@
               "signs",
               "options",
               "details",
-              "audiences"
+              "audiences",
+              "row"
             ],
             "maxItems": 40
           }
@@ -3418,7 +3498,8 @@
               "signs",
               "options",
               "details",
-              "audiences"
+              "audiences",
+              "row"
             ],
             "maxItems": 40
           }
@@ -3563,7 +3644,8 @@
               "signs",
               "options",
               "details",
-              "audiences"
+              "audiences",
+              "row"
             ],
             "maxItems": 40
           }
@@ -3706,7 +3788,8 @@
               "signs",
               "options",
               "details",
-              "audiences"
+              "audiences",
+              "row"
             ],
             "maxItems": 40
           }
@@ -4150,6 +4233,38 @@
         {
           "slug": "consent_text",
           "label": "Note under the button",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "rows",
+      "label": "Custom rows",
+      "labelSingular": "Custom row",
+      "supports": [
+        "revisions"
+      ],
+      "description": "Your own HTML and CSS, rendered as part of the page: placed on a page as a section, or used as a page's or the site's header or footer. No script runs in a row.",
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "html",
+          "label": "HTML",
+          "type": "text"
+        },
+        {
+          "slug": "css",
+          "label": "CSS",
+          "type": "text"
+        },
+        {
+          "slug": "note",
+          "label": "Note for editors",
           "type": "text"
         }
       ]
@@ -4821,7 +4936,8 @@
               "signs",
               "options",
               "details",
-              "audiences"
+              "audiences",
+              "row"
             ],
             "maxItems": 40
           }
