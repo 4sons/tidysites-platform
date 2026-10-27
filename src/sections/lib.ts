@@ -1,6 +1,8 @@
 /** Helpers every section component shares: reading a stored block, images, lists, and the business record. */
-import { getEmDashCollection, getSiteSettings } from "emdash";
+import { getCollectionInfo, getEmDashCollection, getEmDashEntry, getSiteSettings } from "emdash";
 import { adobeKitId } from "../lib/providers";
+import { PAGE_TYPES, entryPath, hasPage, indexOn, indexPath, normalizePath, pageType, routeCandidates, type Route } from "../lib/routes";
+export { PAGE_TYPES, pageType, hasPage, indexPath, entryPath, normalizePath, type Route, type PageType } from "../lib/routes";
 
 export type Node = Record<string, unknown>;
 
@@ -333,9 +335,116 @@ export async function pageLanguages(b: Business, data: Record<string, unknown> |
 	const pages = await entries("pages", { limit: 500 });
 	const group = pages.filter((p) => str(p.data.title) === root || str(p.data.translation_of) === root);
 	if (group.length < 2) return { lang, alternates: [] };
-	const href = (p: Entry) => `${origin}${p.slug === "home" ? "/" : `/${p.slug ?? p.id}`}`;
+	const pagesPattern = (await sitePatterns()).pages ?? "/{slug}";
+	const href = (p: Entry) => `${origin}${p.slug === "home" ? "/" : entryPath(pagesPattern, p.slug ?? p.id)}`;
 	const alternates = group.map((p) => ({ lang: str(p.data.language) || b.siteLanguage, href: href(p) }));
 	const def = group.find((p) => !str(p.data.translation_of));
 	if (def) alternates.push({ lang: "x-default", href: href(def) });
 	return { lang, alternates };
+}
+
+// ---------------------------------------------------------------------------
+// Routes: where records render as pages (lib/routes.ts has the pure part)
+// ---------------------------------------------------------------------------
+
+/** Reads that every section repeats on a page: cached for a few seconds, so one request costs one read each. */
+const shortCache = new Map<string, { at: number; value: Promise<unknown> }>();
+function cached<T>(key: string, ttlMs: number, read: () => Promise<T>): Promise<T> {
+	const now = Date.now();
+	const hit = shortCache.get(key);
+	if (hit && now - hit.at < ttlMs) return hit.value as Promise<T>;
+	const value = read().catch((err) => { shortCache.delete(key); throw err; });
+	shortCache.set(key, { at: now, value });
+	return value;
+}
+/** Forget the cached patterns and frame, for tests and for a request that just changed them. */
+export function forgetRoutes(): void { shortCache.clear(); }
+
+/** The URL pattern of every page-bearing collection as the site has it (EmDash's collection setting; the template's default until changed). */
+export function sitePatterns(): Promise<Record<string, string>> {
+	return cached("patterns", 5_000, async () => {
+		const out: Record<string, string> = {};
+		await Promise.all(PAGE_TYPES.map(async (t) => {
+			let pattern = t.pattern;
+			try { const info = (await getCollectionInfo(t.collection)) as { urlPattern?: string | null } | null; if (info?.urlPattern) pattern = info.urlPattern; } catch { /* the collection is missing on an older site */ }
+			out[t.collection] = pattern;
+		}));
+		return out;
+	});
+}
+/** The frame record's data (listing switches, labels), or an empty record. */
+export function siteFrame(): Promise<Record<string, unknown>> {
+	return cached("frame", 5_000, async () => (await oneRecord("frame"))?.data ?? {});
+}
+
+/** The address of a record's page, or null when the record has no page (its type never does, or its switch is off). */
+export async function entryUrl(collection: string, entry: { slug?: string | null; id: string; data?: Record<string, unknown> } | null | undefined): Promise<string | null> {
+	const t = pageType(collection);
+	if (!t || !entry) return null;
+	if (!hasPage(t, entry.data ?? null)) return null;
+	const slug = entry.slug ?? entry.id;
+	if (collection === "pages") return slug === "home" ? "/" : entryPath((await sitePatterns()).pages ?? t.pattern, slug);
+	return entryPath((await sitePatterns())[collection] ?? t.pattern, slug);
+}
+/** The address of a type's listing page, or null when the type has none or its switch is off. The blog's is always on. */
+export async function collectionUrl(collection: string): Promise<string | null> {
+	const t = pageType(collection);
+	if (!t) return null;
+	const [patterns, frame] = await Promise.all([sitePatterns(), siteFrame()]);
+	const base = indexPath(patterns[collection] ?? t.pattern);
+	if (!base) return null;
+	if (collection === "posts") return base;
+	return indexOn(t, frame) ? base : null;
+}
+/** The blog's address (the posts pattern's prefix), `/blog` unless the site changed it. */
+export async function blogBase(): Promise<string> {
+	return (await collectionUrl("posts")) ?? "/blog";
+}
+
+/** What a path is on this site: the first candidate whose record exists and has its page on, or null for a 404. */
+export async function resolveRoute(path: string): Promise<(Route & { entry?: Awaited<ReturnType<typeof getEmDashEntry>>["entry"]; cacheHint?: unknown }) | null> {
+	const [patterns, frame] = await Promise.all([sitePatterns(), siteFrame()]);
+	for (const c of routeCandidates(path, patterns, frame)) {
+		if (c.kind === "home" || c.kind === "index" || c.kind === "blog") return c;
+		const collection = c.kind === "page" ? "pages" : c.collection;
+		let found: { entry: unknown; cacheHint?: unknown } | null = null;
+		try { found = (await getEmDashEntry(collection as never, c.slug)) as { entry: unknown; cacheHint?: unknown }; } catch { found = null; }
+		const entry = found?.entry as { data?: Record<string, unknown> } | null | undefined;
+		if (!entry) continue;
+		if (c.kind === "entry" && !hasPage(pageType(collection), entry.data ?? null)) continue;
+		return { ...c, entry: entry as never, cacheHint: found?.cacheHint };
+	}
+	return null;
+}
+
+export interface SitePage { path: string; kind: "home" | "page" | "index" | "entry" | "blog"; collection?: string; id?: string; slug?: string; title: string }
+/** Every address the site renders: the home page, the pages, each listing that is on, the blog and its facets, and every record whose page is on. For the publish, the sitemap and the pages tool. */
+export async function sitePages(): Promise<SitePage[]> {
+	const [patterns, frame] = await Promise.all([sitePatterns(), siteFrame()]);
+	const out: SitePage[] = [{ path: "/", kind: "home", title: "Home" }];
+	const seen = new Set<string>(["/"]);
+	const add = (p: SitePage) => { const path = normalizePath(p.path); if (!seen.has(path)) { seen.add(path); out.push({ ...p, path }); } };
+	for (const t of PAGE_TYPES) {
+		const pattern = patterns[t.collection] ?? t.pattern;
+		if (t.index && indexOn(t, frame)) { const base = indexPath(pattern); if (base) add({ path: base, kind: "index", collection: t.collection, title: t.index.label }); }
+		if (t.collection === "posts") { const base = indexPath(pattern); if (base) add({ path: base, kind: "blog", collection: "posts", title: "Blog" }); }
+	}
+	for (const t of PAGE_TYPES) {
+		const pattern = patterns[t.collection] ?? t.pattern;
+		const list = await entries(t.collection, { limit: 1000 });
+		for (const e of list) {
+			const slug = e.slug ?? e.id;
+			if (t.collection === "pages" && slug === "home") continue;
+			if (!hasPage(t, e.data)) continue;
+			add({ path: entryPath(pattern, slug), kind: t.collection === "pages" ? "page" : "entry", collection: t.collection, id: refId(e), slug, title: field(e, "title") });
+		}
+	}
+	const base = indexPath(patterns.posts ?? "/blog/{slug}");
+	if (base) {
+		const f = await blogFacets();
+		for (const c of f.categories) add({ path: `${base}/category/${c.slug}`, kind: "blog", collection: "posts", title: c.label });
+		for (const tg of f.tags) add({ path: `${base}/tag/${tg.slug}`, kind: "blog", collection: "posts", title: tg.label });
+		for (const a of f.authors) add({ path: `${base}/author/${a.slug}`, kind: "blog", collection: "posts", title: a.label });
+	}
+	return out;
 }

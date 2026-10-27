@@ -32,7 +32,8 @@ export const PLATFORM_ROUTES = [
 	{ pattern: "/_tidy/schema", entrypoint: `${PACKAGE}/routes/schema` },
 	{ pattern: "/_tidy/maintenance", entrypoint: `${PACKAGE}/routes/maintenance` },
 	{ pattern: "/_tidy/revisions", entrypoint: `${PACKAGE}/routes/revisions` },
-	{ pattern: "/_tidy/change", entrypoint: `${PACKAGE}/routes/change` }
+	{ pattern: "/_tidy/change", entrypoint: `${PACKAGE}/routes/change` },
+	{ pattern: "/_tidy/pages", entrypoint: `${PACKAGE}/routes/pages` }
 ] as const;
 
 /**

@@ -324,6 +324,20 @@ describe("applySchema", () => {
 		await expect(applySchema(deps)).rejects.toMatchObject({ status: 409 });
 	});
 
+	it("lands the template's URL pattern on a new collection and leaves a collection the site has on its own pattern", async () => {
+		const deps = createDeps({ store: createMemoryStore({ collections: { services: { urlPattern: "/what-we-do/{slug}", routable: true } } }) });
+		deps.seed.load = async () => ({ ...seed(), collections: [{ slug: "pages", label: "Pages", fields: [], urlPattern: "/{slug}", routable: true }, { slug: "services", label: "Services", fields: [], urlPattern: "/services/{slug}", routable: true }] });
+		const seen: Array<Record<string, unknown>> = [];
+		const inner = deps.seed.applyStructure;
+		deps.seed.applyStructure = async (s) => { seen.push(s); return inner(s); };
+		await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
+		await applySchema(deps);
+		const sent = (slug: string) => (seen.find((s) => Array.isArray(s.collections) && (s.collections as Array<{ slug: string }>)[0]?.slug === slug)!.collections as Array<Record<string, unknown>>)[0]!;
+		expect(sent("pages")).toMatchObject({ urlPattern: "/{slug}", routable: true });
+		expect(sent("services")).not.toHaveProperty("urlPattern");
+		expect(sent("services")).not.toHaveProperty("routable");
+	});
+
 	it("applies each structural item on its own, remembers it, and leaves settings, menus and content alone", async () => {
 		const deps = createDeps();
 		deps.seed.load = async () => seed();

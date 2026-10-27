@@ -2978,6 +2978,94 @@
           "slug": "site_language",
           "label": "Site language code (en, fr, es)",
           "type": "string"
+        },
+        {
+          "slug": "services_index",
+          "label": "Services listing page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
+        },
+        {
+          "slug": "areas_index",
+          "label": "Service areas listing page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
+        },
+        {
+          "slug": "team_index",
+          "label": "Team listing page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
+        },
+        {
+          "slug": "audiences_index",
+          "label": "Who we serve listing page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
+        },
+        {
+          "slug": "conditions_index",
+          "label": "Conditions listing page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
+        },
+        {
+          "slug": "products_index",
+          "label": "Products listing page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
+        },
+        {
+          "slug": "technologies_index",
+          "label": "Technology listing page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
+        },
+        {
+          "slug": "case_studies_index",
+          "label": "Case studies listing page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
         }
       ]
     },
@@ -3411,7 +3499,9 @@
           "label": "The page this one translates, by title",
           "type": "string"
         }
-      ]
+      ],
+      "urlPattern": "/{slug}",
+      "routable": true
     },
     {
       "slug": "service_categories",
@@ -3497,7 +3587,9 @@
           "label": "Order",
           "type": "integer"
         }
-      ]
+      ],
+      "urlPattern": "/services/category/{slug}",
+      "routable": true
     },
     {
       "slug": "services",
@@ -3652,8 +3744,21 @@
           "slug": "custom_css",
           "label": "Custom CSS",
           "type": "text"
+        },
+        {
+          "slug": "page",
+          "label": "Own page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
         }
-      ]
+      ],
+      "urlPattern": "/services/{slug}",
+      "routable": true
     },
     {
       "slug": "service_areas",
@@ -3793,8 +3898,21 @@
           "slug": "meta_description",
           "label": "Meta description",
           "type": "text"
+        },
+        {
+          "slug": "page",
+          "label": "Own page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
         }
-      ]
+      ],
+      "urlPattern": "/service-areas/{slug}",
+      "routable": true
     },
     {
       "slug": "conditions",
@@ -3830,8 +3948,21 @@
           "slug": "sort",
           "label": "Order",
           "type": "integer"
+        },
+        {
+          "slug": "page",
+          "label": "Own page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
         }
-      ]
+      ],
+      "urlPattern": "/conditions/{slug}",
+      "routable": true
     },
     {
       "slug": "audiences",
@@ -3942,8 +4073,21 @@
           "slug": "meta_description",
           "label": "Meta description",
           "type": "text"
+        },
+        {
+          "slug": "page",
+          "label": "Own page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
         }
-      ]
+      ],
+      "urlPattern": "/for/{slug}",
+      "routable": true
     },
     {
       "slug": "people",
@@ -4065,7 +4209,9 @@
           "label": "Order",
           "type": "integer"
         }
-      ]
+      ],
+      "urlPattern": "/team/{slug}",
+      "routable": true
     },
     {
       "slug": "reviews",
@@ -4651,7 +4797,9 @@
           "label": "Order",
           "type": "integer"
         }
-      ]
+      ],
+      "urlPattern": "/technology/{slug}",
+      "routable": true
     },
     {
       "slug": "offers",
@@ -4904,8 +5052,21 @@
           "slug": "meta_description",
           "label": "Meta description",
           "type": "text"
+        },
+        {
+          "slug": "page",
+          "label": "Own page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
         }
-      ]
+      ],
+      "urlPattern": "/products/{slug}",
+      "routable": true
     },
     {
       "slug": "case_studies",
@@ -5085,8 +5246,21 @@
           "slug": "meta_description",
           "label": "Meta description",
           "type": "text"
+        },
+        {
+          "slug": "page",
+          "label": "Own page",
+          "type": "select",
+          "validation": {
+            "options": [
+              "on",
+              "off"
+            ]
+          }
         }
-      ]
+      ],
+      "urlPattern": "/case-studies/{slug}",
+      "routable": true
     },
     {
       "slug": "clients",
@@ -5237,7 +5411,9 @@
           "label": "Content",
           "type": "portableText"
         }
-      ]
+      ],
+      "urlPattern": "/blog/{slug}",
+      "routable": true
     }
   ],
   "menus": [

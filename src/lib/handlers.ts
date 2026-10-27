@@ -200,6 +200,25 @@ function addCounts(into: SchemaResult["counts"], r: Record<string, unknown>): vo
 }
 
 /**
+ * A collection's URL pattern is the site's to change (the admin's collection
+ * settings; a port that wants /locations/<slug> instead of /service-areas/<slug>).
+ * The template's pattern only ever lands on a collection the site does not
+ * have yet: for one it has, the seed sent to EmDash carries no routing, so
+ * the apply leaves the site's own in place.
+ */
+async function keepSiteRouting(deps: Deps, seed: Record<string, unknown>): Promise<Record<string, unknown>> {
+	if (!Array.isArray(seed.collections)) return seed;
+	const collections = await Promise.all((seed.collections as Array<Record<string, unknown>>).map(async (c) => {
+		if (c.urlPattern === undefined && c.routable === undefined && c.hasSeo === undefined) return c;
+		const existing = await deps.store.collectionRouting(String(c.slug));
+		if (!existing) return c;
+		const { urlPattern: _u, routable: _r, hasSeo: _s, ...rest } = c;
+		return rest;
+	}));
+	return { ...seed, collections };
+}
+
+/**
  * Put the template seed's block types, collections, fields and relations onto
  * a bootstrapped site. Each item is hashed; one the site already holds at that
  * hash is left alone, so a deploy that changed nothing structural is one read.
@@ -225,7 +244,7 @@ export async function applySchema(deps: Deps, input: SchemaInput = {}): Promise<
 	let next = { ...known };
 	for (const it of pending) {
 		if ((deps.now ?? Date.now)() - started > budget) { result.complete = false; break; }
-		addCounts(result.counts, await deps.seed.applyStructure(it.seed));
+		addCounts(result.counts, await deps.seed.applyStructure(await keepSiteRouting(deps, it.seed)));
 		next = { ...next, [it.key]: it.hash };
 		await deps.store.setOption(STRUCTURE_OPTION, next);
 		result.applied.push(it.key);

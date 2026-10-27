@@ -1,14 +1,16 @@
 ---
-import { bool, entries, int, nodeOf, pic, str } from "../lib";
+import { blogBase, bool, entries, entryUrl, int, nodeOf, pic, str } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
 let items = await entries("posts", { limit: int(n.limit, 3), orderBy: { createdAt: "desc" } as never });
 if (str(n.category)) items = items.filter((p) => str(p.data.category) === str(n.category));
+const links = new Map(await Promise.all(items.map(async (p) => [p.id, await entryUrl("posts", p)] as const)));
+const blog = await blogBase();
 ---
 {items.length > 0 && (
 <section class="ts"><div class="ts-wrap">
-	<Head n={n} action={bool(n.show_all, true) ? { href: "/blog", label: "All posts" } : null} />
-	<div class="ts-grid" style="--cols:3">{items.map((p) => { const ph = pic(p.data.featured_image); return <a class="ts-card" href={`/blog/${p.slug ?? p.id}`}><Photo image={ph.image} url={ph.url} alt={str(p.data.title)} ratio="wide" />{str(p.data.category) && <p class="ts-eyebrow" style="margin:0">{str(p.data.category)}</p>}<h3>{str(p.data.title)}</h3>{str(p.data.summary) && <p>{str(p.data.summary)}</p>}</a>; })}</div>
+	<Head n={n} action={bool(n.show_all, true) ? { href: blog, label: "All posts" } : null} />
+	<div class="ts-grid" style="--cols:3">{items.map((p) => { const ph = pic(p.data.featured_image); return <a class="ts-card" href={links.get(p.id) ?? undefined}><Photo image={ph.image} url={ph.url} alt={str(p.data.title)} ratio="wide" />{str(p.data.category) && <p class="ts-eyebrow" style="margin:0">{str(p.data.category)}</p>}<h3>{str(p.data.title)}</h3>{str(p.data.summary) && <p>{str(p.data.summary)}</p>}</a>; })}</div>
 </div></section>
 )}
