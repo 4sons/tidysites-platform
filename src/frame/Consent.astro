@@ -7,13 +7,15 @@
  */
 import type { Business } from "../sections/lib";
 import "./frame.css";
+import { wording } from "../sections/lib";
+const tx = await wording(Astro.request);
 interface Props { business: Business }
 const { business: b } = Astro.props;
 const text = b.cookieText || "We use cookies to see how the site is used and to measure our ads.";
 ---
 {b.cookieBanner && (
 	<div class="ts-frame ts-consent" id="ts-consent" role="region" aria-label="Cookies" hidden>
-		<p class="ts-consent-text">{text}{b.cookiePolicyUrl && <> <a href={b.cookiePolicyUrl}>Learn more</a></>}</p>
+		<p class="ts-consent-text">{text}{b.cookiePolicyUrl && <> <a href={b.cookiePolicyUrl}>{tx("Learn more")}</a></>}</p>
 		<div class="ts-consent-actions">
 			<button class="ts-btn ts-btn-outline" type="button" data-tidy-consent="no">{b.cookieDeclineLabel || "Decline"}</button>
 			<button class="ts-btn ts-btn-accent" type="button" data-tidy-consent="yes">{b.cookieAcceptLabel || "Accept"}</button>

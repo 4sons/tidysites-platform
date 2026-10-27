@@ -1,9 +1,10 @@
 ---
 /** People from the records: cards, grouped by department, a photo grid, or one person featured. */
-import { bool, collectionUrl, entries, entryUrl, int, nodeOf, pic, str } from "../lib";
+import { bool, collectionUrl, entries, entryUrl, int, nodeOf, pic, str, wording } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
 import Carousel from "./_Carousel.astro";
+const tx = await wording(Astro.request);
 const n = nodeOf(Astro.props);
 const variant = str(n.variant, "cards");
 const limit = int(n.limit, 24);
@@ -21,16 +22,16 @@ const allHref = await collectionUrl("people");
 ---
 {people.length > 0 && (
 <section class="ts ts-band" id="team"><div class="ts-wrap">
-	<Head n={n} action={bool(n.show_all, true) && allHref ? { href: allHref, label: "Meet the team" } : null} />
+	<Head n={n} action={bool(n.show_all, true) && allHref ? { href: allHref, label: tx("Meet the team") } : null} />
 	{variant === "one person featured" ? (() => { const p = people[0]!; const ph = pic(p.data.photo); return (
-		<div class="ts-split"><Photo image={ph.image} url={ph.url} alt={name(p)} ratio="tall" /><div data-tidy-record="people" data-tidy-record-id={p.id} data-tidy-record-label="Team member"><p class="ts-role">{str(p.data.role)}{showCred && str(p.data.credentials) ? ` · ${str(p.data.credentials)}` : ""}</p><h3 style="font-size:28px;margin-top:6px">{name(p)}</h3>{str(p.data.bio) && <p class="ts-prose" style="margin-top:12px">{str(p.data.bio)}</p>}{href(p) && <div class="ts-actions"><a class="ts-btn ts-btn-outline" href={href(p)!}>Full bio</a></div>}</div></div>
+		<div class="ts-split"><Photo image={ph.image} url={ph.url} alt={name(p)} ratio="tall" /><div data-tidy-record="people" data-tidy-record-id={p.id} data-tidy-record-label="Team member"><p class="ts-role">{str(p.data.role)}{showCred && str(p.data.credentials) ? ` · ${str(p.data.credentials)}` : ""}</p><h3 style="font-size:28px;margin-top:6px">{name(p)}</h3>{str(p.data.bio) && <p class="ts-prose" style="margin-top:12px">{str(p.data.bio)}</p>}{href(p) && <div class="ts-actions"><a class="ts-btn ts-btn-outline" href={href(p)!}>{tx("Full bio")}</a></div>}</div></div>
 	); })() : variant === "carousel" ? (
 		<Carousel cols={4} label="Team">{people.map((p) => { const ph = pic(p.data.photo); const h = href(p); return (
 			<div class="ts-card ts-carousel-item" data-tidy-record="people" data-tidy-record-id={p.id} data-tidy-record-label="Team member">
 				{(ph.image || ph.url) && <Photo image={ph.image} url={ph.url} alt={name(p)} ratio="tall" />}
 				<div><span class="ts-person-name">{name(p)}</span></div>
 				{str(p.data.role) && <p class="ts-role">{str(p.data.role)}</p>}
-				{h && <a href={h} style="font-weight:700;font-size:14px;color:var(--ts-primary)">Full bio</a>}
+				{h && <a href={h} style="font-weight:700;font-size:14px;color:var(--ts-primary)">{tx("Full bio")}</a>}
 			</div>
 		); })}</Carousel>
 	) : variant === "photo grid" ? (
@@ -45,7 +46,7 @@ const allHref = await collectionUrl("people");
 					{str(p.data.role) && <p class="ts-role">{str(p.data.role)}</p>}
 					{showBio && str(p.data.bio) && <p>{str(p.data.bio)}</p>}
 					{str(p.data.languages) && <p class="ts-muted" style="font-size:13px">{str(p.data.languages)}</p>}
-					{h && <a href={h} style="font-weight:700;font-size:14px;color:var(--ts-primary)">Full bio</a>}
+					{h && <a href={h} style="font-weight:700;font-size:14px;color:var(--ts-primary)">{tx("Full bio")}</a>}
 				</div>
 			); })}
 		</div></div>

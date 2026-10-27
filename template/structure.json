@@ -3081,6 +3081,11 @@
           "slug": "site_schema",
           "label": "Site structured data (JSON-LD), replaces the generated business entry",
           "type": "text"
+        },
+        {
+          "slug": "wording",
+          "label": "Wording: one line per change, as Original => Replacement",
+          "type": "text"
         }
       ]
     },

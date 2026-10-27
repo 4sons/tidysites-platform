@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.19.0
+
+Any word on the site can be changed: the fixed labels too.
+
+- The frame record's `wording` lines (`Original => Replacement`) reword a fixed label everywhere a theme prints it: "Call or text", "Hours", "Read them all", a form's "Name", the footer's "Privacy". The original is the key, so a theme change never loses the site's words. `wording(request)` from `sections/lib` gives a component the lookup; every package label goes through it and is listed in `strings` (`PACKAGE_STRINGS`).
+- `GET /_tidy/strings`: the catalog with the site's overrides, the package's labels plus the theme's own (`tidyPlatform({ strings })` in astro.config). The platform's search lists these beside the records and a replace writes the line.
+
 ## 0.18.1
 
 - A `schema` or `site_schema` override the CMS stored as a parsed value (JSON written into the text field) is read as written; only text was read before, so the override never rendered.

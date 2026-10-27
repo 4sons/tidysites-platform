@@ -12,14 +12,16 @@ describe("tidyPlatform()", () => {
 	it("injects every platform route as a server route with a package entrypoint", () => {
 		const injectRoute = vi.fn();
 		const addMiddleware = vi.fn();
-		const integration = tidyPlatform();
+		const updateConfig = vi.fn();
+		const integration = tidyPlatform({ strings: ["Who you'll see"] });
 		expect(integration.name).toBe("@tideworthy/tidysites-platform");
-		(integration.hooks["astro:config:setup"] as unknown as (o: { injectRoute: typeof injectRoute; addMiddleware: typeof addMiddleware }) => void)({ injectRoute, addMiddleware });
+		(integration.hooks["astro:config:setup"] as unknown as (o: { injectRoute: typeof injectRoute; addMiddleware: typeof addMiddleware; updateConfig: typeof updateConfig }) => void)({ injectRoute, addMiddleware, updateConfig });
+		expect(updateConfig).toHaveBeenCalledWith({ vite: { define: { __TIDY_THEME_STRINGS__: JSON.stringify(["Who you'll see"]) } } });
 		expect(addMiddleware).toHaveBeenCalledWith({ entrypoint: "@tideworthy/tidysites-platform/middleware", order: "pre" });
 		expect(injectRoute).toHaveBeenCalledTimes(PLATFORM_ROUTES.length);
 		const patterns = injectRoute.mock.calls.map((c) => (c[0] as { pattern: string }).pattern).sort();
 		expect(patterns).toEqual(["/_tidy/bootstrap", "/_tidy/change", "/_tidy/edit", "/_tidy/fill", "/_tidy/health", "/_tidy/maintenance", "/_tidy/pages",
-			"/_tidy/revisions", "/_tidy/rotate-token", "/_tidy/schema", "/_tidy/session", "/_tidy/session/claim"]);
+			"/_tidy/revisions", "/_tidy/rotate-token", "/_tidy/schema", "/_tidy/session", "/_tidy/session/claim", "/_tidy/strings"]);
 		for (const call of injectRoute.mock.calls) {
 			const r = call[0] as { entrypoint: string; prerender: boolean };
 			expect(r.prerender).toBe(false);

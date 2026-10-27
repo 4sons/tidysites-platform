@@ -1,6 +1,7 @@
 ---
 /** The site's own HTML, CSS and script, in a sandboxed frame sized to its content. */
-import { int, nodeOf, str } from "../lib";
+import { int, nodeOf, str, wording } from "../lib";
+const tx = await wording(Astro.request);
 const n = nodeOf(Astro.props);
 const html = str(n.html), css = str(n.css), js = str(n.js);
 const height = int(n.height, int(n.min_height, 320));
@@ -10,7 +11,7 @@ const doc = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewpo
 {(html || css || js) && (
 <section class="ts ts-tight"><div class="ts-wrap">
 	{str(n.title) && <h2 style="margin-bottom:14px">{str(n.title)}</h2>}
-	<iframe class="ts-frame" data-tidy-frame={key} srcdoc={doc} sandbox="allow-scripts allow-forms allow-popups" style={`height:${height}px`} title={str(n.title) || "Custom section"} loading="lazy"></iframe>
+	<iframe class="ts-frame" data-tidy-frame={key} srcdoc={doc} sandbox="allow-scripts allow-forms allow-popups" style={`height:${height}px`} title={str(n.title) || tx("Custom section")} loading="lazy"></iframe>
 </div></section>
 <script is:inline>window.addEventListener("message",function(e){var d=e.data;if(!d||!d.tidyFrame)return;var f=document.querySelector('iframe[data-tidy-frame="'+d.tidyFrame+'"]');if(f&&d.h>0)f.style.height=d.h+"px";});</script>
 )}

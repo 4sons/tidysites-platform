@@ -8,13 +8,14 @@
  * it and a site's custom CSS carries between themes.
  */
 import type { Business } from "../sections/lib";
-import { getOffer, mediaUrl, str } from "../sections/lib";
+import { getOffer, mediaUrl, str, wording } from "../sections/lib";
 import { bookingEmbedUrl } from "../lib/providers";
 import Dialog from "./Dialog.astro";
 import Row from "../sections/Row.astro";
 import Form from "../sections/Form.astro";
 import "../sections/defaults.css";
 import "./frame.css";
+const tx = await wording(Astro.request);
 
 export interface MenuItem { id?: string; label: string; url: string; target?: string; titleAttr?: string; cssClasses?: string; children?: MenuItem[] }
 interface Props {
@@ -73,7 +74,7 @@ const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, tr
 			{bookInDialog
 				? <button class="ts-btn ts-btn-accent ts-header-book" type="button" data-tidy-dialog="ts-booking">{b.bookingLabel}</button>
 				: <a class="ts-btn ts-btn-accent ts-header-book" href={bookHref}>{b.bookingLabel}</a>}
-			<button class="ts-menu-btn" type="button" aria-expanded="false" aria-controls="ts-mobile-menu"><span class="ts-menu-btn-label">Menu</span></button>
+			<button class="ts-menu-btn" type="button" aria-expanded="false" aria-controls="ts-mobile-menu"><span class="ts-menu-btn-label">{tx("Menu")}</span></button>
 		</div>
 	</div>
 	<nav class="ts-mobile-menu" id="ts-mobile-menu" hidden aria-label="Main">
@@ -97,7 +98,7 @@ const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, tr
 {popup && (
 	<Dialog id="ts-popup" title={popup.title || null} class="ts-popup">
 		{popupOffer ? (
-			<div class="ts-popup-offer">{str(popupOffer.data.summary) && <p class="ts-lede" style="margin:0 0 16px">{str(popupOffer.data.summary)}</p>}{str(popupOffer.data.how_to_claim) && <p class="ts-muted" style="margin:0 0 16px">{str(popupOffer.data.how_to_claim)}</p>}<a class="ts-btn ts-btn-accent" href={str(popupOffer.data.cta_url) || "/contact"}>{str(popupOffer.data.cta_label) || "Claim this offer"}</a></div>
+			<div class="ts-popup-offer">{str(popupOffer.data.summary) && <p class="ts-lede" style="margin:0 0 16px">{str(popupOffer.data.summary)}</p>}{str(popupOffer.data.how_to_claim) && <p class="ts-muted" style="margin:0 0 16px">{str(popupOffer.data.how_to_claim)}</p>}<a class="ts-btn ts-btn-accent" href={str(popupOffer.data.cta_url) || "/contact"}>{str(popupOffer.data.cta_label) || tx("Claim this offer")}</a></div>
 		) : <Form name={b.popupForm} hidden={{ section: "popup" }} />}
 	</Dialog>
 	<script is:inline define:vars={{ trigger: popup.trigger, every: popup.every }}>

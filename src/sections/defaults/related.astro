@@ -1,6 +1,7 @@
 ---
 /** Other services in the same category as the service on the page. */
-import { entries, entryUrl, int, nodeOf, str } from "../lib";
+import { entries, entryUrl, int, nodeOf, str, wording } from "../lib";
+const tx = await wording(Astro.request);
 const props = Astro.props as Record<string, unknown>;
 const n = nodeOf(props);
 const ctx = (props.context as Record<string, unknown> | null) ?? null;
@@ -12,7 +13,7 @@ const links = new Map(await Promise.all(items.map(async (s) => [s.id, await entr
 ---
 {items.length > 0 && (
 <section class="ts ts-tight ts-band"><div class="ts-wrap">
-	<h3 style="margin-bottom:14px">{str(n.headline) || "Related services"}</h3>
+	<h3 style="margin-bottom:14px">{str(n.headline) || tx("Related services")}</h3>
 	<div class="ts-grid" style="--cols:4">{items.map((s) => <a class="ts-card" href={links.get(s.id) ?? undefined}><h4>{str(s.data.title)}</h4></a>)}</div>
 </div></section>
 )}

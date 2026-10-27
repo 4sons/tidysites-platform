@@ -5,11 +5,12 @@
  * from the frame contract (ts-footer-*).
  */
 import type { Business } from "../sections/lib";
-import { addressLine, entries, entryUrl, getLocation, hoursRows, mediaUrl } from "../sections/lib";
+import { addressLine, entries, entryUrl, getLocation, hoursRows, mediaUrl, wording } from "../sections/lib";
 import type { MenuItem } from "./Header.astro";
 import Row from "../sections/Row.astro";
 import "../sections/defaults.css";
 import "./frame.css";
+const tx = await wording(Astro.request);
 interface Props {
 	business: Business;
 	menu?: { items: MenuItem[] } | null;
@@ -43,7 +44,7 @@ const year = new Date().getFullYear();
 		</div>
 		{services.length > 0 && <div class="ts-footer-col"><h4 class="ts-footer-heading">{servicesLabel}</h4><ul class="ts-footer-list">{services.map((s) => <li><a href={serviceLinks.get(s.id) ?? undefined}>{String(s.data.title)}</a></li>)}</ul></div>}
 		{footerMenu?.items.length ? <div class="ts-footer-col"><h4 class="ts-footer-heading">{footerMenuLabel}</h4><ul class="ts-footer-list">{footerMenu.items.map((i) => <li><a href={i.url} target={i.target}>{i.label}</a></li>)}</ul></div> : <div class="ts-footer-col"></div>}
-		<div class="ts-footer-col ts-footer-visit"><h4 class="ts-footer-heading">Visit</h4><ul class="ts-footer-list">
+		<div class="ts-footer-col ts-footer-visit"><h4 class="ts-footer-heading">{tx("Visit")}</h4><ul class="ts-footer-list">
 			{addressLine(b) && <li>{addressLine(b)}</li>}
 			{b.phone && <li><a href={b.phoneHref}>{b.phone}</a></li>}
 			{b.email && <li><a href={`mailto:${b.email}`}>{b.email}</a></li>}
@@ -51,7 +52,7 @@ const year = new Date().getFullYear();
 		</ul></div>
 		<div class="ts-footer-legal">
 			<span>© {year} {siteTitle}{b.licenseLine ? ` · ${b.licenseLine}` : ""}</span>
-			<span>{b.accessibilityLine && <>{b.accessibilityLine} · </>}<a href="/privacy">Privacy</a></span>
+			<span>{b.accessibilityLine && <>{b.accessibilityLine} · </>}<a href="/privacy">{tx("Privacy")}</a></span>
 		</div>
 	</div>
 </footer>

@@ -1,9 +1,10 @@
 ---
 /** Address, hours (per day or grouped), parking and a map, for the main location or a named one. */
-import { addressLine, bool, entries, getBusiness, hoursGrouped, hoursRows, nodeOf, str, todayKey, DAYS } from "../lib";
+import { addressLine, bool, entries, getBusiness, hoursGrouped, hoursRows, nodeOf, str, todayKey, DAYS, wording } from "../lib";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
 const b = await getBusiness(Astro.request);
+const tx = await wording(Astro.request);
 const locs = await entries("locations", { limit: 20 });
 const want = str(n.location);
 const loc = (want ? locs.find((l) => (l.slug ?? l.id) === want) : locs.find((l) => bool(l.data.is_primary))) ?? locs[0] ?? null;
@@ -19,14 +20,14 @@ const q = encodeURIComponent([b.title, addr].filter(Boolean).join(" "));
 <section class="ts ts-band" id="find"><div class="ts-wrap">
 	<Head n={n} />
 	<div class={bool(n.show_map, true) ? "ts-split" : ""} style="align-items:start">
-		{bool(n.show_map, true) && (b.hideAddress ? <div class="ts-map">{b.serviceAreaLine || "We come to you."}</div> : <div class="ts-map"><iframe title="Map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src={`https://www.google.com/maps?q=${q}&output=embed`}></iframe></div>)}
+		{bool(n.show_map, true) && (b.hideAddress ? <div class="ts-map">{b.serviceAreaLine || tx("We come to you.")}</div> : <div class="ts-map"><iframe title="Map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src={`https://www.google.com/maps?q=${q}&output=embed`}></iframe></div>)}
 		<div class="ts-card">
-			{addr && <><p class="ts-group" style="margin-top:0">{b.isServiceArea ? "Based in" : "Address"}</p><p>{addr}</p>{(mapUrl || !b.hideAddress) && <a href={mapUrl || `https://www.google.com/maps/search/?api=1&query=${q}`} style="font-weight:700;color:var(--ts-primary);font-size:14px">Get directions</a>}</>}
-			{(phone || b.email) && <><p class="ts-group">Reach us</p>{phone && <p><a href={b.phoneHref}>{phone}</a></p>}{b.email && <p><a href={`mailto:${b.email}`}>{b.email}</a></p>}</>}
-			<p class="ts-group">Hours</p>
-			{rows.length ? (grouped ? <table class="ts-table">{hoursGrouped(d).map((g) => <tr><td>{g.days}</td><td>{g.value}</td></tr>)}</table> : <table class="ts-table">{rows.map((r) => <tr class={r.day === today ? "ts-today" : ""}><td>{r.day}</td><td>{r.value}</td></tr>)}</table>) : <p>{b.hours || "By appointment"}</p>}
+			{addr && <><p class="ts-group" style="margin-top:0">{b.isServiceArea ? tx("Based in") : "Address"}</p><p>{addr}</p>{(mapUrl || !b.hideAddress) && <a href={mapUrl || `https://www.google.com/maps/search/?api=1&query=${q}`} style="font-weight:700;color:var(--ts-primary);font-size:14px">{tx("Get directions")}</a>}</>}
+			{(phone || b.email) && <><p class="ts-group">{tx("Reach us")}</p>{phone && <p><a href={b.phoneHref}>{phone}</a></p>}{b.email && <p><a href={`mailto:${b.email}`}>{b.email}</a></p>}</>}
+			<p class="ts-group">{tx("Hours")}</p>
+			{rows.length ? (grouped ? <table class="ts-table">{hoursGrouped(d).map((g) => <tr><td>{g.days}</td><td>{g.value}</td></tr>)}</table> : <table class="ts-table">{rows.map((r) => <tr class={r.day === today ? "ts-today" : ""}><td>{r.day}</td><td>{r.value}</td></tr>)}</table>) : <p>{b.hours || tx("By appointment")}</p>}
 			{(str(d.hours_note) || b.hoursNote) && <p class="ts-muted" style="font-size:13px;margin-top:6px">{str(d.hours_note) || b.hoursNote}</p>}
-			{bool(n.show_parking, true) && (str(d.parking_line) || b.parkingLine || str(d.directions_line) || b.directionsLine) && <><p class="ts-group">Getting here</p><p style="font-size:14px">{[str(d.parking_line) || b.parkingLine, str(d.directions_line) || b.directionsLine, str(d.transit_line)].filter(Boolean).join(" ")}</p></>}
+			{bool(n.show_parking, true) && (str(d.parking_line) || b.parkingLine || str(d.directions_line) || b.directionsLine) && <><p class="ts-group">{tx("Getting here")}</p><p style="font-size:14px">{[str(d.parking_line) || b.parkingLine, str(d.directions_line) || b.directionsLine, str(d.transit_line)].filter(Boolean).join(" ")}</p></>}
 		</div>
 	</div>
 </div></section>
