@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.21.0
+
+The section a port reached for a custom row to get.
+
+- **Columns.** A new section type: any number of slots, `across` per row on a laptop, each holding text (markdown: headings, lists, links, bold), an image, a card (icon, heading, text, link), a number, one of the site's forms by name, a video by URL, or the site's own HTML (sanitised like a custom row). A slot can span the full row, which is the section's intro or outro. One slot is a band; eight small images across are a logo strip. The look is the section's: a tone (default, light, dark, accent) or a background photo, the width, the alignment, and a CSS class the site's own stylesheet can target. `sections/defaults/columns.astro`, `lib/markdown.ts`.
+- **A shared background across sections.** A section that says `continue_background` joins the one above it; `Sections.astro` wraps the run in `.ts-group`, draws the head's tone and photo once behind every member, and the members render no background of their own.
+- **Hooks for the site's own CSS.** Every section's frame now carries `ts-section`, `ts-type-<type>` and `ts-key-<key>`, so a stylesheet can address one section on one page. Themes (keel, porcelain) put `ts-<collection>` and `ts-page-<slug>` on the body.
+- **Editor.** A repeater whose items pick a kind (the Columns slots) shows only that kind's fields; markdown and HTML boxes are taller.
+
 ## 0.20.2
 
 - The bot check on forms stays out of sight: the Turnstile widget renders only when a visitor has to interact with it (`appearance: interaction-only`), instead of a "Success!" box above every submit button.

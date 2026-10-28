@@ -195,3 +195,48 @@
 .ts-row .ts-row-wrap{max-width:var(--ts-max,var(--brand-max,1180px));margin:0 auto;padding:0 var(--ts-gutter,clamp(16px,4vw,40px))}
 .ts-row-section{padding:var(--ts-space,var(--brand-space,clamp(48px,7vw,96px))) 0}
 .ts-row-full .ts-row-wrap{max-width:none;padding:0}
+
+/* Columns (sections/columns): slots across per row, a tone or a photo behind, and the hooks the site's own CSS targets. */
+.ts.ts-accent{background:var(--ts-primary);color:#fff}
+.ts.ts-has-bg{background-size:cover;background-position:center}
+.ts.ts-grouped{background-color:transparent;background-image:none}
+.ts-group{background-size:cover;background-position:center}
+.ts-group.ts-group-dark{background-color:var(--ink,var(--brand-ink,#17211c))}
+.ts-group.ts-group-light{background-color:var(--surface-2,color-mix(in srgb,var(--primary,var(--brand-primary,#1e5a46)) 8%,var(--ground,#fff)))}
+.ts-group.ts-group-accent{background-color:var(--primary,var(--brand-primary,#1e5a46))}
+.ts-group .ts.ts-continue{padding-top:0}
+.ts .ts-wrap.ts-narrow{max-width:min(var(--ts-max),760px)}
+.ts .ts-wrap.ts-wide{max-width:calc(var(--ts-max) + 240px)}
+.ts.ts-center{text-align:center}
+.ts.ts-center .ts-prose,.ts.ts-center .ts-col-pic img{margin-left:auto;margin-right:auto}
+.ts.ts-center .ts-actions{justify-content:center}
+.ts .ts-cols{display:grid;gap:clamp(18px,3vw,40px);grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));align-items:start}
+.ts .ts-cols .ts-col-full{grid-column:1/-1}
+.ts .ts-col>:first-child{margin-top:0}
+.ts .ts-col h2{margin-bottom:14px}
+.ts .ts-col h3{margin-bottom:8px}
+.ts .ts-col .ts-prose{max-width:none}
+.ts .ts-col-full .ts-prose{max-width:66ch}
+.ts.ts-center .ts-col-full .ts-prose{margin-left:auto;margin-right:auto}
+.ts .ts-prose h2,.ts .ts-prose h3,.ts .ts-prose h4{color:var(--ts-ink);margin:20px 0 8px}
+.ts .ts-prose :is(h2,h3,h4):first-child{margin-top:0}
+.ts .ts-prose ul,.ts .ts-prose ol{margin:12px 0;padding-left:22px}
+.ts .ts-prose li+li{margin-top:6px}
+.ts .ts-prose a{color:var(--ts-primary);font-weight:600}
+.ts .ts-prose img{border-radius:var(--ts-radius);margin:12px 0}
+.ts .ts-prose blockquote{margin:14px 0;padding-left:16px;border-left:3px solid var(--ts-primary)}
+.ts .ts-prose hr{border:0;border-top:1px solid var(--ts-line);margin:20px 0}
+.ts .ts-prose code{font-size:.92em;background:color-mix(in srgb,var(--ts-ink) 7%,transparent);padding:1px 5px;border-radius:4px}
+.ts.ts-ink .ts-prose,.ts.ts-ink .ts-prose :is(h2,h3,h4){color:#fff}
+.ts.ts-ink .ts-prose a{color:color-mix(in srgb,var(--ts-accent) 70%,#fff)}
+.ts .ts-col-pic{margin:0}
+.ts .ts-col-pic img{width:100%;height:auto;border-radius:var(--ts-radius)}
+.ts .ts-col-pic figcaption{font-size:13px;color:var(--ts-ink-3);margin-top:8px}
+.ts .ts-cols-many .ts-col-pic img{width:auto;max-width:100%;max-height:120px;object-fit:contain;margin:0 auto;border-radius:0}
+.ts .ts-col-icon{width:56px;height:56px;object-fit:contain;border-radius:0;margin-bottom:4px}
+.ts .ts-card .ts-prose{font-size:15px}
+.ts .ts-card-link{font-weight:700;font-size:14px;color:var(--ts-primary)}
+.ts.ts-ink .ts-card-link{color:color-mix(in srgb,var(--ts-accent) 70%,#fff)}
+@media (max-width:960px){.ts .ts-cols{grid-template-columns:repeat(min(var(--cols,2),3),minmax(0,1fr))}}
+@media (max-width:600px){.ts .ts-cols{grid-template-columns:1fr}.ts .ts-cols.ts-cols-many{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ts.ts-center .ts-prose :is(ul,ol){display:inline-block;text-align:left}

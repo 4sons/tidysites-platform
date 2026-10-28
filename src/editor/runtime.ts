@@ -22,7 +22,7 @@ import { tidyConfirm } from "./confirm";
  * staged over the API is publishable from the page too) and publishes it,
  * plus any record whose publish failed in this browser session.
  */
-import { EDITABLE_TYPES, coerce, compact, defaultsFor, fieldsOf, insertBlock, moveBlock, removeBlock, updateBlock, type Block, type BlockTypeSchema, type FieldSchema } from "./ops";
+import { kindShows, EDITABLE_TYPES, coerce, compact, defaultsFor, fieldsOf, insertBlock, moveBlock, removeBlock, updateBlock, type Block, type BlockTypeSchema, type FieldSchema } from "./ops";
 
 interface RecordRef {
 	collection: string;
@@ -417,7 +417,7 @@ export function start(config: Config): void {
 		if (f.type === "select") {
 			const s = el("select");
 			if (!f.required) s.append(el("option", { value: "", text: "" }));
-			for (const o of f.validation?.options ?? []) {
+			for (const o of f.validation?.options ?? f.options ?? []) {
 				const opt = el("option", { value: o, text: o });
 				if (o === v) opt.selected = true;
 				s.append(opt);
@@ -429,7 +429,7 @@ export function start(config: Config): void {
 			const box = el("div", { class: "tidy-multi" });
 			const chosen = new Set(Array.isArray(v) ? (v as string[]) : []);
 			const boxes: HTMLInputElement[] = [];
-			for (const o of f.validation?.options ?? []) {
+			for (const o of f.validation?.options ?? f.options ?? []) {
 				const cb = el("input", { type: "checkbox", value: o });
 				cb.checked = chosen.has(o);
 				boxes.push(cb);
@@ -451,7 +451,7 @@ export function start(config: Config): void {
 			return { node: wrap, read: () => (i.value ? new Date(i.value).toISOString() : undefined) };
 		}
 		if (f.type === "text") {
-			const t = el("textarea", { rows: "4" });
+			const t = el("textarea", { rows: f.slug === "text" || f.slug === "html" ? "9" : "4" });
 			t.value = typeof v === "string" ? v : "";
 			wrap.append(t);
 			return { node: wrap, read: () => t.value };
@@ -479,10 +479,19 @@ export function start(config: Config): void {
 				const addItem = (row: Record<string, unknown>) => {
 					const item = el("div", { class: "tidy-repeater-item" });
 					const rs: Array<[string, Reader]> = [];
+					const nodes = new Map<string, HTMLElement>();
 					for (const s of sub) {
 						const c = fieldControl(s, row[s.slug]);
 						item.append(c.node);
 						rs.push([s.slug, c.read]);
+						nodes.set(s.slug, c.node);
+					}
+					// Items that pick a kind (the Columns slots) show only that kind's fields.
+					const kindSel = sub.some((s) => s.slug === "kind" && s.type === "select") ? nodes.get("kind")?.querySelector("select") : null;
+					if (kindSel) {
+						const apply = () => { for (const [slug, node] of nodes) node.hidden = !kindShows(kindSel.value, slug); };
+						kindSel.addEventListener("change", apply);
+						apply();
 					}
 					const rm = el("button", { type: "button", class: "tidy-btn tidy-btn-danger tidy-btn-sm", text: "Remove" });
 					rm.addEventListener("click", () => {
