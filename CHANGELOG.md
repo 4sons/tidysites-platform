@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.2
+
+- The bot check on forms stays out of sight: the Turnstile widget renders only when a visitor has to interact with it (`appearance: interaction-only`), instead of a "Success!" box above every submit button.
+
 ## 0.20.1
 
 - The form's "Something went wrong" line follows the site's wording: the label is printed on the form and the browser script reads it there, instead of calling the server-side lookup it could not reach.
