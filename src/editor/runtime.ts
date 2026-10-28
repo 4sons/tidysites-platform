@@ -22,6 +22,7 @@ import { tidyConfirm } from "./confirm";
  * staged over the API is publishable from the page too) and publishes it,
  * plus any record whose publish failed in this browser session.
  */
+import { annotate as annotateInline, cancelInline, handleClick as inlineClick, type InlineHost } from "./inline";
 import { kindShows, EDITABLE_TYPES, coerce, compact, defaultsFor, fieldsOf, insertBlock, moveBlock, removeBlock, updateBlock, type Block, type BlockTypeSchema, type FieldSchema } from "./ops";
 
 interface RecordRef {
@@ -263,6 +264,8 @@ export function start(config: Config): void {
 		(e) => {
 			const t = e.target as HTMLElement | null;
 			if (!t || t.closest(".tidy-bar,.tidy-chip,.tidy-panel,.tidy-add-end,#emdash-toolbar")) return;
+			// A click on a heading, a paragraph, a button label, an image or a row's text edits that one thing in place.
+			if (inlineClick(e, inlineHost)) return;
 			if (t.closest("[data-tidy-blocks]")) {
 				if (!t.closest("a,button")) return;
 				e.preventDefault();
@@ -327,6 +330,32 @@ export function start(config: Config): void {
 	document.addEventListener("keydown", (e) => {
 		if (e.key === "Escape" && !panel.hidden) closePanel();
 	});
+
+	// --- editing in place ----------------------------------------------------
+	/** The picker for one image field, in the panel; a media value, null to clear, undefined when cancelled. */
+	function pickImage(label: string, currentUrl: string | null): Promise<Record<string, unknown> | null | undefined> {
+		return new Promise((resolve) => {
+			let picked: Record<string, unknown> | null | undefined = undefined;
+			const form = el("form", { class: "tidy-form" });
+			form.append(imageControl(label, currentUrl, (item) => { picked = item ? mediaValue(item) : null; }));
+			const saveBtn = el("button", { type: "submit", class: "tidy-btn tidy-btn-primary", text: "Save" });
+			const cancel = el("button", { type: "button", class: "tidy-btn", text: "Cancel" });
+			cancel.addEventListener("click", () => { closePanel(); resolve(undefined); });
+			form.addEventListener("submit", (e) => { e.preventDefault(); closePanel(); resolve(picked); });
+			form.append(el("div", { class: "tidy-panel-actions" }, [saveBtn, cancel]));
+			openPanel(label, undefined, form);
+		});
+	}
+	const inlineHost: InlineHost = {
+		value: () => value,
+		schemaOf,
+		saveBlocks,
+		saveEntry,
+		pickImage,
+		status: refreshStatus
+	};
+	annotateInline(inlineHost);
+	document.addEventListener("keydown", (e) => { if (e.key === "Escape") cancelInline(); });
 
 	// --- image picker -----------------------------------------------------------
 	/** An image control: preview, choose from the library, upload, remove. `onPick` receives the library item or null. */

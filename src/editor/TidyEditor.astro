@@ -134,6 +134,14 @@ const htmlClass = !signedIn ? (signInUrl ? "tidy-has-bar tidy-idle" : "") : !act
 	.tidy-form { display: grid; gap: 14px; }
 	.tidy-field { display: grid; gap: 6px; }
 	.tidy-form [hidden] { display: none; }
+	.tidy-editing [data-tidy-field], .tidy-editing [data-tidy-md], .tidy-editing [data-tidy-rowtext] { cursor: text; outline: 1px dashed transparent; outline-offset: 3px; border-radius: 3px; transition: outline-color 120ms; }
+	.tidy-editing [data-tidy-field]:hover, .tidy-editing [data-tidy-md]:hover, .tidy-editing [data-tidy-rowtext]:hover { outline-color: rgba(43,127,209,.75); }
+	.tidy-editing [data-tidy-image], .tidy-editing [data-tidy-rowimage] { cursor: pointer; }
+	.tidy-editing [data-tidy-image]:hover, .tidy-editing [data-tidy-rowimage]:hover { outline: 2px dashed rgba(43,127,209,.75); outline-offset: 2px; }
+	.tidy-editing .tidy-editing-now { outline: 2px solid #2b7fd1 !important; outline-offset: 3px; background: rgba(43,127,209,.06); cursor: text; }
+	.tidy-pill { position: absolute; z-index: 2147483000; display: flex; gap: 6px; align-items: center; padding: 4px 6px 4px 10px; background: #17211c; color: #fff; border-radius: 8px; font: 500 13px/1.2 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+	.tidy-pill-label { opacity: .85; margin-right: 4px; }
+	.tidy-md-box textarea { width: 100%; box-sizing: border-box; min-height: 140px; padding: 10px 12px; border: 2px solid #2b7fd1; border-radius: 8px; background: #fff; color: #17211c; font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; }
 	.tidy-field-label { font-weight: 600; font-size: 13px; }
 	.tidy-field input[type="text"], .tidy-field input[type="url"], .tidy-field input[type="number"], .tidy-field input[type="datetime-local"], .tidy-field textarea, .tidy-field select { width: 100%; box-sizing: border-box; border: 1px solid #c9d2cc; border-radius: 6px; padding: 8px 10px; font: inherit; background: #fff; color: inherit; }
 	.tidy-field textarea { resize: vertical; min-height: 88px; }
