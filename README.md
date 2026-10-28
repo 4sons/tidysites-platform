@@ -218,6 +218,10 @@ It drops honeypot hits, checks Turnstile when `TURNSTILE_SECRET` is bound, and f
 
 EmDash answers every page with `X-Frame-Options: SAMEORIGIN` unless a Content-Security-Policy is present. `tidyPlatform()` registers a middleware that, when the site carries a `TIDY_FRAME_ANCESTORS` variable (space-separated https origins), replaces that header with `Content-Security-Policy: frame-ancestors 'self' <origins>` so the platform's website page can embed the site. Without the variable nothing changes.
 
+## The gallery
+
+`GET /_tidy/gallery` renders every section type and layout in the site's own theme with sample text and a label under an index, inside the theme's `src/layouts/Base.astro` when it has one. It is the catalogue a builder screenshots before choosing a section (`/_tidy/gallery#columns`). The sections that read records show the site's own records. The live worker never serves it and the publish never lists it.
+
 ## The on-site editor
 
 A template built from sections (an EmDash `blocks` field) uses the Tideworthy editor on the site:
@@ -231,6 +235,8 @@ import seed from "../../seed/seed.json";
 ```
 
 The template renders the sections inside `<div data-tidy-blocks>` and each one inside `<div data-tidy-block={_key} data-tidy-type={_type}>`. `blocks` is the seed's `blockTypes` (the same definitions EmDash's admin and MCP read); the form for a block comes from its retained version's fields. Hovering a block shows a chip (Edit, move, add below, remove); Edit opens the panel; Save writes the field through EmDash's content API with the signed-in editor's session, as a draft, and reloads. Publish appears when EmDash says the page has a draft (so a draft an agent staged over the API is publishable from the page) and publishes it. Image fields get a picker over the media library with upload and store EmDash's media value. Records: wrap a region in `data-tidy-record="services" data-tidy-record-id="…" data-tidy-record-label="Service details"` and pass `records` to the component; the form comes from EmDash's manifest and saves publish at once. Pass the business record in `records` and it is always one click away in the bar. A section that lists records (a services grid) wraps each card in the same `data-tidy-record` attributes, so the card edits its record and the section's chip edits the section. On these pages EmDash's toolbar is hidden and its inline editing is off; article bodies keep EmDash's inline editor by not passing a sections field.
+
+Editing in place: a click on a heading, a paragraph, a button label or a list item edits that one field where it stands (matched by its text, so a theme needs no markers); a Columns slot's text opens a markdown box; an image opens the picker for that field; a custom row's text and images are edited in the row and its HTML written back to the page or to the shared row record. The chip's Edit still opens the whole form.
 
 ## Bindings the routes read
 

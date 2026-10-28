@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.22.0
+
+Editing where you look, and a page that shows every section.
+
+- **Editing in place.** In edit mode a click on a heading, a paragraph, a button label or a list item edits that one thing where it stands: the element becomes editable, Enter or Save writes that field back, Escape cancels. A Columns slot's text opens a markdown box in its place. A click on a section's image opens the picker for that one field. A custom row's text and images are edited in the row itself and its HTML written back, to the page for an inline row or to the shared row record. The section's full form stays behind the chip's Edit. Fields are matched to the page by their text (`editor/targets.ts`), so a theme needs no markers; a field whose text is not on the page stays in the panel.
+- **`GET /_tidy/gallery`.** Every section type and layout rendered in the site's own theme with sample text and a label, with an index at the top, so a person or a builder can look before choosing (`screenshot_website` on `/_tidy/gallery#hero`). The record-reading sections show the site's own records. Staging only; the publish never lists it.
+
 ## 0.21.0
 
 The section a port reached for a custom row to get.

@@ -1,0 +1,62 @@
+---
+/**
+ * GET /_tidy/gallery: every section type and layout rendered in this site's
+ * own theme with sample text, labelled, so a person or a builder can look
+ * before choosing (screenshot_website on /_tidy/gallery#<type>). The
+ * record-reading sections show the site's own records. Staging only: the
+ * live worker never serves /_tidy, and the publish crawl never lists it.
+ * The page renders inside the theme's Base layout when the theme has one at
+ * src/layouts/Base.astro, else bare with the default section styles.
+ */
+import Sections from "../sections/Sections.astro";
+import { sectionTypes } from "../template/index";
+import { gallery } from "../lib/gallery";
+import { brandStyle, getBusiness } from "../sections/lib";
+import "../sections/defaults.css";
+export const prerender = false;
+
+type Comp = (props: Record<string, unknown>) => unknown;
+const layouts = import.meta.glob("/src/layouts/Base.astro", { eager: true }) as Record<string, { default?: Comp }>;
+const Base = Object.values(layouts)[0]?.default ?? null;
+const groups = gallery(sectionTypes);
+const business = Base ? null : await getBusiness(Astro.request);
+---
+{Base ? (
+	<Base title="Every section">
+		<div class="tidy-gallery">
+			<nav class="tidy-gallery-nav"><p>Every section this theme renders, with sample text. Jump to a type:</p>{groups.map((g) => <a href={`#${g.slug}`}>{g.label}</a>)}</nav>
+			{groups.map((g) => (
+				<section class="tidy-gallery-group" id={g.slug}>
+					<header class="tidy-gallery-head"><h2>{g.label}</h2><p>{g.description}</p><code>{g.slug}</code></header>
+					{g.samples.map((s) => <div class="tidy-gallery-item"><div class="tidy-gallery-tag">{s.label}</div><Sections value={[s.block] as never} /></div>)}
+				</section>
+			))}
+		</div>
+	</Base>
+) : (
+	<html lang="en" style={business ? brandStyle(business) : undefined}>
+		<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Every section</title></head>
+		<body>
+			<div class="tidy-gallery">
+				<nav class="tidy-gallery-nav"><p>Every section, with sample text. Jump to a type:</p>{groups.map((g) => <a href={`#${g.slug}`}>{g.label}</a>)}</nav>
+				{groups.map((g) => (
+					<section class="tidy-gallery-group" id={g.slug}>
+						<header class="tidy-gallery-head"><h2>{g.label}</h2><p>{g.description}</p><code>{g.slug}</code></header>
+						{g.samples.map((s) => <div class="tidy-gallery-item"><div class="tidy-gallery-tag">{s.label}</div><Sections value={[s.block] as never} /></div>)}
+					</section>
+				))}
+			</div>
+		</body>
+	</html>
+)}
+<style is:global>
+	.tidy-gallery-nav { padding: 28px 24px; font: 15px/1.5 system-ui, sans-serif; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: #f3f4f6; color: #17211c; }
+	.tidy-gallery-nav p { width: 100%; margin: 0 0 4px; font-weight: 600; }
+	.tidy-gallery-nav a { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: #fff; border: 1px solid #d3dcd6; color: inherit; text-decoration: none; }
+	.tidy-gallery-head { padding: 36px 24px 8px; background: #17211c; color: #fff; font: 14px/1.5 system-ui, sans-serif; display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
+	.tidy-gallery-head h2 { margin: 0; font-size: 22px; }
+	.tidy-gallery-head p { margin: 0; opacity: .8; }
+	.tidy-gallery-head code { margin-left: auto; opacity: .6; }
+	.tidy-gallery-item { position: relative; border-top: 1px solid #d3dcd6; }
+	.tidy-gallery-tag { position: sticky; top: var(--tidy-bar, 0px); z-index: 5; display: inline-block; margin: 8px 0 0 8px; padding: 4px 10px; border-radius: 6px; background: #2b7fd1; color: #fff; font: 600 12px/1.2 system-ui, sans-serif; }
+</style>

@@ -34,7 +34,7 @@ const filled = (s: Slot) => {
 		default: return Boolean(str(s.heading) || str(s.text).trim() || mediaUrl(s.image));
 	}
 };
-const slots = list<Slot>(n.slots).filter(filled);
+const slots = list<Slot>(n.slots).map((s, i) => ({ s, i })).filter(({ s }) => filled(s));
 const toneClass = tone === "dark" ? "ts-ink" : tone === "light" ? "ts-band" : tone === "accent" ? "ts-ink ts-accent" : "";
 const shade = tone === "dark" || tone === "accent";
 const style = bg ? `background-image:${shade ? "linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.6))," : ""}url(${bg})` : undefined;
@@ -47,7 +47,7 @@ const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ?
 <section class={classes} style={style}>
 	<div class={`ts-wrap ${width === "narrow" ? "ts-narrow" : width === "wide" ? "ts-wide" : ""}`}>
 		<div class={`ts-cols ${across >= 4 ? "ts-cols-many" : ""}`} style={`--cols:${across}`}>
-			{slots.map((s) => {
+			{slots.map(({ s, i: slotIndex }) => {
 				const kind = kindOf(s);
 				const isFull = full(s);
 				const H = isFull ? "h2" : "h3";
@@ -55,10 +55,10 @@ const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ?
 				const img = mediaUrl(s.image);
 				const heading = str(s.heading);
 				return (
-					<div class={`ts-col ts-col-${kind} ${isFull ? "ts-col-full" : ""}`}>
+					<div class={`ts-col ts-col-${kind} ${isFull ? "ts-col-full" : ""}`} data-tidy-slot={slotIndex}>
 						{kind === "text" && (<>
 							{heading && <H>{heading}</H>}
-							{str(s.text).trim() && <div class="ts-prose" set:html={prose(str(s.text))} />}
+							{str(s.text).trim() && <div class="ts-prose" data-tidy-md={`slots.${slotIndex}.text`} set:html={prose(str(s.text))} />}
 							{link && str(s.link_label) && <div class="ts-actions"><a class={`ts-btn ${shade ? "ts-btn-accent" : ""}`} href={link}>{str(s.link_label)}</a></div>}
 						</>)}
 						{kind === "image" && img && (
@@ -71,14 +71,14 @@ const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ?
 							<Tag class="ts-card" href={link || undefined}>
 								{img && <img class="ts-col-icon" src={img} alt="" loading="lazy" />}
 								{heading && <h3>{heading}</h3>}
-								{str(s.text).trim() && <div class="ts-prose" set:html={prose(str(s.text))} />}
+								{str(s.text).trim() && <div class="ts-prose" data-tidy-md={`slots.${slotIndex}.text`} set:html={prose(str(s.text))} />}
 								{link && str(s.link_label) && <span class="ts-card-link">{str(s.link_label)}</span>}
 							</Tag>
 						); })()}
 						{kind === "number" && <div class="ts-card ts-stat"><b>{str(s.value)}</b>{str(s.label) && <span>{str(s.label)}</span>}</div>}
 						{kind === "form" && (<>
 							{heading && <H>{heading}</H>}
-							{str(s.text).trim() && <div class="ts-prose" style="margin-bottom:16px" set:html={prose(str(s.text))} />}
+							{str(s.text).trim() && <div class="ts-prose" style="margin-bottom:16px" data-tidy-md={`slots.${slotIndex}.text`} set:html={prose(str(s.text))} />}
 							<Form name={str(s.form)} class="ts-card" hidden={{ section: "columns" }} />
 						</>)}
 						{kind === "video" && (<>
