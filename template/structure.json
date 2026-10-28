@@ -186,6 +186,164 @@
       ]
     },
     {
+      "slug": "columns",
+      "label": "Columns",
+      "description": "Any number of columns, each holding text, an image, a card, a number, a form, a video or your own HTML; a column can span the full row (an intro or outro). One column is a band, eight across is a logo strip.",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "across",
+              "label": "Columns across on a laptop",
+              "type": "integer",
+              "defaultValue": 2
+            },
+            {
+              "slug": "tone",
+              "label": "Background",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "default",
+                  "light",
+                  "dark",
+                  "accent"
+                ]
+              },
+              "defaultValue": "default"
+            },
+            {
+              "slug": "background",
+              "label": "Background photo",
+              "type": "image"
+            },
+            {
+              "slug": "continue_background",
+              "label": "Continue the background of the section above",
+              "type": "boolean"
+            },
+            {
+              "slug": "width",
+              "label": "Width",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "regular",
+                  "narrow",
+                  "wide"
+                ]
+              },
+              "defaultValue": "regular"
+            },
+            {
+              "slug": "align",
+              "label": "Text alignment",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "left",
+                  "center"
+                ]
+              },
+              "defaultValue": "left"
+            },
+            {
+              "slug": "css_class",
+              "label": "CSS class (for the site's own CSS)",
+              "type": "string"
+            },
+            {
+              "slug": "slots",
+              "label": "Columns",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "kind",
+                    "label": "What this column holds",
+                    "type": "select",
+                    "defaultValue": "text",
+                    "options": [
+                      "text",
+                      "image",
+                      "card",
+                      "number",
+                      "form",
+                      "video",
+                      "html"
+                    ]
+                  },
+                  {
+                    "slug": "span",
+                    "label": "Width",
+                    "type": "select",
+                    "defaultValue": "one column",
+                    "options": [
+                      "one column",
+                      "full row"
+                    ]
+                  },
+                  {
+                    "slug": "heading",
+                    "label": "Heading",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "text",
+                    "label": "Text (markdown: **bold**, [link](/page), - list)",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "image",
+                    "label": "Image",
+                    "type": "image"
+                  },
+                  {
+                    "slug": "link_label",
+                    "label": "Link label",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "link_url",
+                    "label": "Link",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "value",
+                    "label": "Value (number)",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "label",
+                    "label": "Label (number)",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "form",
+                    "label": "Form (its name)",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "video_url",
+                    "label": "Video URL",
+                    "type": "url"
+                  },
+                  {
+                    "slug": "html",
+                    "label": "Your own HTML",
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "slug": "services",
       "label": "Services",
       "description": "The services or categories",
@@ -3605,6 +3763,7 @@
             "allowedTypes": [
               "hero",
               "intro",
+              "columns",
               "services",
               "feature",
               "steps",
@@ -3782,6 +3941,7 @@
             "allowedTypes": [
               "hero",
               "intro",
+              "columns",
               "services",
               "feature",
               "steps",
@@ -3965,6 +4125,7 @@
             "allowedTypes": [
               "hero",
               "intro",
+              "columns",
               "services",
               "feature",
               "steps",
@@ -4154,6 +4315,7 @@
             "allowedTypes": [
               "hero",
               "intro",
+              "columns",
               "services",
               "feature",
               "steps",
@@ -4394,6 +4556,7 @@
             "allowedTypes": [
               "hero",
               "intro",
+              "columns",
               "services",
               "feature",
               "steps",
@@ -5713,6 +5876,7 @@
             "allowedTypes": [
               "hero",
               "intro",
+              "columns",
               "services",
               "feature",
               "steps",

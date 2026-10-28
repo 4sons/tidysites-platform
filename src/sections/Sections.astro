@@ -4,11 +4,18 @@
  * the first of: the site's own folder (src/custom/blocks/<type>.astro), the
  * theme (src/sections/<type>.astro, or the `components` prop for a theme that
  * keeps its own map), then this package's default for the type. Every block is
- * framed for the on-site editor (`data-tidy-block`, `data-tidy-type`).
+ * framed for the on-site editor (`data-tidy-block`, `data-tidy-type`) and for
+ * the site's own CSS (`ts-section`, `ts-type-<type>`, `ts-key-<key>`).
+ *
+ * A block that says `continue_background` joins the block above it in a run:
+ * the run is wrapped in `.ts-group`, which draws the head's tone and
+ * background photo once behind every member, and the members render no
+ * background of their own (`grouped`, with the head's tone as `groupTone`).
  */
 import type { Node } from "./lib";
 import "./defaults.css";
 import { SECTION_TYPES } from "../template/index";
+import { mediaUrl, str } from "./lib";
 
 export type Section = { _type: string; _key?: string; _version?: number } & Record<string, unknown>;
 type Comp = (props: Record<string, unknown>) => unknown;
@@ -32,11 +39,34 @@ interface Props {
 const { value, components = {}, context = null, fallback = true } = Astro.props;
 const sections = Array.isArray(value) ? value : [];
 const pick = (type: string): Comp | undefined => site[type] ?? components[type] ?? theme[type] ?? (fallback ? defaults[type] : undefined);
+const safe = (s: string) => s.replace(/[^a-zA-Z0-9_-]/g, "");
+
+// Runs: a block followed by every block that continues its background.
+const continues = (s: Section) => s.continue_background === true;
+const runs: Array<{ members: Array<{ s: Section; index: number }>; run: boolean }> = [];
+sections.forEach((s, index) => {
+	const last = runs[runs.length - 1];
+	if (last && continues(s) && index > 0) { last.members.push({ s, index }); last.run = true; return; }
+	runs.push({ members: [{ s, index }], run: false });
+});
+const groupTone = (head: Section) => { const t = str(head.tone); return t && t !== "default" ? t : null; };
+const groupStyle = (head: Section) => {
+	const bg = mediaUrl(head.background);
+	if (!bg) return undefined;
+	const t = groupTone(head);
+	return `background-image:${t === "dark" || t === "accent" ? "linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.6))," : ""}url(${bg})`;
+};
 ---
 <div data-tidy-blocks>
-	{sections.map((s, index) => {
-		const Component = pick(s._type);
-		if (!Component) return import.meta.env.DEV ? <div role="alert" class="ts-missing">No component for section type “{s._type}”{SECTION_TYPES.includes(s._type) ? "" : " (not a template section type)"}.</div> : null;
-		return <div data-tidy-block={String(s._key ?? "")} data-tidy-type={s._type}><Component value={s} index={index} blockKey={String(s._key ?? "")} context={context} /></div>;
+	{runs.map((r) => {
+		const head = r.members[0]!.s;
+		const tone = r.run ? groupTone(head) : null;
+		const frame = ({ s, index }: { s: Section; index: number }) => {
+			const Component = pick(s._type);
+			if (!Component) return import.meta.env.DEV ? <div role="alert" class="ts-missing">No component for section type “{s._type}”{SECTION_TYPES.includes(s._type) ? "" : " (not a template section type)"}.</div> : null;
+			const key = String(s._key ?? "");
+			return <div class={`ts-section ts-type-${safe(s._type)} ${key ? `ts-key-${safe(key)}` : ""}`} data-tidy-block={key} data-tidy-type={s._type}><Component value={s} index={index} blockKey={key} context={context} grouped={r.run} groupTone={tone} /></div>;
+		};
+		return r.run ? <div class={`ts-group ${tone ? `ts-group-${tone}` : ""}`} style={groupStyle(head)}>{r.members.map(frame)}</div> : frame(r.members[0]!);
 	})}
 </div>

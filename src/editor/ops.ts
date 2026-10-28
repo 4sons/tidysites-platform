@@ -17,6 +17,8 @@ export interface FieldSchema {
 	required?: boolean;
 	defaultValue?: unknown;
 	description?: string;
+	/** A repeater sub-field's select options live here; a block field's under validation. */
+	options?: string[];
 	validation?: {
 		options?: string[];
 		subFields?: FieldSchema[];
@@ -38,6 +40,26 @@ export interface BlockTypeSchema {
 
 /** Field types the editor renders a control for; the rest are read-only here and edited in the admin. */
 export const EDITABLE_TYPES: ReadonlySet<string> = new Set(["string", "text", "url", "number", "integer", "boolean", "datetime", "select", "multiSelect", "image", "repeater"]);
+
+/**
+ * A repeater whose items pick a `kind` (the Columns section's slots) shows
+ * only the fields that kind uses; a kind not listed here shows them all.
+ */
+export const KIND_FIELDS: Record<string, readonly string[]> = {
+	text: ["kind", "span", "heading", "text", "link_label", "link_url"],
+	image: ["kind", "span", "image", "heading", "link_url"],
+	card: ["kind", "span", "image", "heading", "text", "link_label", "link_url"],
+	number: ["kind", "span", "value", "label"],
+	form: ["kind", "span", "heading", "text", "form"],
+	video: ["kind", "span", "heading", "video_url"],
+	html: ["kind", "span", "html"]
+};
+
+/** Whether a field is shown for an item of `kind`; everything is shown when the kind is unknown. */
+export function kindShows(kind: string, slug: string): boolean {
+	const list = KIND_FIELDS[kind];
+	return list ? list.includes(slug) : true;
+}
 
 /** The fields of one retained version, or of the active version. */
 export function fieldsOf(type: BlockTypeSchema, version?: number): FieldSchema[] {
