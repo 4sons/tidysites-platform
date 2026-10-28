@@ -63,7 +63,7 @@ const formName = form?.title || (onlyEmail ? tx("Newsletter") : tx("Contact"));
 		<input type="hidden" name="form" value={formName} />
 		{Object.entries(hidden).map(([k, v]) => <input type="hidden" name={k} value={v} />)}
 		<input class="ts-hp" type="text" name="website_hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
-		{turnstile && <div class="cf-turnstile ts-full" data-sitekey={turnstile} data-size="flexible"></div>}
+		{turnstile && <div class="cf-turnstile ts-full" data-sitekey={turnstile} data-size="flexible" data-appearance="interaction-only"></div>}
 		<p class="ts-form-error" role="alert"></p>
 		<div class="ts-full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="ts-btn ts-btn-accent" type="submit">{submit}</button></div>
 		{consent && <p class="ts-consent">{consent}</p>}

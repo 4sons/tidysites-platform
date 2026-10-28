@@ -31,7 +31,7 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 			{bool(n.ask_referrer) && <label class="ts-full">{tx("How did you hear about us?")}<input name="referrer" /></label>}
 			{variant !== "short" && <label class="ts-full">{variant === "question only" ? tx("Your question") : tx("Anything we should know?")}<textarea name="message"></textarea></label>}
 			<input class="ts-hp" type="text" name="website_hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
-			{turnstile && <div class="cf-turnstile ts-full" data-sitekey={turnstile} data-size="flexible"></div>}
+			{turnstile && <div class="cf-turnstile ts-full" data-sitekey={turnstile} data-size="flexible" data-appearance="interaction-only"></div>}
 			<div class="ts-full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="ts-btn ts-btn-accent" type="submit">{str(n.submit_label) || (variant === "question only" ? tx("Send question") : tx("Send request"))}</button>{str(n.promise) && <span class="ts-muted" style="font-size:13px">{str(n.promise)}</span>}</div>
 		</form>
 		)}
