@@ -100,6 +100,12 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 		};
 		const v = seed.validate(data);
 		if (!v.valid) throw new HttpError(500, "invalid seed", v.errors);
+		// The structure first, as an update: a site may have been set up once
+		// already by the worker it first booted on (a template's older build),
+		// and the content that follows is only valid against this seed's fields.
+		const structure: Record<string, unknown> = {};
+		for (const k of STRUCTURE_KEYS) if (data[k] !== undefined) structure[k] = data[k];
+		steps.structure = await seed.applyStructure(structure);
 		const result = await seed.apply(data);
 		steps.seed = { collections: result.collections, content: result.content };
 	}

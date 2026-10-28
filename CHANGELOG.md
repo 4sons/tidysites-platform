@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.23.1
+
+- Bootstrap applies the seed's structure as an update before its content. A new site boots first on its template's prebuilt worker, whose EmDash setup may already have created the collections from an older seed; the content that follows (a Columns band on the About page) was then refused against the older fields. The structure now matches this seed before any entry is written.
+
 ## 0.23.0
 
 Sections that are shared, and sections that carry their own items.

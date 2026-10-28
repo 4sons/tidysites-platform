@@ -345,6 +345,8 @@ describe("applySchema", () => {
 		const inner = deps.seed.applyStructure;
 		deps.seed.applyStructure = async (s) => { seen.push(s); return inner(s); };
 		await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
+		// Bootstrap applies the whole structure once itself; this test is about the per-item apply after it.
+		seen.length = 0;
 		const r = await applySchema(deps);
 		expect(r).toMatchObject({ ok: true, complete: true, applied: ["bt:hero", "col:pages"], unchanged: 0, remaining: 0 });
 		expect(r.counts.fields).toEqual({ created: 2, updated: 18, skipped: 0 });
