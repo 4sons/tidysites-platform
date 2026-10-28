@@ -23,9 +23,11 @@ import type { Block, BlockTypeSchema } from "./ops";
 import { getPath, imageTargets, labelFor, normText, setPath, textTargets } from "./targets";
 
 export interface InlineHost {
-	value: () => Block[];
+	/** The block a frame edits (behind a Saved section, the shared record's block). */
+	blockOf: (key: string) => Block | null;
+	/** Write that block back where it lives: the page, or the shared record. */
+	saveBlock: (key: string, next: Block) => Promise<boolean>;
 	schemaOf: (type: string) => BlockTypeSchema | undefined;
-	saveBlocks: (next: Block[]) => Promise<boolean>;
 	saveEntry: (collection: string, id: string, data: Record<string, unknown>, publishNow?: boolean) => Promise<boolean>;
 	/** The picker for one image field; resolves to a media value, null to clear, undefined when cancelled. */
 	pickImage: (label: string, currentUrl: string | null) => Promise<Record<string, unknown> | null | undefined>;
@@ -77,7 +79,7 @@ function imageMatches(img: HTMLImageElement, key: string): boolean {
 export function annotate(host: InlineHost): void {
 	for (const frame of Array.from(document.querySelectorAll<HTMLElement>("[data-tidy-block]"))) {
 		const key = frame.dataset.tidyBlock ?? "";
-		const block = host.value().find((b) => b._key === key);
+		const block = host.blockOf(key);
 		const type = block ? host.schemaOf(block._type) : undefined;
 		if (!block || !type) continue;
 		const used = new Set<Element>();
@@ -217,8 +219,9 @@ function saveRow(host: InlineHost, row: HTMLElement): Promise<unknown> {
 	if (row.dataset.tidyRecord === "rows" && row.dataset.tidyRecordId) return host.saveEntry("rows", row.dataset.tidyRecordId, { html }, true);
 	const frame = row.closest<HTMLElement>("[data-tidy-block]");
 	const key = frame?.dataset.tidyBlock;
-	if (!key) return Promise.resolve(false);
-	return host.saveBlocks(host.value().map((b) => (b._key === key ? { ...b, html } : b)));
+	const block = key ? host.blockOf(key) : null;
+	if (!key || !block) return Promise.resolve(false);
+	return host.saveBlock(key, { ...block, html });
 }
 
 function imageUrl(v: unknown): string | null {
@@ -233,14 +236,14 @@ export function handleClick(e: MouseEvent, host: InlineHost): boolean {
 	if (!t) return false;
 	if (t.closest(".tidy-pill,.tidy-md-box,.tidy-editing-now")) return true;
 	const stop = () => { e.preventDefault(); e.stopPropagation(); };
-	const setBlock = (key: string, path: string, v: unknown) => host.saveBlocks(host.value().map((b) => (b._key === key ? setPath(b, path, v) : b)));
+	const setBlock = (key: string, path: string, v: unknown) => { const b = host.blockOf(key); return b ? host.saveBlock(key, setPath(b, path, v)) : Promise.resolve(false); };
 
 	const md = t.closest<HTMLElement>("[data-tidy-md]");
 	if (md) {
 		stop();
 		const frame = md.closest<HTMLElement>("[data-tidy-block]");
 		const key = frame?.dataset.tidyBlock ?? "";
-		const block = host.value().find((b) => b._key === key);
+		const block = host.blockOf(key);
 		const path = md.dataset.tidyMd ?? "";
 		if (!block || !path) return true;
 		const type = host.schemaOf(block._type);
@@ -259,7 +262,7 @@ export function handleClick(e: MouseEvent, host: InlineHost): boolean {
 		stop();
 		const m = imageMeta.get(img);
 		if (!m) return true;
-		const block = host.value().find((b) => b._key === m.key);
+		const block = host.blockOf(m.key);
 		void host.pickImage(m.label, imageUrl(block ? getPath(block, m.path) : null)).then((v) => {
 			if (v === undefined) return;
 			void setBlock(m.key, m.path, v ?? undefined);

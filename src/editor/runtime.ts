@@ -23,7 +23,7 @@ import { tidyConfirm } from "./confirm";
  * plus any record whose publish failed in this browser session.
  */
 import { annotate as annotateInline, cancelInline, handleClick as inlineClick, type InlineHost } from "./inline";
-import { kindShows, EDITABLE_TYPES, coerce, compact, defaultsFor, fieldsOf, insertBlock, moveBlock, removeBlock, updateBlock, type Block, type BlockTypeSchema, type FieldSchema } from "./ops";
+import { kindShows, EDITABLE_TYPES, coerce, compact, defaultsFor, fieldsOf, insertBlock, moveBlock, newKey, removeBlock, updateBlock, type Block, type BlockTypeSchema, type FieldSchema } from "./ops";
 
 interface RecordRef {
 	collection: string;
@@ -100,6 +100,28 @@ export function start(config: Config): void {
 	let value: Block[] = config.value;
 	const schemaOf = (type: string) => config.blocks.find((b) => b.slug === type);
 	const frames = () => Array.from(document.querySelectorAll<HTMLElement>("[data-tidy-block]"));
+	const frameByKey = (key: string) => frames().find((f) => f.dataset.tidyBlock === key) ?? null;
+	/**
+	 * The block a frame edits and where its edits go: the page's own block,
+	 * or, behind a Saved section, the shared record's block (saved and
+	 * published at once, since every page reads the published record).
+	 */
+	function frameBlock(frame: HTMLElement): { key: string; block: Block; type: BlockTypeSchema; shared: { id: string; title: string } | null; save: (next: Block) => Promise<boolean> } | null {
+		const key = frame.dataset.tidyBlock ?? "";
+		const savedEl = frame.querySelector<HTMLElement>("[data-tidy-saved]");
+		if (savedEl?.dataset.tidySaved) {
+			let inner: Block | null = null;
+			try { inner = JSON.parse(savedEl.dataset.tidySavedBlock ?? "null") as Block | null; } catch { inner = null; }
+			const type = inner ? schemaOf(inner._type) : undefined;
+			if (!inner || !type) return null;
+			const id = savedEl.dataset.tidySaved;
+			return { key, block: inner, type, shared: { id, title: savedEl.dataset.tidySavedTitle ?? "" }, save: (next) => saveEntry("saved_sections", id, { section: [compact(next) as Block] }, true) };
+		}
+		const block = value.find((b) => b._key === key);
+		const type = block ? schemaOf(block._type) : undefined;
+		if (!block || !type) return null;
+		return { key, block, type, shared: null, save: (next) => saveBlocks(value.map((b) => (b._key === key ? (compact(next) as Block) : b))) };
+	}
 
 	// Inside the sections and the record regions this editor owns the fields, so
 	// EmDash's inline editor must not mount there; article prose outside them
@@ -199,7 +221,9 @@ export function start(config: Config): void {
 	const bDown = el("button", { type: "button", class: "tidy-btn", title: "Move down", text: "↓" });
 	const bAdd = el("button", { type: "button", class: "tidy-btn", title: "Add a section below", text: "+" });
 	const bRemove = el("button", { type: "button", class: "tidy-btn tidy-btn-danger", title: "Remove this section", text: "Remove" });
-	chip.append(chipLabel, bEdit, bUp, bDown, bAdd, bRemove);
+	const bShare = el("button", { type: "button", class: "tidy-btn", title: "Save this section to place on other pages; a change to it changes every page", text: "Share" });
+	const bDetach = el("button", { type: "button", class: "tidy-btn", title: "Make this page's own copy, no longer following the shared section", text: "Detach" });
+	chip.append(chipLabel, bEdit, bUp, bDown, bAdd, bShare, bDetach, bRemove);
 	document.body.append(chip);
 	let current: HTMLElement | null = null;
 
@@ -214,18 +238,21 @@ export function start(config: Config): void {
 	function showBlockChip(frame: HTMLElement) {
 		current = frame;
 		const key = frame.dataset.tidyBlock ?? "";
-		chipLabel.textContent = schemaOf(frame.dataset.tidyType ?? "")?.label ?? frame.dataset.tidyType ?? "";
+		const fb = frameBlock(frame);
+		chipLabel.textContent = fb?.shared ? `Shared: ${fb.shared.title}` : schemaOf(frame.dataset.tidyType ?? "")?.label ?? frame.dataset.tidyType ?? "";
 		const i = value.findIndex((b) => b._key === key);
 		bUp.disabled = i <= 0;
 		bDown.disabled = i < 0 || i >= value.length - 1;
 		for (const b of [bUp, bDown, bAdd, bRemove]) b.hidden = false;
+		bShare.hidden = Boolean(fb?.shared) || frame.dataset.tidyType === "saved" || frame.dataset.tidyType === "row";
+		bDetach.hidden = !fb?.shared;
 		bEdit.textContent = "Edit";
 		placeChip(frame);
 	}
 	function showRecordChip(region: HTMLElement) {
 		current = region;
 		chipLabel.textContent = region.dataset.tidyRecordLabel ?? region.dataset.tidyRecord ?? "";
-		for (const b of [bUp, bDown, bAdd, bRemove]) b.hidden = true;
+		for (const b of [bUp, bDown, bAdd, bRemove, bShare, bDetach]) b.hidden = true;
 		bEdit.textContent = "Edit details";
 		placeChip(region);
 	}
@@ -263,7 +290,7 @@ export function start(config: Config): void {
 		"click",
 		(e) => {
 			const t = e.target as HTMLElement | null;
-			if (!t || t.closest(".tidy-bar,.tidy-chip,.tidy-panel,.tidy-add-end,#emdash-toolbar")) return;
+			if (!t || t.closest(".tidy-bar,.tidy-chip,.tidy-panel,.tidy-add-end,.tidy-dialog-backdrop,.tidy-pill,.tidy-md-box,.tidy-viewer,#emdash-toolbar")) return;
 			// A click on a heading, a paragraph, a button label, an image or a row's text edits that one thing in place.
 			if (inlineClick(e, inlineHost)) return;
 			if (t.closest("[data-tidy-blocks]")) {
@@ -304,6 +331,54 @@ export function start(config: Config): void {
 		void tidyConfirm({ title: `Remove this ${chipLabel.textContent} section?`, body: "The section comes off the page. Publish for the change to show on the live website.", cta: "Remove", danger: true }).then((ok) => { if (ok) void saveBlocks(removeBlock(value, key)); });
 	});
 	bAdd.addEventListener("click", () => current?.dataset.tidyBlock && openAdd(current.dataset.tidyBlock));
+	bShare.addEventListener("click", () => current?.dataset.tidyBlock && openShare(current.dataset.tidyBlock));
+	bDetach.addEventListener("click", () => {
+		const frame = current;
+		const key = frame?.dataset.tidyBlock;
+		const fb = frame ? frameBlock(frame) : null;
+		if (!frame || !key || !fb?.shared) return;
+		void tidyConfirm({ title: "Make this page's own copy?", body: "The section stays as it is here and stops following the shared one.", cta: "Make a copy" }).then((ok) => {
+			if (!ok) return;
+			const { _key: _k, ...inner } = fb.block;
+			// A block keeps its type for its key, so the copy takes a new key.
+			void saveBlocks(value.map((b) => (b._key === key ? ({ ...inner, _key: newKey() } as Block) : b)));
+		});
+	});
+	/** Save a page's section as a shared one, under a name, and place the shared one here in its stead. */
+	function openShare(key: string) {
+		const block = value.find((b) => b._key === key);
+		const type = block ? schemaOf(block._type) : undefined;
+		if (!block || !type) return;
+		const form = el("form", { class: "tidy-form" });
+		const name = el("input", { type: "text", required: "" });
+		name.value = String(block.headline ?? block.title ?? type.label);
+		form.append(el("label", { class: "tidy-field" }, [el("span", { class: "tidy-field-label", text: "Name" }), name]));
+		const saveBtn = el("button", { type: "submit", class: "tidy-btn tidy-btn-primary", text: "Share" });
+		const cancel = el("button", { type: "button", class: "tidy-btn", text: "Cancel" });
+		cancel.addEventListener("click", closePanel);
+		form.addEventListener("submit", async (e) => {
+			e.preventDefault();
+			saveBtn.disabled = true;
+			refreshStatus("Saving");
+			const title = name.value.trim();
+			const { _key: _k, ...inner } = block;
+			const r = await api("/content/saved_sections", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ data: { title, section: [{ ...inner, _key: newKey() }] }, status: "draft" }) });
+			if (!r.ok) {
+				const j = (await r.json().catch(() => ({}))) as { error?: { message?: string } };
+				refreshStatus(`Save failed (${j.error?.message ?? r.status})`);
+				saveBtn.disabled = false;
+				return;
+			}
+			const j = (await r.json().catch(() => ({}))) as { data?: { item?: { id?: string }; id?: string } };
+			const id = j.data?.item?.id ?? j.data?.id;
+			if (id) await api(`/content/saved_sections/${encodeURIComponent(id)}/publish`, { method: "POST" });
+			closePanel();
+			// A block keeps its type for its key, so the shared placeholder takes a new key.
+			await saveBlocks(value.map((b) => (b._key === key ? ({ _type: "saved", _key: newKey(), section: title } as Block) : b)));
+		});
+		form.append(el("div", { class: "tidy-panel-actions" }, [saveBtn, cancel]));
+		openPanel("Share this section", "Place it on other pages by its name with the Saved section type. A change to it changes every page.", form);
+	}
 	function moved(next: Block[]) {
 		if (next !== value) void saveBlocks(next);
 	}
@@ -347,9 +422,9 @@ export function start(config: Config): void {
 		});
 	}
 	const inlineHost: InlineHost = {
-		value: () => value,
+		blockOf: (key) => { const f = frameByKey(key); return f ? (frameBlock(f)?.block ?? null) : null; },
+		saveBlock: (key, next) => { const f = frameByKey(key); const fb = f ? frameBlock(f) : null; return fb ? fb.save(next) : Promise.resolve(false); },
 		schemaOf,
-		saveBlocks,
 		saveEntry,
 		pickImage,
 		status: refreshStatus
@@ -552,9 +627,10 @@ export function start(config: Config): void {
 	}
 
 	function openBlock(key: string) {
-		const block = value.find((b) => b._key === key);
-		const type = block ? schemaOf(block._type) : undefined;
-		if (!block || !type) return;
+		const frame = frameByKey(key);
+		const fb = frame ? frameBlock(frame) : null;
+		if (!fb) return;
+		const { block, type } = fb;
 		const { form, read } = buildBlockForm(type, block);
 		const saveBtn = el("button", { type: "submit", class: "tidy-btn tidy-btn-primary", text: "Save" });
 		const cancel = el("button", { type: "button", class: "tidy-btn", text: "Cancel" });
@@ -564,11 +640,10 @@ export function start(config: Config): void {
 			saveBtn.disabled = true;
 			// Fields the form read as "no value" are removed from the block, not written as null.
 			const data = read();
-			const next = updateBlock(value, key, data).map((b) => (b._key === key ? compact(b) : b)) as Block[];
-			void saveBlocks(next);
+			void fb.save({ ...block, ...data, _type: block._type, _key: block._key, ...(block._version !== undefined ? { _version: block._version } : {}) } as Block);
 		});
 		form.append(el("div", { class: "tidy-panel-actions" }, [saveBtn, cancel]));
-		openPanel(type.label, type.description, form);
+		openPanel(fb.shared ? `${type.label} (shared: ${fb.shared.title})` : type.label, type.description, form);
 	}
 
 	function openAdd(afterKey: string | null) {

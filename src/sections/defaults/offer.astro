@@ -1,19 +1,24 @@
 ---
+/** One offer with how to claim it: written in the section (headline, value, how to claim, ends), or an offer record by name, or the active offer record. */
 import { PortableText } from "emdash/ui";
 import { bool, entries, nodeOf, str, wording, rich } from "../lib";
 const tx = await wording(Astro.request);
 const n = nodeOf(Astro.props);
-const offers = await entries("offers", { limit: 20 });
 const want = str(n.offer);
-const o = (want ? offers.find((x) => (x.slug ?? x.id) === want) : offers.find((x) => bool(x.data.active, true))) ?? null;
-const ends = o ? str(o.data.ends) : "";
-const live = !o || !ends || new Date(ends).getTime() > Date.now();
+const ownOffer = Boolean(str(n.headline)) && !want;
+const offers = ownOffer ? [] : await entries("offers", { limit: 20 });
+const o = ownOffer ? null : ((want ? offers.find((x) => (x.slug ?? x.id) === want) : offers.find((x) => bool(x.data.active, true))) ?? null);
+const ends = o ? str(o.data.ends) : str(n.ends);
+const live = !ends || Number.isNaN(new Date(ends).getTime()) || new Date(ends).getTime() > Date.now();
 const title = str(n.headline) || (o ? str(o.data.title) : "");
+const value = (o ? str(o.data.value) : "") || str(n.value);
+const claim = (o ? str(o.data.how_to_claim) : "") || str(n.how_to_claim);
+const endsLabel = ends && !Number.isNaN(new Date(ends).getTime()) ? new Date(ends).toLocaleDateString("en-CA", { month: "long", day: "numeric" }) : ends;
 ---
 {title && live && (
 <section class="ts ts-tight"><div class="ts-wrap">
 	<div class="ts-offer" {...(o ? { "data-tidy-record": "offers", "data-tidy-record-id": o.id, "data-tidy-record-label": "Offer" } : {})}>
-		<div>{ends && <p class="ts-eyebrow">Until {new Date(ends).toLocaleDateString("en-CA", { month: "long", day: "numeric" })}</p>}<h3 style="font-size:24px">{title}{o && str(o.data.value) ? ` · ${str(o.data.value)}` : ""}</h3>{(str(n.body) || (o && str(o.data.summary))) && <p style="margin-top:6px;color:var(--ts-ink-2)">{str(n.body) || str(o!.data.summary)}</p>}{rich(n.copy).length > 0 && <div class="ts-prose ts-lede"><PortableText value={rich(n.copy) as never} /></div>}{o && str(o.data.how_to_claim) && <p class="ts-muted" style="font-size:13px;margin-top:6px">{str(o.data.how_to_claim)}</p>}</div>
+		<div>{ends && <p class="ts-eyebrow">Until {endsLabel}</p>}<h3 style="font-size:24px">{title}{value ? ` · ${value}` : ""}</h3>{(str(n.body) || (o && str(o.data.summary))) && <p style="margin-top:6px;color:var(--ts-ink-2)">{str(n.body) || str(o!.data.summary)}</p>}{rich(n.copy).length > 0 && <div class="ts-prose ts-lede"><PortableText value={rich(n.copy) as never} /></div>}{claim && <p class="ts-muted" style="font-size:13px;margin-top:6px">{claim}</p>}</div>
 		<a class="ts-btn ts-btn-accent ts-btn-lg" href={str(n.button_url) || (o && str(o.data.cta_url)) || "/contact"}>{str(n.button_label) || (o && str(o.data.cta_label)) || tx("Claim this offer")}</a>
 	</div>
 </div></section>

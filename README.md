@@ -178,9 +178,13 @@ A page chooses its header and footer: the site's, none, or a named custom row. A
 
 ## The sections that are not records
 
-Three sections carry their own content instead of reading a collection, and they are the answer to "I just need a row of things here": Cards (the feature section: 2, 3 or 4 cards per row, each with a heading, text, an icon, an image and a link; or a checklist, points beside an image, or one statement), Steps, and Stats. A thing gets a collection when it is reused across pages or has a page of its own; it gets a repeater in its section when it lives only in that spot.
+Most sections that show a row of things take their items written in the section: Cards (the feature section), Steps, Stats, FAQ, Gallery, Badges, Brands, Clients, Insurance, Payment and financing, Technology, Conditions, Policies, Forms (downloads), Signs, Options and Columns. Where a collection of the same thing exists (badges, brands, clients, insurers, financing providers, technologies, conditions, policies, downloads), the section reads it only when its own items are empty, so a thing gets a record when it is reused across pages or has a page of its own, and lives in its section otherwise. Offer renders from the section's own headline, value, how to claim and end date unless an offer record is named.
 
 `details` is the Business details section: name, address, phone, email, hours day by day, socials and the map, each on or off, from the Business record or a named location, as a row, a card or two columns (`ts-details-*`, `ts-hours`). `audiences` lists the Who we serve records (the people or industries a service is for, each with a page at `/for/<slug>`, which a theme serves with a `for/[slug]` page) as cards, chips or a list.
+
+## Saved sections
+
+A section a site wants on several pages is kept once in `saved_sections` (a name and one section) and placed with the `saved` type by name; a change to the record changes every page. The editor's chip offers Share on any section (save it under a name and place the shared one in its stead) and Detach on a shared one (this page's own copy); a click on a shared section edits the record in place. `sections/defaults/saved.astro` renders the record's block through `One.astro`, which is also what `Sections.astro` renders each page block through.
 
 ## Columns
 

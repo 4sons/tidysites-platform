@@ -18,7 +18,18 @@ describe("the template", () => {
 			const f = c.fields.find((x) => x.type === "blocks");
 			if (!f) continue;
 			const allowed = (f.validation as { allowedTypes: string[] }).allowedTypes;
-			for (const t of SECTION_TYPES) expect(allowed, `${c.slug}.sections allows ${t}`).toContain(t);
+			// A saved section holds any section but another saved section.
+			for (const t of SECTION_TYPES) if (!(c.slug === "saved_sections" && t === "saved")) expect(allowed, `${c.slug}.${f.slug} allows ${t}`).toContain(t);
+		}
+	});
+	it("keeps a saved section from holding another saved section", () => {
+		const f = collections.find((c) => c.slug === "saved_sections")!.fields.find((x) => x.type === "blocks")!;
+		const v = f.validation as { allowedTypes: string[]; maxItems: number };
+		expect(v.allowedTypes).not.toContain("saved");
+		expect(v.maxItems).toBe(1);
+		for (const c of collections) {
+			const b = c.fields.find((x) => x.type === "blocks");
+			if (b && c.slug !== "saved_sections") expect((b.validation as { allowedTypes: string[] }).allowedTypes).toContain("saved");
 		}
 	});
 	it("keeps every collection under D1's column cap (100 columns a table, one per field plus EmDash's own)", () => {

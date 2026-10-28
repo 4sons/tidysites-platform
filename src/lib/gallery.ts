@@ -91,7 +91,7 @@ function variantField(type: SectionType): TemplateField | null {
 }
 
 /** Types the gallery leaves out: they depend on the page they are on. */
-const SKIP = new Set(["related"]);
+const SKIP = new Set(["related", "saved"]);
 
 export function gallery(types: SectionType[]): GalleryGroup[] {
 	return types

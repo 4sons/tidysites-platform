@@ -344,6 +344,25 @@
       ]
     },
     {
+      "slug": "saved",
+      "label": "Saved section",
+      "description": "A section saved by name (Saved sections), shared across pages: edit it once, every page follows",
+      "category": "Sections",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "section",
+              "label": "A saved section (its name)",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "slug": "services",
       "label": "Services",
       "description": "The services or categories",
@@ -1153,6 +1172,35 @@
               "slug": "button_url",
               "label": "Button link",
               "type": "string"
+            },
+            {
+              "slug": "items",
+              "label": "Items written here (the records are used when this is empty)",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Insurer",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "logo",
+                    "label": "Logo",
+                    "type": "image"
+                  },
+                  {
+                    "slug": "network",
+                    "label": "Network (in or out)",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "note",
+                    "label": "Note",
+                    "type": "string"
+                  }
+                ]
+              }
             }
           ]
         }
@@ -1207,6 +1255,40 @@
               "slug": "show_plans",
               "label": "Show the plans button",
               "type": "boolean"
+            },
+            {
+              "slug": "items",
+              "label": "Items written here (the records are used when this is empty)",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Provider",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "logo",
+                    "label": "Logo",
+                    "type": "image"
+                  },
+                  {
+                    "slug": "rate_line",
+                    "label": "Rate line",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "note",
+                    "label": "Note",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "apply_url",
+                    "label": "Apply link",
+                    "type": "string"
+                  }
+                ]
+              }
             }
           ]
         }
@@ -1834,6 +1916,35 @@
               "slug": "limit",
               "label": "How many",
               "type": "integer"
+            },
+            {
+              "slug": "items",
+              "label": "Items written here (the records are used when this is empty)",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Name",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "brand",
+                    "label": "Brand",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "summary",
+                    "label": "Text",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "image",
+                    "label": "Image",
+                    "type": "image"
+                  }
+                ]
+              }
             }
           ]
         }
@@ -1886,6 +1997,30 @@
               "slug": "group",
               "label": "Only this group",
               "type": "string"
+            },
+            {
+              "slug": "items",
+              "label": "Items written here (the records are used when this is empty)",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Name",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "logo",
+                    "label": "Logo",
+                    "type": "image"
+                  },
+                  {
+                    "slug": "url",
+                    "label": "Link",
+                    "type": "string"
+                  }
+                ]
+              }
             }
           ]
         }
@@ -1934,6 +2069,21 @@
             {
               "slug": "button_url",
               "label": "Button link",
+              "type": "string"
+            },
+            {
+              "slug": "value",
+              "label": "Value (for example $99)",
+              "type": "string"
+            },
+            {
+              "slug": "how_to_claim",
+              "label": "How to claim it",
+              "type": "string"
+            },
+            {
+              "slug": "ends",
+              "label": "Ends (a date)",
               "type": "string"
             }
           ]
@@ -1986,6 +2136,30 @@
               "slug": "limit",
               "label": "How many",
               "type": "integer"
+            },
+            {
+              "slug": "items",
+              "label": "Items written here (the records are used when this is empty)",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Name",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "summary",
+                    "label": "Text",
+                    "type": "text"
+                  },
+                  {
+                    "slug": "url",
+                    "label": "Link",
+                    "type": "string"
+                  }
+                ]
+              }
             }
           ]
         }
@@ -2105,6 +2279,35 @@
               "slug": "service",
               "label": "Only this service (slug)",
               "type": "string"
+            },
+            {
+              "slug": "items",
+              "label": "Items written here (the records are used when this is empty)",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Name",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "file_url",
+                    "label": "File link",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "note",
+                    "label": "Note",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "group",
+                    "label": "Group",
+                    "type": "string"
+                  }
+                ]
+              }
             }
           ]
         }
@@ -2144,6 +2347,25 @@
               "slug": "group",
               "label": "Only this group",
               "type": "string"
+            },
+            {
+              "slug": "items",
+              "label": "Items written here (the records are used when this is empty)",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Heading",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "body",
+                    "label": "Text",
+                    "type": "text"
+                  }
+                ]
+              }
             }
           ]
         }
@@ -2585,6 +2807,35 @@
               "slug": "featured_only",
               "label": "Featured only",
               "type": "boolean"
+            },
+            {
+              "slug": "items",
+              "label": "Items written here (the records are used when this is empty)",
+              "type": "repeater",
+              "validation": {
+                "subFields": [
+                  {
+                    "slug": "title",
+                    "label": "Name",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "logo",
+                    "label": "Logo",
+                    "type": "image"
+                  },
+                  {
+                    "slug": "url",
+                    "label": "Link",
+                    "type": "string"
+                  },
+                  {
+                    "slug": "industry",
+                    "label": "Industry",
+                    "type": "string"
+                  }
+                ]
+              }
             }
           ]
         }
@@ -3764,6 +4015,7 @@
               "hero",
               "intro",
               "columns",
+              "saved",
               "services",
               "feature",
               "steps",
@@ -3942,6 +4194,7 @@
               "hero",
               "intro",
               "columns",
+              "saved",
               "services",
               "feature",
               "steps",
@@ -4126,6 +4379,7 @@
               "hero",
               "intro",
               "columns",
+              "saved",
               "services",
               "feature",
               "steps",
@@ -4316,6 +4570,7 @@
               "hero",
               "intro",
               "columns",
+              "saved",
               "services",
               "feature",
               "steps",
@@ -4557,6 +4812,7 @@
               "hero",
               "intro",
               "columns",
+              "saved",
               "services",
               "feature",
               "steps",
@@ -5877,6 +6133,7 @@
               "hero",
               "intro",
               "columns",
+              "saved",
               "services",
               "feature",
               "steps",
@@ -6170,6 +6427,78 @@
       ],
       "urlPattern": "/blog/{slug}",
       "routable": true
+    },
+    {
+      "slug": "saved_sections",
+      "label": "Saved sections",
+      "labelSingular": "Saved section",
+      "supports": [
+        "revisions"
+      ],
+      "description": "A section kept once and placed on any page by name with the Saved section type: edit it here and every page that places it follows.",
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "section",
+          "label": "The section",
+          "type": "blocks",
+          "validation": {
+            "allowedTypes": [
+              "hero",
+              "intro",
+              "columns",
+              "services",
+              "feature",
+              "steps",
+              "team",
+              "reviews",
+              "cases",
+              "faq",
+              "stats",
+              "badges",
+              "insurance",
+              "financing",
+              "plans",
+              "contact",
+              "form",
+              "location",
+              "details",
+              "cta",
+              "gallery",
+              "video",
+              "technologies",
+              "brands",
+              "offer",
+              "conditions",
+              "audiences",
+              "downloads",
+              "policies",
+              "posts",
+              "locations",
+              "related",
+              "custom",
+              "row",
+              "areas",
+              "products",
+              "case_studies",
+              "clients",
+              "signs",
+              "options"
+            ],
+            "maxItems": 1
+          }
+        },
+        {
+          "slug": "note",
+          "label": "Note for editors",
+          "type": "text"
+        }
+      ]
     }
   ],
   "menus": [
