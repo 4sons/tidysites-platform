@@ -1,0 +1,38 @@
+---
+/**
+ * Renders one section (a block) with the component for its type: the site's
+ * own (src/custom/blocks/<type>.astro), then the theme's (src/sections/
+ * <type>.astro, or the `components` map), then this package's default. No
+ * frame: Sections.astro frames a page's blocks for the editor, and the Saved
+ * section type renders a shared block through this without a frame of its own.
+ */
+import type { Node } from "./lib";
+import { SECTION_TYPES } from "../template/index";
+
+export type Section = { _type: string; _key?: string; _version?: number } & Record<string, unknown>;
+type Comp = (props: Record<string, unknown>) => unknown;
+const byName = (mods: Record<string, unknown>): Record<string, Comp> =>
+	Object.fromEntries(Object.entries(mods).map(([path, mod]) => [path.split("/").pop()!.replace(/\.astro$/, ""), (mod as { default: Comp }).default]));
+
+// Root-relative globs resolve against the consuming site, not this package.
+const site = byName(import.meta.glob("/src/custom/blocks/*.astro", { eager: true }));
+const theme = byName(import.meta.glob("/src/sections/*.astro", { eager: true }));
+const defaults = byName(import.meta.glob("./defaults/*.astro", { eager: true }));
+
+interface Props {
+	block: Section;
+	index?: number;
+	components?: Record<string, Comp>;
+	context?: Node | null;
+	fallback?: boolean;
+	grouped?: boolean;
+	groupTone?: string | null;
+}
+const { block, index = 0, components = {}, context = null, fallback = true, grouped = false, groupTone = null } = Astro.props;
+const Component = site[block._type] ?? components[block._type] ?? theme[block._type] ?? (fallback ? defaults[block._type] : undefined);
+---
+{Component ? (
+	<Component value={block} index={index} blockKey={String(block._key ?? "")} context={context} grouped={grouped} groupTone={groupTone} />
+) : import.meta.env.DEV ? (
+	<div role="alert" class="ts-missing">No component for section type “{block._type}”{SECTION_TYPES.includes(block._type) ? "" : " (not a template section type)"}.</div>
+) : null}

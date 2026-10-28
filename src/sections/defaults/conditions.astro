@@ -1,15 +1,18 @@
 ---
-import { entries, entryUrl, int, nodeOf, str } from "../lib";
+/** Conditions and symptoms as chips or cards. Items written in the section; the condition records (with their pages) when the section has none. */
+import { entries, entryUrl, int, list, nodeOf, str, type Entry } from "../lib";
 import Head from "./_Head.astro";
 const n = nodeOf(Astro.props);
-const items = await entries("conditions", { limit: int(n.limit, 24) });
+const own = list<Record<string, unknown>>(n.items).filter((i) => str(i.title));
+const items: Entry[] = own.length ? own.map((data, i) => ({ id: "", slug: `item-${i}`, data })) : await entries("conditions", { limit: int(n.limit, 24) });
 const cards = str(n.variant) === "cards";
-const links = new Map(await Promise.all(items.map(async (c) => [c.id, await entryUrl("conditions", c)] as const)));
-const href = (c: { id: string }) => links.get(c.id) ?? undefined;
+const links = new Map(own.length ? [] : await Promise.all(items.map(async (c) => [c.id, await entryUrl("conditions", c)] as const)));
+const href = (c: Entry) => (c.id ? links.get(c.id) : str(c.data.url)) || undefined;
+const rec = (c: Entry) => (c.id ? { "data-tidy-record": "conditions", "data-tidy-record-id": c.id, "data-tidy-record-label": "Condition" } : {});
 ---
 {items.length > 0 && (
 <section class="ts ts-band" id="conditions"><div class="ts-wrap">
 	<Head n={n} />
-	{cards ? <div class="ts-grid" style="--cols:3">{items.map((c) => <a class="ts-card" href={href(c)} data-tidy-record="conditions" data-tidy-record-id={c.id} data-tidy-record-label="Condition"><h3>{str(c.data.title)}</h3>{str(c.data.summary) && <p>{str(c.data.summary)}</p>}</a>)}</div> : <div class="ts-chips">{items.map((c) => <a class="ts-chip" href={href(c)} data-tidy-record="conditions" data-tidy-record-id={c.id} data-tidy-record-label="Condition">{str(c.data.title)}</a>)}</div>}
+	{cards ? <div class="ts-grid" style="--cols:3">{items.map((c) => { const Tag = href(c) ? "a" : "div"; return <Tag class="ts-card" href={href(c)} {...rec(c)}><h3>{str(c.data.title)}</h3>{str(c.data.summary) && <p>{str(c.data.summary)}</p>}</Tag>; })}</div> : <div class="ts-chips">{items.map((c) => { const Tag = href(c) ? "a" : "span"; return <Tag class="ts-chip" href={href(c)} {...rec(c)}>{str(c.data.title)}</Tag>; })}</div>}
 </div></section>
 )}

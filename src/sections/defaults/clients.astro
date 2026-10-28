@@ -1,17 +1,20 @@
 ---
-import { bool, entries, int, nodeOf, pic, str, mediaUrl } from "../lib";
+/** Client logos: a wall, a strip, with industries, or a carousel. Items written in the section; the client records when the section has none. */
+import { bool, entries, int, list, nodeOf, pic, str, mediaUrl, type Entry } from "../lib";
 import Head from "./_Head.astro";
 import Carousel from "./_Carousel.astro";
 const n = nodeOf(Astro.props);
-let items = await entries("clients", { limit: int(n.limit, 24) });
-if (bool(n.featured_only)) items = items.filter((c) => bool(c.data.featured));
+const own = list<Record<string, unknown>>(n.items).filter((i) => str(i.title) || mediaUrl(i.logo));
+let items: Entry[] = own.length ? own.map((data, i) => ({ id: "", slug: `item-${i}`, data })) : await entries("clients", { limit: int(n.limit, 24) });
+if (!own.length && bool(n.featured_only)) items = items.filter((c) => bool(c.data.featured));
 const industries = str(n.variant) === "with industries";
+const rec = (c: Entry) => (c.id ? { "data-tidy-record": "clients", "data-tidy-record-id": c.id, "data-tidy-record-label": "Client" } : {});
 ---
 {items.length > 0 && (
 <section class="ts ts-tight"><div class="ts-wrap">
 	<Head n={n} />
 	{str(n.variant) === "carousel" ? (
 		<Carousel cols={6} label="Clients" class="ts-carousel-logos">{items.map((b) => { const p = pic(b.data.logo); const Tag = str(b.data.url) ? "a" : "div"; return <Tag class="ts-logo ts-carousel-item" href={str(b.data.url) || undefined}>{mediaUrl(p) ? <img src={mediaUrl(p) ?? ""} alt={str(b.data.title)} loading="lazy" /> : <span>{str(b.data.title)}</span>}</Tag>; })}</Carousel>
-	) : <div class="ts-logos" style={str(n.variant) === "logo strip" ? "justify-content:space-between" : ""}>{items.map((c) => { const p = pic(c.data.logo); const Tag = str(c.data.url) ? "a" : "div"; return <Tag class="ts-logo" href={str(c.data.url) || undefined} data-tidy-record="clients" data-tidy-record-id={c.id} data-tidy-record-label="Client">{(p.image?.src || p.url) ? <img src={mediaUrl(p) ?? ""} alt={str(c.data.title)} /> : <span>{str(c.data.title)}</span>}{industries && str(c.data.industry) && <span class="ts-muted" style="font-weight:400">{str(c.data.industry)}</span>}</Tag>; })}</div>}
+	) : <div class="ts-logos" style={str(n.variant) === "logo strip" ? "justify-content:space-between" : ""}>{items.map((c) => { const p = pic(c.data.logo); const Tag = str(c.data.url) ? "a" : "div"; return <Tag class="ts-logo" href={str(c.data.url) || undefined} {...rec(c)}>{mediaUrl(p) ? <img src={mediaUrl(p) ?? ""} alt={str(c.data.title)} /> : <span>{str(c.data.title)}</span>}{industries && str(c.data.industry) && <span class="ts-muted" style="font-weight:400">{str(c.data.industry)}</span>}</Tag>; })}</div>}
 </div></section>
 )}

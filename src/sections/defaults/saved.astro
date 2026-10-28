@@ -1,0 +1,22 @@
+---
+/**
+ * Saved section: a section kept once in the saved_sections collection and
+ * placed on any page by name. Edit the record and every page follows. The
+ * wrapper tells the editor which record the block belongs to and carries the
+ * block itself, so a click edits the shared section in place and the chip
+ * offers to detach a page's own copy.
+ */
+import { entries, field, nodeOf, refId, str } from "../lib";
+import One from "../One.astro";
+const n = nodeOf(Astro.props);
+const props = Astro.props as { context?: unknown; grouped?: boolean; groupTone?: string | null };
+const want = str(n.section).trim().toLowerCase();
+const all = want ? await entries("saved_sections", { limit: 100 }) : [];
+const rec = all.find((r) => [r.slug, r.id, refId(r), field(r, "title")].some((v) => typeof v === "string" && v.toLowerCase() === want)) ?? null;
+const inner = rec && Array.isArray(rec.data.section) && rec.data.section[0] && typeof rec.data.section[0] === "object" ? (rec.data.section[0] as { _type: string } & Record<string, unknown>) : null;
+---
+{rec && inner && (
+	<div data-tidy-saved={rec.id} data-tidy-saved-title={field(rec, "title") || rec.slug || rec.id} data-tidy-saved-block={JSON.stringify(inner)}>
+		<One block={inner} context={props.context as never} grouped={props.grouped} groupTone={props.groupTone} />
+	</div>
+)}

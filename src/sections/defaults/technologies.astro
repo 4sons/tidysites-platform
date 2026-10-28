@@ -1,15 +1,18 @@
 ---
-import { entries, entryUrl, int, nodeOf, pic, str, wording } from "../lib";
+/** Equipment and technology as cards. Items written in the section; the technology records (with their pages) when the section has none. */
+import { entries, entryUrl, int, list, nodeOf, pic, str, wording, type Entry } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
 const tx = await wording(Astro.request);
 const n = nodeOf(Astro.props);
-const items = await entries("technologies", { limit: int(n.limit, 6) });
-const links = new Map(await Promise.all(items.map(async (t) => [t.id, await entryUrl("technologies", t)] as const)));
+const own = list<Record<string, unknown>>(n.items).filter((i) => str(i.title));
+const items: Entry[] = own.length ? own.map((data, i) => ({ id: "", slug: `item-${i}`, data })) : await entries("technologies", { limit: int(n.limit, 6) });
+const links = new Map(own.length ? [] : await Promise.all(items.map(async (t) => [t.id, await entryUrl("technologies", t)] as const)));
+const rec = (t: Entry) => (t.id ? { "data-tidy-record": "technologies", "data-tidy-record-id": t.id, "data-tidy-record-label": "Technology" } : {});
 ---
 {items.length > 0 && (
 <section class="ts ts-band"><div class="ts-wrap">
 	<Head n={n} />
-	<div class="ts-grid" style="--cols:3">{items.map((t) => { const p = pic(t.data.image); return <div class="ts-card" data-tidy-record="technologies" data-tidy-record-id={t.id} data-tidy-record-label="Technology">{(p.image || p.url) && <Photo image={p.image} url={p.url} alt={str(t.data.title)} ratio="wide" />}<h3>{str(t.data.title)}{str(t.data.brand) && <span class="ts-muted" style="font-weight:400;font-size:14px"> · {str(t.data.brand)}</span>}</h3>{str(t.data.summary) && <p>{str(t.data.summary)}</p>}{links.get(t.id) && <a href={links.get(t.id)} style="font-weight:700;color:var(--ts-primary);font-size:14px">{tx("Learn more")}</a>}</div>; })}</div>
+	<div class="ts-grid" style="--cols:3">{items.map((t) => { const p = pic(t.data.image); return <div class="ts-card" {...rec(t)}>{(p.image || p.url) && <Photo image={p.image} url={p.url} alt={str(t.data.title)} ratio="wide" />}<h3>{str(t.data.title)}{str(t.data.brand) && <span class="ts-muted" style="font-weight:400;font-size:14px"> · {str(t.data.brand)}</span>}</h3>{str(t.data.summary) && <p>{str(t.data.summary)}</p>}{links.get(t.id) && <a href={links.get(t.id)} style="font-weight:700;color:var(--ts-primary);font-size:14px">{tx("Learn more")}</a>}</div>; })}</div>
 </div></section>
 )}

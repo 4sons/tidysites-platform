@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.23.0
+
+Sections that are shared, and sections that carry their own items.
+
+- **Saved sections.** A new collection, `saved_sections` (a name and one section), and a section type, `saved`, that places one by name. Edit the record and every page that places it follows. In the editor, the chip on any section offers **Share** (save it under a name and place the shared one here) and, on a shared one, **Detach** (this page's own copy); a click on a shared section edits the shared record in place, with the panel titled for it. `sections/defaults/saved.astro`; `One.astro` renders a single block for both the page and a saved section.
+- **Items written in the section.** Brands, Clients, Insurance, Payment and financing, Technology, Conditions, Policies and Forms (downloads) take `items` written in the section, the way Badges always did; the records are used only when the section has none, so a site need not keep a collection of insurers to show a row of insurer logos. Offer takes its value, how to claim it and an end date on the section when no offer record is named.
+
 ## 0.22.0
 
 Editing where you look, and a page that shows every section.

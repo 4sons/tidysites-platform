@@ -5,7 +5,7 @@ import { sectionTypes } from "../src/template/index";
 describe("gallery", () => {
 	const groups = gallery(sectionTypes);
 	it("shows every section type but the one that depends on its page, one sample per layout", () => {
-		expect(groups.map((g) => g.slug)).toEqual(sectionTypes.map((t) => t.slug).filter((s) => s !== "related"));
+		expect(groups.map((g) => g.slug)).toEqual(sectionTypes.map((t) => t.slug).filter((s) => s !== "related" && s !== "saved"));
 		const hero = groups.find((g) => g.slug === "hero")!;
 		expect(hero.samples.map((s) => s.block.variant)).toEqual(["headline and photo", "headline and booking card", "headline and form", "photo with headline over", "headline and picker"]);
 		for (const g of groups) for (const s of g.samples) expect(s.block._type).toBe(g.slug);
