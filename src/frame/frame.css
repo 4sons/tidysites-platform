@@ -103,3 +103,5 @@
 .ts-consent-actions{display:flex;gap:8px}
 .ts-consent .ts-btn{padding:9px 14px;font-size:14px}
 @media (max-width:960px){.ts-consent{bottom:84px}}
+/* A closed dialog stays out of the page, wherever a section put it (a button inside a flex row). */
+.ts-dialog:not([open]){display:none}

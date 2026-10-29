@@ -1,0 +1,27 @@
+---
+/**
+ * A section's button. An ordinary link renders as one; a link of the form
+ * `#form:<Form name>` renders a button that opens that form in a dialog on
+ * the same page (the platform's own opener, data-tidy-dialog), with the
+ * dialog beside it. Used by the default sections wherever a button is a
+ * field; a theme's own section can use it the same way.
+ */
+import Dialog from "../frame/Dialog.astro";
+import Form from "./Form.astro";
+import { formDialog } from "./lib";
+interface Props { href: string; label: string; class?: string; section?: string }
+const { href, label, class: cls = "ts-btn", section = "button" } = Astro.props;
+const fd = formDialog(href);
+// One dialog per form per page, however many buttons open it: the first button on the page renders it.
+const seen = ((Astro.locals as unknown as { tidyFormDialogs?: Set<string> }).tidyFormDialogs ??= new Set<string>());
+const renderDialog = fd ? !seen.has(fd.id) : false;
+if (fd) seen.add(fd.id);
+---
+{fd ? (
+	<>
+		<button class={cls} type="button" data-tidy-dialog={fd.id}>{label}</button>
+		{renderDialog && <Dialog id={fd.id} title={fd.name} class="ts-form-dialog"><Form name={fd.name} hidden={{ section }} /></Dialog>}
+	</>
+) : (
+	<a class={cls} href={href}>{label}</a>
+)}

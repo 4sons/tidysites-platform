@@ -198,6 +198,8 @@ Reviews, team, services, brands, clients and gallery offer a `carousel` layout (
 
 ## Forms
 
+A button opens a form instead of a page when its link is `#form:<Form name>`: the hero's buttons, the intro's, the Cards button, the call-to-action band's and a Columns slot's. `sections/Action.astro` renders the button and a dialog holding that form (`ts-form-<slug>`), opened by the platform's own opener; a theme's section does the same by rendering `Action` where it renders a button, or by checking `formDialog(href)` from `sections/lib` and keeping its own markup for the plain case.
+
 A form is a record in the `forms` collection: a name, the contact details it asks for, its questions (short or long answer, one or several choices, a date, a number; each with its label, choices, whether it is required and a hint), the button label and the thank-you. `@tideworthy/tidysites-platform/sections/form` renders one anywhere by name:
 
 ```astro

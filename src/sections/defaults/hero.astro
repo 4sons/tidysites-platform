@@ -1,6 +1,7 @@
 ---
 /** Hero: headline, subhead, buttons, and a photo, a booking card, a form, or a picker of services. */
 import { bool, entries, entryUrl, getBusiness, nodeOf, pic, str, wording, mediaUrl } from "../lib";
+import Action from "../Action.astro";
 import Photo from "../Photo.astro";
 import Form from "../Form.astro";
 const n = nodeOf(Astro.props);
@@ -24,8 +25,8 @@ const over = variant === "photo with headline over";
 			<h1>{str(n.headline) || b.tagline || b.title}</h1>
 			{str(n.subhead) && <p class="ts-lede">{str(n.subhead)}</p>}
 			<div class="ts-actions">
-				<a class="ts-btn ts-btn-accent ts-btn-lg" href={button.href}>{button.label}</a>
-				{button2 && <a class="ts-btn ts-btn-outline ts-btn-lg" href={button2.href}>{button2.label}</a>}
+				<Action class="ts-btn ts-btn-accent ts-btn-lg" href={button.href} label={button.label} section="hero" />
+				{button2 && <Action class="ts-btn ts-btn-outline ts-btn-lg" href={button2.href} label={button2.label} section="hero" />}
 			</div>
 			{(showRating || bool(n.show_hours) || bool(n.show_phone)) && (
 				<p class="ts-muted" style="margin-top:18px;font-size:14px">
@@ -45,7 +46,7 @@ const over = variant === "photo with headline over";
 					{b.insuranceLine && <><dt>{tx("Insurance")}</dt><dd>{b.insuranceLine}</dd></>}
 					{b.newPatientsLine && <><dt></dt><dd>{b.newPatientsLine}</dd></>}
 				</dl>
-				<div class="ts-actions" style="margin-top:16px"><a class="ts-btn ts-btn-accent" href={button.href}>{button.label}</a>{b.phone && <a class="ts-btn ts-btn-outline" href={b.phoneHref}>{tx("Call us")}</a>}</div>
+				<div class="ts-actions" style="margin-top:16px"><Action class="ts-btn ts-btn-accent" href={button.href} label={button.label} section="hero" />{b.phone && <a class="ts-btn ts-btn-outline" href={b.phoneHref}>{tx("Call us")}</a>}</div>
 			</div>
 		)}
 		{variant === "headline and form" && (str(n.form) ? <Form name={str(n.form)} class="ts-card" submitLabel={str(n.button_label) || null} hidden={{ section: "hero" }} /> : (
