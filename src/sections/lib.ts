@@ -1,7 +1,7 @@
 /** Helpers every section component shares: reading a stored block, images, lists, and the business record. */
 import { getCollectionInfo, getEmDashCollection, getEmDashEntry, getSiteSettings } from "emdash";
 import { adobeKitId } from "../lib/providers";
-import { MAX_PAGE_DEPTH, PAGE_TYPES, entryPath, hasPage, indexOn, indexPath, normalizePath, pageType, routeCandidates, type Route } from "../lib/routes";
+import { MAX_PAGE_DEPTH, PAGE_TYPES, entryPath, hasPage, indexLive, indexOn, indexPath, normalizePath, pageType, routeCandidates, type PageType, type Route } from "../lib/routes";
 import { pageSeo, type Crumb, type Identity, type PageSeo } from "../lib/seo";
 export type { PageSeo, Crumb } from "../lib/seo";
 export { PAGE_TYPES, pageType, hasPage, indexPath, entryPath, normalizePath, type Route, type PageType } from "../lib/routes";
@@ -459,7 +459,7 @@ export async function collectionUrl(collection: string): Promise<string | null> 
 	const base = indexPath(patterns[collection] ?? t.pattern);
 	if (!base) return null;
 	if (collection === "posts") return base;
-	return indexOn(t, frame) ? base : null;
+	return indexLive(t, frame, await listable(t)) ? base : null;
 }
 /** The blog's address (the posts pattern's prefix), `/blog` unless the site changed it. */
 export async function blogBase(): Promise<string> {
@@ -467,10 +467,21 @@ export async function blogBase(): Promise<string> {
 }
 
 /** What a path is on this site: the first candidate whose record exists and has its page on, or null for a 404. */
+/** Whether a type has at least one record with its page on, so its listing has something to show. */
+async function listable(t: PageType): Promise<boolean> {
+	const list = await entries(t.collection, { limit: 50 });
+	return list.some((e) => hasPage(t, e.data));
+}
+
 export async function resolveRoute(path: string): Promise<(Route & { entry?: Awaited<ReturnType<typeof getEmDashEntry>>["entry"]; cacheHint?: unknown }) | null> {
 	const [patterns, frame] = await Promise.all([sitePatterns(), siteFrame()]);
 	for (const c of routeCandidates(path, patterns, frame)) {
-		if (c.kind === "home" || c.kind === "index" || c.kind === "blog") return c;
+		if (c.kind === "index") {
+			const t = pageType(c.collection);
+			if (!t || !indexLive(t, frame, await listable(t))) continue;
+			return c;
+		}
+		if (c.kind === "home" || c.kind === "blog") return c;
 		const collection = c.kind === "page" ? "pages" : c.collection;
 		let found: { entry: unknown; cacheHint?: unknown } | null = null;
 		try { found = (await getEmDashEntry(collection as never, c.slug)) as { entry: unknown; cacheHint?: unknown }; } catch { found = null; }
@@ -490,14 +501,16 @@ export async function sitePages(): Promise<SitePage[]> {
 	const out: SitePage[] = [{ path: "/", kind: "home", title: "Home" }];
 	const seen = new Set<string>(["/"]);
 	const add = (p: SitePage) => { const path = normalizePath(p.path); if (!seen.has(path)) { seen.add(path); out.push({ ...p, path }); } };
+	const lists = new Map<string, Entry[]>();
+	for (const t of PAGE_TYPES) lists.set(t.collection, await entries(t.collection, { limit: 1000 }));
 	for (const t of PAGE_TYPES) {
 		const pattern = patterns[t.collection] ?? t.pattern;
-		if (t.index && indexOn(t, frame)) { const base = indexPath(pattern); if (base) add({ path: base, kind: "index", collection: t.collection, title: t.index.label }); }
+		if (t.index && indexLive(t, frame, (lists.get(t.collection) ?? []).some((e) => hasPage(t, e.data)))) { const base = indexPath(pattern); if (base) add({ path: base, kind: "index", collection: t.collection, title: t.index.label }); }
 		if (t.collection === "posts") { const base = indexPath(pattern); if (base) add({ path: base, kind: "blog", collection: "posts", title: "Blog" }); }
 	}
 	for (const t of PAGE_TYPES) {
 		const pattern = patterns[t.collection] ?? t.pattern;
-		const list = await entries(t.collection, { limit: 1000 });
+		const list = lists.get(t.collection) ?? [];
 		const bySlug = new Map(list.map((e) => [e.slug ?? e.id, e] as const));
 		for (const e of list) {
 			const slug = e.slug ?? e.id;

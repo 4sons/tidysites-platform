@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.24.1
+
+- A listing page (`/services`, `/conditions`, `/technology`, `/products`, `/for`, `/service-areas`, `/case-studies`, `/team`) exists only when its switch on the frame record is on, or when the switch is untouched and the collection has at least one record with its page on. A site that never filled a collection no longer serves an empty page at a real address or lists it in the sitemap; the menus and links that build those addresses follow the same rule. An art school had six blank pages this way.
+
 ## 0.24.0
 
 - **A button that opens a form.** Any section button whose link is `#form:<Form name>` opens that form in a dialog on the same page instead of going anywhere: the hero's two buttons, the intro's, the Cards button, both call-to-action buttons, and a Columns slot's link (a card whose link opens a form keeps the button at its foot). `sections/Action.astro` renders the button and the dialog through the platform's own opener (`data-tidy-dialog`), and `formDialog()` in `sections/lib` is the rule a theme's own section can follow. Until now only the header's booking button could open a form without leaving the page; a site that wanted a registration pop-up had to write it in code.
