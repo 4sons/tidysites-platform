@@ -83,3 +83,15 @@ describe("pages under a parent", () => {
 		expect(matchPattern("/{slug}", "/a/b", true)).toBe("a/b");
 	});
 });
+
+import { indexLive, pageType as typeOf } from "../src/lib/routes";
+describe("indexLive", () => {
+	const t = typeOf("conditions")!;
+	it("exists when switched on, never when switched off, and otherwise only with something to list", () => {
+		expect(indexLive(t, { conditions_index: "on" }, false)).toBe(true);
+		expect(indexLive(t, { conditions_index: "off" }, true)).toBe(false);
+		expect(indexLive(t, {}, false)).toBe(false);
+		expect(indexLive(t, {}, true)).toBe(true);
+		expect(indexLive(t, null, true)).toBe(true);
+	});
+});

@@ -102,6 +102,20 @@ export function indexOn(type: PageType, frame: Record<string, unknown> | null | 
 	return frame?.[type.index.field] !== "off";
 }
 
+/**
+ * Whether the listing page of this type exists: switched on by hand, or left
+ * alone with something to list. A collection the site never filled (an art
+ * school has no conditions, no products) gets no empty page at a real
+ * address, and nothing in the sitemap.
+ */
+export function indexLive(type: PageType, frame: Record<string, unknown> | null | undefined, hasEntries: boolean): boolean {
+	if (!type.index) return false;
+	const v = frame?.[type.index.field];
+	if (v === "off") return false;
+	if (v === "on") return true;
+	return hasEntries;
+}
+
 /** A clean path: one leading slash, no trailing slash, no query or hash. */
 export function normalizePath(path: string): string {
 	let p = (path.split(/[?#]/)[0] ?? "").trim();
