@@ -53,3 +53,14 @@ describe("the template", () => {
 		expect(validateSeed(out as unknown as Record<string, unknown>).valid).toBe(true);
 	});
 });
+
+import { formDialog } from "../src/sections/lib";
+describe("formDialog", () => {
+	it("recognises a form link and names its dialog; ordinary links are left alone", () => {
+		expect(formDialog("#form:Class registration")).toEqual({ name: "Class registration", id: "ts-form-class-registration" });
+		expect(formDialog("form:Membership")).toEqual({ name: "Membership", id: "ts-form-membership" });
+		expect(formDialog("/contact")).toBeNull();
+		expect(formDialog("#form:")).toBeNull();
+		expect(formDialog(undefined)).toBeNull();
+	});
+});

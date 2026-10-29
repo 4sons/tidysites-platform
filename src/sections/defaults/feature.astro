@@ -2,6 +2,7 @@
 /** Why choose us: points as cards, a checklist, beside an image, or one mission statement. */
 import { PortableText } from "emdash/ui";
 import { lines, list, nodeOf, pic, str, steps, rich } from "../lib";
+import Action from "../Action.astro";
 import Photo from "../Photo.astro";
 const n = nodeOf(Astro.props);
 const variant = str(n.variant, "cards");
@@ -30,7 +31,7 @@ const side = str(n.image_side, "left");
 			) : null}
 			{bullets.length > 0 && <ul class="ts-list" style="margin-top:18px">{bullets.map((t) => <li>{t}</li>)}</ul>}
 			{stepList.length > 0 && <ol style="margin:18px 0 0;padding-left:20px;color:var(--ts-ink-2)">{stepList.map((s) => <li style="margin-bottom:8px"><b>{s.title}</b>{s.text && <> {s.text}</>}</li>)}</ol>}
-			{str(n.button_label) && <div class="ts-actions"><a class="ts-btn" href={str(n.button_url, "#")}>{str(n.button_label)}</a></div>}
+			{str(n.button_label) && <div class="ts-actions"><Action class="ts-btn" href={str(n.button_url, "#")} label={str(n.button_label)} section="cards" /></div>}
 		</div>
 		{hasPhoto && side === "right" && <Photo image={photo.image} url={photo.url} alt={str(n.headline)} ratio="wide" />}
 	</div>

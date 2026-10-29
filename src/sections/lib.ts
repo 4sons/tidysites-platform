@@ -21,6 +21,18 @@ export const rich = (v: unknown): unknown[] => (Array.isArray(v) && v.length ? v
 export const lines = (v: unknown): string[] => str(v).split("\n").map((s) => s.trim()).filter(Boolean);
 export const list = <T = Record<string, unknown>>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 export const slugify = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+/**
+ * A button whose link is `#form:<Form name>` opens that form in a dialog
+ * instead of going anywhere (sections/Action.astro renders the button and
+ * the dialog). Returns the form's name and the dialog's id, or null for an
+ * ordinary link.
+ */
+export function formDialog(href: unknown): { name: string; id: string } | null {
+	const m = /^#?form:(.+)$/i.exec(typeof href === "string" ? href.trim() : "");
+	if (!m || !m[1]!.trim()) return null;
+	const name = m[1]!.trim();
+	return { name, id: `ts-form-${slugify(name) || "form"}` };
+}
 
 /** An image field's value: a media value, or a plain URL left from an older site. */
 export type Pic = { image: { id?: string; src?: string; alt?: string; width?: number; height?: number } | null; url: string | null };

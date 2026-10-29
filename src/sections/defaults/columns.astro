@@ -9,7 +9,8 @@
  * can target. A section that continues the one above renders no background
  * of its own; Sections.astro draws the shared one around the run.
  */
-import { bool, int, list, mediaUrl, nodeOf, str } from "../lib";
+import { bool, formDialog, int, list, mediaUrl, nodeOf, str } from "../lib";
+import Action from "../Action.astro";
 import { markdownToHtml } from "../../lib/markdown";
 import { sanitizeHtml } from "../../lib/sanitize";
 import Form from "../Form.astro";
@@ -59,7 +60,7 @@ const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ?
 						{kind === "text" && (<>
 							{heading && <H>{heading}</H>}
 							{str(s.text).trim() && <div class="ts-prose" data-tidy-md={`slots.${slotIndex}.text`} set:html={prose(str(s.text))} />}
-							{link && str(s.link_label) && <div class="ts-actions"><a class={`ts-btn ${shade ? "ts-btn-accent" : ""}`} href={link}>{str(s.link_label)}</a></div>}
+							{link && str(s.link_label) && <div class="ts-actions"><Action class={`ts-btn ${shade ? "ts-btn-accent" : ""}`} href={link} label={str(s.link_label)} section="columns" /></div>}
 						</>)}
 						{kind === "image" && img && (
 							<figure class="ts-col-pic">
@@ -67,12 +68,12 @@ const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ?
 								{heading && <figcaption>{heading}</figcaption>}
 							</figure>
 						)}
-						{kind === "card" && (() => { const Tag = link ? "a" : "div"; return (
-							<Tag class="ts-card" href={link || undefined}>
+						{kind === "card" && (() => { const opensForm = Boolean(formDialog(link)); const Tag = link && !opensForm ? "a" : "div"; return (
+							<Tag class="ts-card" href={link && !opensForm ? link : undefined}>
 								{img && <img class="ts-col-icon" src={img} alt="" loading="lazy" />}
 								{heading && <h3>{heading}</h3>}
 								{str(s.text).trim() && <div class="ts-prose" data-tidy-md={`slots.${slotIndex}.text`} set:html={prose(str(s.text))} />}
-								{link && str(s.link_label) && <span class="ts-card-link">{str(s.link_label)}</span>}
+								{link && str(s.link_label) && (opensForm ? <Action class="ts-btn" href={link} label={str(s.link_label)} section="columns" /> : <span class="ts-card-link">{str(s.link_label)}</span>)}
 							</Tag>
 						); })()}
 						{kind === "number" && <div class="ts-card ts-stat"><b>{str(s.value)}</b>{str(s.label) && <span>{str(s.label)}</span>}</div>}

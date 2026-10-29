@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.24.0
+
+- **A button that opens a form.** Any section button whose link is `#form:<Form name>` opens that form in a dialog on the same page instead of going anywhere: the hero's two buttons, the intro's, the Cards button, both call-to-action buttons, and a Columns slot's link (a card whose link opens a form keeps the button at its foot). `sections/Action.astro` renders the button and the dialog through the platform's own opener (`data-tidy-dialog`), and `formDialog()` in `sections/lib` is the rule a theme's own section can follow. Until now only the header's booking button could open a form without leaving the page; a site that wanted a registration pop-up had to write it in code.
+
 ## 0.23.1
 
 - Bootstrap applies the seed's structure as an update before its content. A new site boots first on its template's prebuilt worker, whose EmDash setup may already have created the collections from an older seed; the content that follows (a Columns band on the About page) was then refused against the older fields. The structure now matches this seed before any entry is written.
