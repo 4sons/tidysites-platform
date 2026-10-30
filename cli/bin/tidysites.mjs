@@ -16,7 +16,7 @@
  *   gallery [type]                            screenshot of every section type in this theme, or the first screen of one type
  *   fetch <url> [--out dir]                   a page of the site being ported: cleaned HTML and its outline
  *   rm <collection>/<slug> ...                 delete entry files (globs allowed: services/*); push --prune then removes them from the website
- *   publish --yes                             the live site becomes a copy of the preview site
+ *   publish --yes                             the live site becomes a copy of the preview site (refused for a site live on the client's own domain: the person publishes that)
  *
  * The site is the remote: pull, edit, push. A push that would overwrite an
  * entry changed on the website since the pull is refused until you pull
@@ -564,6 +564,7 @@ function rmCmd({ dir }) {
 
 async function publish(ctx) {
 	if (!flags.yes) fail('Publishing makes the live site a copy of the preview site. Look at it first (`tidysites shot /`), then run `tidysites publish --yes`.');
+	// A website live on the client's own domain is never published from here: the website refuses (409 live_domain) and says who may.
 	const { json, text } = await tool(ctx.cfg, 'publish_website', { site_id: ctx.cfg.site });
 	say(json ? JSON.stringify(json, null, 2) : text);
 }
