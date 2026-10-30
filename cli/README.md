@@ -22,7 +22,7 @@ nothing else; it lives in `.tidysites/key`, which is kept out of git.
 | `tidysites status` | what changed here since the pull |
 | `tidysites validate` | every file against the content model, with the file and the field in each message |
 | `tidysites push [--prune] [--force] [--dry] [--only pages]` | validate, then write the created and updated entries back (with `--prune`, delete the entries whose files are gone), then pull |
-| `tidysites shot <path or url> [--mobile] [--desktop] [--first-screen] [--live]` | a screenshot of a page of the preview site, the live site, or any address, saved under `.tidysites/shots/` |
+| `tidysites shot <path or url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen] [--live]` | a screenshot of a page of the preview site, the live site, or any address, saved under `.tidysites/shots/`; none of the width flags means desktop and mobile; a port compares all four |
 | `tidysites pages` | every address the website renders |
 | `tidysites page <path> [--html]` | the rendered page, section by section, with the key each section carries |
 | `tidysites schema [type or collection]` | the section types and layouts, or one type's or collection's fields |
@@ -82,4 +82,4 @@ names its own in `header_row`.
 3. `frame/frame.json` for the top bar, the call bar, the footer headings, the wording; `menus/primary.json` and `menus/footer.json` for the menus (an item with `children` is a dropdown).
 4. Pages as sections: `pages/<slug>.json`, each a list in `data.sections`. Columns is the section for a band with no record behind it.
 5. The look: brand colours and fonts on the Business record, `business/business.css` for what the tokens cannot say. The theme's own rules are written as `.ts.ts-accent` and `.ts.ts-ink .ts-prose a`, so a rule of yours needs the same weight (`.ts.ts-accent …`) to win.
-6. `tidysites validate`, `tidysites push`, `tidysites shot /` and `tidysites shot / --mobile`, and look.
+6. `tidysites validate`, `tidysites push`, `tidysites shot / --all`, and look at every width: a design often shows a different header above 1440px.
