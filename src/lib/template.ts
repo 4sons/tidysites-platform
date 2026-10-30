@@ -8,7 +8,7 @@
  *   {{ business.phone }}                      a value, HTML-escaped
  *   {{{ page.copy_html }}}                    a value already rendered as HTML (sanitised afterwards like the rest)
  *   {{#each services}} … {{this.title}} … {{/each}}     a loop; `{{#each services as s}}` names the item; `{{else}}` for an empty list
- *   {{#if page.summary}} … {{else}} … {{/if}}  a condition; `{{#unless x}}`; `{{#if page.collection == "services"}}`
+ *   {{#if page.summary}} … {{else}} … {{/if}}   also {{#if a == "x"}}, {{#if a != "x"}}, {{#if s.category_title == c.title}}  a condition; `{{#unless x}}`; `{{#if page.collection == "services"}}`
  *   {{> menu "primary"}}                      a drop-in the renderer fills (menu, logo, phone, address, hours, social, year, button, form)
  *
  * Inside a loop `this` is the item, `@index`, `@first` and `@last` say where
@@ -32,7 +32,7 @@ type Node =
 	| { kind: "if"; test: Test; negate: boolean; body: Node[]; otherwise: Node[] }
 	| { kind: "include"; include: Include };
 
-type Test = { path: string; op?: "==" | "!="; value?: string };
+type Test = { path: string; op?: "==" | "!="; value?: string; /** A path on the right of == or != instead of a literal. */ other?: string };
 
 const TAG = /\{\{\{\s*([^}]+?)\s*\}\}\}|\{\{\s*([^}]+?)\s*\}\}/g;
 
@@ -69,12 +69,13 @@ export function parse(text: string): Node[] {
 			if (b.startsWith("#if ") || b.startsWith("#unless ")) {
 				const negate = b.startsWith("#unless ");
 				const expr = b.slice(negate ? 8 : 4).trim();
-				const m = /^([^\s=!]+)(?:\s*(==|!=)\s*"([^"]*)")?\s*$/.exec(expr);
-				if (!m) throw new TemplateError(`Cannot read "{{${b}}}": write {{#if page.summary}} or {{#if page.collection == "services"}}`);
+				// {{#if a}}, {{#if a == "literal"}}, {{#if a != "literal"}}, or a path on the right: {{#if s.category_title == c.title}}
+				const m = /^([^\s=!]+)(?:\s*(==|!=)\s*(?:"([^"]*)"|([^\s"=!]+)))?\s*$/.exec(expr);
+				if (!m) throw new TemplateError(`Cannot read "{{${b}}}": write {{#if page.summary}}, {{#if page.collection == "services"}} or {{#if s.category_title == c.title}}`);
 				const body = block(["else", negate ? "/unless" : "/if"]);
 				const otherwise = body.closer === "else" ? block([negate ? "/unless" : "/if"]) : { nodes: [] as Node[], closer: "/if" };
 				if (body.closer === null || otherwise.closer === null) throw new TemplateError(`{{#if ${m[1]}}} has no {{/if}}`);
-				nodes.push({ kind: "if", test: { path: m[1]!, ...(m[2] ? { op: m[2] as "==" | "!=", value: m[3] ?? "" } : {}) }, negate, body: body.nodes, otherwise: otherwise.nodes });
+				nodes.push({ kind: "if", test: { path: m[1]!, ...(m[2] ? { op: m[2] as "==" | "!=", ...(m[4] ? { other: m[4] } : { value: m[3] ?? "" }) } : {}) }, negate, body: body.nodes, otherwise: otherwise.nodes });
 				continue;
 			}
 			if (b.startsWith(">")) {
@@ -113,7 +114,7 @@ export function referenced(text: string): { roots: Set<string>; includes: Includ
 		for (const n of nodes) {
 			if (n.kind === "var") root(n.path, locals, roots);
 			else if (n.kind === "each") { root(n.path, locals, roots); const inner = new Set(locals); if (n.alias) inner.add(n.alias); inner.add("this"); walk(n.body, inner); walk(n.otherwise, locals); }
-			else if (n.kind === "if") { root(n.test.path, locals, roots); walk(n.body, locals); walk(n.otherwise, locals); }
+			else if (n.kind === "if") { root(n.test.path, locals, roots); if (n.test.other) root(n.test.other, locals, roots); walk(n.body, locals); walk(n.otherwise, locals); }
 			else if (n.kind === "include") includes.push(n.include);
 		}
 	};
@@ -200,7 +201,8 @@ export function render(text: string, ctx: Scope): string {
 				case "include": out.push(includeToken(n.include)); break;
 				case "if": {
 					const v = lookup(n.test.path, scopes);
-					let pass = n.test.op ? (n.test.op === "==" ? print(v) === n.test.value : print(v) !== n.test.value) : truthy(v);
+					const want = n.test.other !== undefined ? print(lookup(n.test.other, scopes)) : n.test.value ?? "";
+					let pass = n.test.op ? (n.test.op === "==" ? print(v) === want : print(v) !== want) : truthy(v);
 					if (n.negate) pass = !pass;
 					walk(pass ? n.body : n.otherwise, scopes);
 					break;
