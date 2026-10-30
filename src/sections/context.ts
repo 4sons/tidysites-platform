@@ -15,9 +15,9 @@ import { getEmDashEntry, getMenu } from "emdash";
 import { isPortableText, portableTextToHtml } from "../lib/portable-text";
 import { referenced, render, splitIncludes, hasTemplate, TemplateError, type Include, type Scope } from "../lib/template";
 import { sanitizeHtml } from "../lib/sanitize";
-import { addressLine, entries, entryUrl, formDialog, getBusiness, getLocation, hoursRows, mediaUrl, pic, resolveRoute, slugify, str, type Business } from "./lib";
+import { addressLine, entries, entryUrl, formDialog, getBusiness, getLocation, hoursRows, mediaUrl, pic, resolveRoute, slugify, str, type Business, dateOf } from "./lib";
 import { pageType } from "../lib/routes";
-import { LOGO_SIZES, mediaSrcset } from "../lib/images";
+import { LOGO_SIZES, mediaSrcset, srcsetForSrc } from "../lib/images";
 
 export type Segment = { html: string } | { form: string; id: string };
 export interface Rendered { segments: Segment[]; dialogs: Array<{ id: string; name: string }>; error: string | null }
@@ -40,6 +40,9 @@ function withMediaUrls(data: Record<string, unknown>): Record<string, unknown> {
 		// Written content (rich text) prints as HTML through {{{ x.content_html }}}; the blocks themselves stay for loops.
 		if (isPortableText(v)) out[`${k}_html`] = portableTextToHtml(v);
 	}
+	// Dates print ready to read: {{ p.published_date }} and {{ p.updated_date }} ("Oct 30, 2026"); the raw values stay for sorting.
+	if (data.publishedAt) out.published_date = dateOf(data.publishedAt);
+	if (data.updatedAt) out.updated_date = dateOf(data.updatedAt);
 	return out;
 }
 
@@ -172,7 +175,7 @@ async function includeHtml(inc: Include, b: Business, request: Request): Promise
 			return menuHtml(menu?.items ?? [], new URL(request.url).pathname.replace(/\/+$/, "") || "/", depth);
 		}
 		case "logo": {
-			const logoSrcset = b.logo ? mediaSrcset(b.raw.logo) : null;
+			const logoSrcset = b.logo ? (mediaSrcset(b.raw.logo) ?? srcsetForSrc(b.logo.src)) : null;
 			const inner = b.logo ? `<img class="ts-logo-img" src="${esc(b.logo.src)}"${logoSrcset ? ` srcset="${esc(logoSrcset)}" sizes="${LOGO_SIZES}"` : ""} alt="${esc(b.logo.alt ?? b.title)}"${b.logo.width ? ` width="${b.logo.width}"` : ""}${b.logo.height ? ` height="${b.logo.height}"` : ""}>` : `<span class="ts-logo-text">${esc(b.title)}</span>`;
 			return `<a class="ts-logo" href="/">${inner}</a>`;
 		}

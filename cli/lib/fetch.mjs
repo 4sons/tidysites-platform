@@ -56,6 +56,19 @@ export function outline(html, base) {
 	if (t) out.title = text(t[1]);
 	const d = html.match(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i) || html.match(/<meta[^>]+content=["']([^"']*)["'][^>]*name=["']description["']/i);
 	if (d) out.description = decode(d[1]).trim();
+	// The rest of the page's SEO, so a port carries it over: canonical, robots, share tags, the icon, the structured data types.
+	const meta = (attr, name) => { const m = html.match(new RegExp(`<meta[^>]+${attr}=["']${name}["'][^>]*content=["']([^"']*)["']`, 'i')) || html.match(new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]*${attr}=["']${name}["']`, 'i')); return m ? decode(m[1]).trim() : null; };
+	const link = (rel) => { const m = html.match(new RegExp(`<link[^>]+rel=["'][^"']*\\b${rel}\\b[^"']*["'][^>]*href=["']([^"']+)["']`, 'i')) || html.match(new RegExp(`<link[^>]+href=["']([^"']+)["'][^>]*rel=["'][^"']*\\b${rel}\\b[^"']*["']`, 'i')); return m ? abs(base, m[1]) : null; };
+	out.seo = {
+		canonical: link('canonical'),
+		robots: meta('name', 'robots'),
+		og_title: meta('property', 'og:title'), og_description: meta('property', 'og:description'), og_image: meta('property', 'og:image') ? abs(base, meta('property', 'og:image')) : null, og_type: meta('property', 'og:type'),
+		twitter_card: meta('name', 'twitter:card'),
+		favicon: link('icon') || link('shortcut icon') || abs(base, '/favicon.ico'),
+		apple_touch_icon: link('apple-touch-icon'),
+		schema_types: Array.from(html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)).flatMap((m) => { try { const j = JSON.parse(m[1]); const list = Array.isArray(j) ? j : j['@graph'] ? j['@graph'] : [j]; return list.map((x) => x['@type']).filter(Boolean).flat(); } catch { return []; } }),
+		lang: (html.match(/<html[^>]+lang=["']([^"']+)["']/i) || [])[1] ?? null
+	};
 	for (const m of html.matchAll(/<(h[1-4])\b[^>]*>([\s\S]*?)<\/\1>/gi)) {
 		const s = text(m[2]);
 		if (s) out.headings.push({ level: Number(m[1][1]), text: s });
@@ -130,6 +143,10 @@ export function outlineText(o) {
 	lines.push(`URL: ${o.url}`);
 	if (o.title) lines.push(`Title: ${o.title}`);
 	if (o.description) lines.push(`Description: ${o.description}`);
+	if (o.seo) {
+		lines.push('', 'SEO (carry these over: meta_title, meta_description, canonical, share image, schema; the icon onto the Business record):');
+		for (const [k, v] of Object.entries(o.seo)) if (v && (!Array.isArray(v) || v.length)) lines.push(`  ${k}: ${Array.isArray(v) ? v.join(', ') : v}`);
+	}
 	if (o.nav.length) {
 		lines.push('', 'Navigation:');
 		for (const n of o.nav) lines.push(`  ${n.label}  →  ${n.href}`);

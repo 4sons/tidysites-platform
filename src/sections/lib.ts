@@ -130,6 +130,8 @@ export interface Business {
 	headerRow: string; footerRow: string;
 	popupShows: "nothing" | "an offer" | "a form"; popupTitle: string; popupOffer: string; popupForm: string; popupTrigger: "on arrival" | "after ten seconds" | "after thirty seconds" | "after scrolling halfway" | "on leaving"; popupEvery: "once a visit" | "once a day" | "every time";
 	logo: { src: string; alt?: string; width?: number; height?: number } | null;
+	/** The browser tab icon, when the Business record carries one. */
+	favicon: { src: string; alt?: string; width?: number; height?: number } | null;
 	ga4Id: string; gtmId: string; gtmId2: string; customCss: string;
 	/** Structured data: the business type (Dentist, Plumber...), the price range, and the frame record's own JSON-LD for the business when it replaces the generated one. */
 	schemaType: string; priceRange: string; siteSchema: string;
@@ -205,7 +207,7 @@ async function readBusiness(): Promise<Business> {
 		footerServicesLabel: str(fr.footer_services_label), footerServices: fr.footer_services !== "off", footerMenuLabel: str(fr.footer_menu_label), siteLanguage: str(fr.site_language) || "en",
 		headerRow: str(fr.header_row), footerRow: str(fr.footer_row),
 		popupShows: pickOne(fr.popup_shows, ["nothing", "an offer", "a form"], "nothing"), popupTitle: str(fr.popup_title), popupOffer: str(fr.popup_offer), popupForm: str(fr.popup_form), popupTrigger: pickOne(fr.popup_trigger, ["on arrival", "after ten seconds", "after thirty seconds", "after scrolling halfway", "on leaving"], "after ten seconds"), popupEvery: pickOne(fr.popup_every, ["once a visit", "once a day", "every time"], "once a visit"),
-		logo: mediaSrc(d.logo), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), gtmId2: str(ig.gtm_id_2), customCss: s("custom_css"), schemaType: s("schema_type"), priceRange: s("price_range"), siteSchema: str(fr.site_schema), wording: parseWording(fr.wording), raw: d,
+		logo: mediaSrc(d.logo), favicon: mediaSrc(d.favicon), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), gtmId2: str(ig.gtm_id_2), customCss: s("custom_css"), schemaType: s("schema_type"), priceRange: s("price_range"), siteSchema: str(fr.site_schema), wording: parseWording(fr.wording), raw: d,
 	};
 }
 /** "Original => Replacement" lines into a map; a line without the arrow, or with an empty side, is skipped. */
@@ -623,4 +625,10 @@ export async function pageHead(request: Request, input: PageHeadInput): Promise<
 		identity, crumbs, faqs, author, shareImage: abs(mediaUrl(data.share_image)), recordImage,
 		dates: { published: input.dates?.published || iso(data.publishedAt), modified: input.dates?.modified || iso(data.updatedAt) }
 	});
+}
+
+/** A stored date (a Date, an ISO string or a timestamp) as "Oct 30, 2026"; empty for anything else. */
+export function dateOf(v: unknown, locale = "en-US"): string {
+	const d = v instanceof Date ? v : typeof v === "string" || typeof v === "number" ? new Date(v) : null;
+	return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }) : "";
 }
