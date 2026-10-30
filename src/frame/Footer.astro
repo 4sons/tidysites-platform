@@ -7,7 +7,7 @@
 import type { Business } from "../sections/lib";
 import { addressLine, entries, entryUrl, getLocation, hoursRows, mediaUrl, wording } from "../sections/lib";
 import type { MenuItem } from "./Header.astro";
-import { LOGO_SIZES, mediaSrcset } from "../lib/images";
+import { LOGO_SIZES, mediaSrcset, srcsetForSrc } from "../lib/images";
 import Row from "../sections/Row.astro";
 import "../sections/defaults.css";
 import "./frame.css";
@@ -39,7 +39,7 @@ const year = new Date().getFullYear();
 <footer class={`ts-frame ts-footer ${cls}`} data-tidy-frame="footer">
 	<div class="ts-footer-wrap">
 		<div class="ts-footer-brand">
-			<a class="ts-brand" href="/">{logo ? <img class="ts-brand-logo" src={logo} srcset={mediaSrcset(b.raw.logo) ?? undefined} sizes={mediaSrcset(b.raw.logo) ? LOGO_SIZES : undefined} alt={b.logo?.alt || siteTitle} loading="lazy" /> : <><span class="ts-brand-mark">{initial}</span><span class="ts-brand-name">{siteTitle}</span></>}</a>
+			<a class="ts-brand" href="/">{logo ? <img class="ts-brand-logo" src={logo} srcset={(mediaSrcset(b.raw.logo) ?? srcsetForSrc(logo)) ?? undefined} sizes={(mediaSrcset(b.raw.logo) ?? srcsetForSrc(logo)) ? LOGO_SIZES : undefined} alt={b.logo?.alt || siteTitle} loading="lazy" /> : <><span class="ts-brand-mark">{initial}</span><span class="ts-brand-name">{siteTitle}</span></>}</a>
 			{b.tagline && <p class="ts-footer-tagline">{b.tagline}</p>}
 			{b.social.length > 0 && <div class="ts-footer-social">{b.social.map((s) => <a class="ts-footer-social-link" href={s.url} aria-label={s.network} target="_blank" rel="noopener">{s.network.charAt(0).toUpperCase()}</a>)}</div>}
 		</div>

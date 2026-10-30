@@ -8,6 +8,8 @@
  *   validate                                  check the files against the content model
  *   push [--prune] [--force] [--dry]          write the changes back, then pull
  *   shot <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen]   screenshot to .tidysites/shots (none = desktop and mobile); a tall page comes in 1600px bands
+ *   measure <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--full]   the computed type and boxes of a page: the numbers to style to and diff
+ *   redirect [add <old> <new> | rm <old>]      the website's redirects (an old address that must keep working goes here)
  *   pages                                     every address the website renders
  *   page <path> [--html]                      the rendered page, section by section
  *   schema [name]                             section types and layouts, or one type's or collection's fields
@@ -380,6 +382,68 @@ async function shot(ctx, target = positional[0] ?? '/', opts = {}) {
 	if (!images.length) say(json ? JSON.stringify(json).slice(0, 500) : 'No image came back.');
 }
 
+/** The computed type and boxes of a page, old or new, at one or several widths: the numbers a port styles to. */
+async function measure(ctx) {
+	const target = positional[0] ?? '/';
+	const isUrl = /^https?:\/\//.test(target);
+	const picked = ['desktop', 'mobile', 'tablet', 'wide'].filter((v) => flags[v]);
+	const view = flags.all ? 'all' : picked.length ? picked.join(',') : 'desktop';
+	const args = { site_id: ctx.cfg.site, view, ...(isUrl ? { url: target } : { path: target, site: flags.live ? 'live' : 'preview' }) };
+	const { json } = await tool(ctx.cfg, 'measure_website', args);
+	if (!json?.views) fail('No measurements came back.');
+	const outDir = join(ctx.dir, META, 'measures');
+	mkdirSync(outDir, { recursive: true });
+	const stamp = new Date().toISOString().replace(/[-:.]/g, '').slice(4, 18);
+	const base = (isUrl ? new URL(target).hostname + new URL(target).pathname : target).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'home';
+	for (const v of json.views) {
+		if (v.error) { say(`${v.view}: ${v.error}`); continue; }
+		const file = join(outDir, `${base}-${v.view}-${stamp}.json`);
+		writeFileSync(file, JSON.stringify(v, null, '\t'));
+		say(`\n${v.view} (${v.width}px wide, page ${v.page_height}px tall; fonts: ${v.fonts.join(', ')})  →  ${relative(process.cwd(), file)}`);
+		const kinds = flags.kind ? String(flags.kind).split(',') : ['box', 'text', 'button', 'image'];
+		const items = v.items.filter((it) => kinds.includes(it.kind)).filter((it) => it.kind !== 'text' || /^h[1-6]$/.test(it.tag) || flags.all || flags.text || it.font?.size >= 16 || /^(p|li|a)$/.test(it.tag));
+		const shown = flags.full ? items : items.slice(0, 120);
+		for (const it of shown) {
+			const where = `y${String(it.y).padStart(5)} x${String(it.x).padStart(4)} ${String(it.width).padStart(4)}×${String(it.height).padEnd(4)}`;
+			if (it.kind === 'box') say(`  ${where} ▭ ${it.selector}  pad ${it.padding.join('/')}  bg ${it.background}${it.text ? `  "${it.text}"` : ''}`);
+			else if (it.kind === 'image') say(`  ${where} ▣ ${it.selector}  ${it.natural?.width}×${it.natural?.height} natural${it.radius && it.radius !== '0px' ? `  radius ${it.radius}` : ''}  ${it.text ? `"${it.text}"` : it.src?.split('/').pop()}`);
+			else {
+				const f = it.font;
+				const type = `${f.size}px/${f.line_height ?? 'auto'} w${f.weight} ${f.family}${f.letter_spacing !== 'normal' ? ` ls ${f.letter_spacing}` : ''}${f.transform !== 'none' ? ` ${f.transform}` : ''} ${f.color}`;
+				say(`  ${where} ${it.kind === 'button' ? '▶' : it.tag.padEnd(2)} ${type}${it.kind === 'button' ? `  pad ${it.padding.join('/')} bg ${it.background} r ${it.radius}` : ''}  "${it.text}"`);
+			}
+		}
+		if (items.length > shown.length) say(`  … ${items.length - shown.length} more in the file (--full prints all)`);
+	}
+}
+
+/** The website's redirects: list them, add one, remove one. They ship with the next publish. */
+async function redirect(ctx) {
+	const sub = positional[0];
+	if (sub === 'add') {
+		const [, from, to] = positional;
+		if (!from || !to) fail('Usage: tidysites redirect add <old path> <new path or url>');
+		const { json } = await tool(ctx.cfg, 'add_website_redirect', { site_id: ctx.cfg.site, source: from, destination: to });
+		say(json ? `${from} → ${to}` : 'Added.');
+		return;
+	}
+	if (sub === 'rm' || sub === 'remove') {
+		const from = positional[1];
+		if (!from) fail('Usage: tidysites redirect rm <old path>');
+		const { json: list } = await tool(ctx.cfg, 'list_website_redirects', { site_id: ctx.cfg.site });
+		const rows = list?.redirects ?? list?.items ?? [];
+		const hit = rows.find((r) => (r.source ?? r.from) === from || (r.source ?? r.from) === from.replace(/\/$/, '') || (r.source ?? r.from) === `${from}/`);
+		if (!hit) fail(`No redirect from ${from}.`);
+		await tool(ctx.cfg, 'remove_website_redirect', { site_id: ctx.cfg.site, redirect_id: hit.id });
+		say(`Removed ${from}.`);
+		return;
+	}
+	const { json } = await tool(ctx.cfg, 'list_website_redirects', { site_id: ctx.cfg.site });
+	const rows = json?.redirects ?? json?.items ?? [];
+	if (!rows.length) { say('No redirects.'); return; }
+	for (const r of rows) say(`${(r.source ?? r.from ?? '').padEnd(44)} → ${r.destination ?? r.to ?? ''}${r.status && r.status !== 301 ? `  (${r.status})` : ''}`);
+}
+
 async function pages(ctx) {
 	const { json } = await tool(ctx.cfg, 'list_website_pages', { site_id: ctx.cfg.site });
 	const list = json?.pages ?? json?.items ?? [];
@@ -549,6 +613,11 @@ async function main() {
 			const type = positional[0];
 			return shot(config(), `/_tidy/gallery${type ? `#${type}` : ''}`, { view: 'desktop', name: type ? `gallery-${type}` : 'gallery', firstScreen: Boolean(type) });
 		}
+		case 'measure':
+			return measure(config());
+		case 'redirect':
+		case 'redirects':
+			return redirect(config());
 		case 'pages':
 			return pages(config());
 		case 'page':

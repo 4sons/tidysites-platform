@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.28.0
+
+From the fourth port's log (Neighbourhood Electric).
+
+- The browser tab icon: the Business record's favicon prints as the page's icon (and the Apple touch icon). The field existed; nothing read it.
+- Post dates: the Posts section's cards show the published date; custom HTML gets `published_date` and `updated_date` on every record ("Oct 30, 2026") beside the raw values. The Article schema already carried both.
+- A Columns card's icon keeps the alt text its picture carries (it printed `alt=""`).
+- The logo drop-in and the frame's header and footer logo print their resized variants from the picture's address when the stored value carries no storage key.
+
 ## 0.27.0
 
 From the first GTmetrix reads of a ported site, which the Wix original beat on load time.

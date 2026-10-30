@@ -9,7 +9,7 @@
  */
 import type { Business } from "../sections/lib";
 import { buttonClass, getOffer, mediaUrl, str, wording } from "../sections/lib";
-import { LOGO_SIZES, mediaSrcset } from "../lib/images";
+import { LOGO_SIZES, mediaSrcset, srcsetForSrc } from "../lib/images";
 import Action from "../sections/Action.astro";
 import { bookingEmbedUrl } from "../lib/providers";
 import Dialog from "./Dialog.astro";
@@ -48,7 +48,7 @@ const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, tr
 <header class={`ts-frame ts-header ${sticky ? "ts-header-sticky" : ""} ${cls}`} data-tidy-frame="header">
 	{topBar && <div class="ts-topbar"><div class="ts-topbar-wrap">{topBar.href ? <a class="ts-topbar-link" href={topBar.href}>{topBar.text}</a> : <span>{topBar.text}</span>}</div></div>}
 	<div class="ts-header-wrap">
-		<a class="ts-brand" href="/">{logo ? <img class="ts-brand-logo" src={logo} srcset={mediaSrcset(b.raw.logo) ?? undefined} sizes={mediaSrcset(b.raw.logo) ? LOGO_SIZES : undefined} alt={b.logo?.alt || siteTitle} width={b.logo?.width} height={b.logo?.height} /> : <><span class="ts-brand-mark">{initial}</span><span class="ts-brand-name">{siteTitle}</span></>}</a>
+		<a class="ts-brand" href="/">{logo ? <img class="ts-brand-logo" src={logo} srcset={(mediaSrcset(b.raw.logo) ?? srcsetForSrc(logo)) ?? undefined} sizes={(mediaSrcset(b.raw.logo) ?? srcsetForSrc(logo)) ? LOGO_SIZES : undefined} alt={b.logo?.alt || siteTitle} width={b.logo?.width} height={b.logo?.height} /> : <><span class="ts-brand-mark">{initial}</span><span class="ts-brand-name">{siteTitle}</span></>}</a>
 		<nav class="ts-nav" aria-label="Main">
 			<ul class="ts-nav-list">
 				{items.map((i) => (
