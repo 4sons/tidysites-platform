@@ -165,8 +165,15 @@ function readLocalMenus(dir) {
 	return out;
 }
 
-async function pull({ dir, cfg }, collections = null) {
-	const want = collections ?? (flags.collections ? String(flags.collections).split(',').map((s) => s.trim()).filter(Boolean) : null);
+async function pull({ dir, cfg }, collections = null, { overwrite = new Set(), menus: wantMenus = null } = {}) {
+	let want = collections ?? (flags.collections ? String(flags.collections).split(',').map((s) => s.trim()).filter(Boolean) : null);
+	// `menus` is not a collection on the website; it is pulled through the site's own menu tools.
+	let refreshMenus = wantMenus ?? (want === null || want.includes('menus'));
+	if (want) want = want.filter((c) => c !== 'menus');
+	if (want && !want.length) {
+		await pullMenus({ dir, cfg });
+		return;
+	}
 	const [{ json: doc }, { json: schema }] = await Promise.all([
 		tool(cfg, 'pull_website', { site_id: cfg.site, ...(want ? { collections: want.join(',') } : {}) }),
 		tool(cfg, 'get_website_schema', { site_id: cfg.site })
@@ -184,7 +191,9 @@ async function pull({ dir, cfg }, collections = null) {
 			const key = `${collection}/${e.slug ?? e.id}`;
 			const mine = local[key];
 			const was = prev?.entries?.[key];
-			if (mine && was && !sameEntry(mine, was) && !sameEntry(mine, { status: e.status, data: e.data })) {
+			// An entry this push just wrote is the website's now: its file takes the website's version ($media
+			// becomes the stored image, _version appears), whatever the file said a moment ago.
+			if (mine && was && !overwrite.has(key) && !sameEntry(mine, was) && !sameEntry(mine, { status: e.status, data: e.data })) {
 				kept.push(key);
 				continue;
 			}
@@ -205,14 +214,14 @@ async function pull({ dir, cfg }, collections = null) {
 	}
 	writeFiles(dir, files);
 	const snap = snapshotOf(doc);
-	if (!want) {
+	if (refreshMenus) {
 		const menus = await readMenus(cfg);
 		snap.menus = menus;
 		const localMenus = readLocalMenus(dir);
 		for (const [name, menu] of Object.entries(menus)) {
 			const mine = localMenus[name];
 			const wasMenu = prev?.menus?.[name];
-			if (mine && !mine.error && wasMenu && JSON.stringify(mine.items) !== JSON.stringify(wasMenu.items) && JSON.stringify(mine.items) !== JSON.stringify(menu.items)) {
+			if (mine && !mine.error && wasMenu && !overwrite.has(`menus/${name}`) && JSON.stringify(mine.items) !== JSON.stringify(wasMenu.items) && JSON.stringify(mine.items) !== JSON.stringify(menu.items)) {
 				kept.push(`menus/${name}`);
 				continue;
 			}
@@ -232,6 +241,17 @@ async function pull({ dir, cfg }, collections = null) {
 	for (const c of doc.collections.filter((c) => c.count)) say(`  ${c.slug.padEnd(20)} ${c.count}`);
 	if (snap.menus) say(`  ${'menus'.padEnd(20)} ${Object.keys(snap.menus).length}`);
 	for (const k of kept) say(`  kept your unpushed changes in ${k}`);
+}
+
+/** The menus alone: files and the snapshot's menus, the entries untouched. */
+async function pullMenus({ dir, cfg }) {
+	const snap = readJson(join(dir, META, 'snapshot.json'));
+	if (!snap) fail('Nothing pulled yet. Run `tidysites pull`.');
+	const menus = await readMenus(cfg);
+	for (const [name, menu] of Object.entries(menus)) writeFiles(dir, { [`menus/${name}.json`]: `${JSON.stringify({ label: menu.label, items: menu.items }, null, '\t')}\n` });
+	snap.menus = menus;
+	writeFileSync(join(dir, META, 'snapshot.json'), JSON.stringify(snap, null, '\t'));
+	say(`Pulled ${Object.keys(menus).length} menu${Object.keys(menus).length === 1 ? '' : 's'}.`);
 }
 
 function status({ dir }) {
@@ -264,6 +284,15 @@ function validate({ dir }, local = null) {
 	if (!schema) fail('No content model here yet. Run `tidysites pull`.');
 	const read = local ? { local, problems: [] } : readLocal(dir);
 	const errors = [...read.problems, ...validateAll(read.local, schema)];
+	// The website keeps a section's type with its key: a key that changes type is refused with a bare "internal error", so say it here.
+	const snap = readJson(join(dir, META, 'snapshot.json'));
+	for (const [key, entry] of Object.entries(read.local)) {
+		const before = snap?.entries?.[key]?.data?.sections;
+		const after = entry.data?.sections;
+		if (!Array.isArray(before) || !Array.isArray(after)) continue;
+		const types = new Map(before.filter((b) => b && b._key).map((b) => [b._key, b._type]));
+		for (const b of after) if (b && b._key && types.has(b._key) && types.get(b._key) !== b._type) errors.push(`${key}.json: section "${b._key}" was a ${types.get(b._key)} and is now a ${b._type}; a section keeps its type, so give the new one its own _key`);
+	}
 	return errors;
 }
 
@@ -320,8 +349,10 @@ async function push(ctx) {
 		await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_set_items', arguments: { name, items } });
 		say(`Menu ${name}: ${items.length} item${items.length === 1 ? '' : 's'} written.`);
 	}
-	// Refresh only what went: a partial push leaves the other collections' files exactly as they are.
-	await pull(ctx, menus.length && !touched.length ? null : touched.length ? touched : null);
+	// Refresh only what went, and take the website's version of exactly those entries; every other file stays as it is.
+	const pushed = new Set([...keys, ...menus.map((m) => `menus/${m}`)]);
+	if (touched.length) await pull(ctx, touched, { overwrite: pushed, menus: menus.length > 0 });
+	else if (menus.length) await pullMenus(ctx);
 }
 
 async function shot(ctx, target = positional[0] ?? '/', opts = {}) {
