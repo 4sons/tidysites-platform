@@ -1479,6 +1479,18 @@
 							"type": "boolean"
 						},
 						{
+							"slug": "bot_check",
+							"label": "Spam protection",
+							"type": "select",
+							"defaultValue": "hidden field",
+							"validation": {
+								"options": [
+									"hidden field",
+									"Turnstile"
+								]
+							}
+						},
+						{
 							"slug": "submit_label",
 							"label": "Submit label",
 							"type": "string"
@@ -5481,6 +5493,18 @@
 					"slug": "consent_text",
 					"label": "Note under the button",
 					"type": "text"
+				},
+				{
+					"slug": "bot_check",
+					"label": "Spam protection",
+					"type": "select",
+					"defaultValue": "hidden field",
+					"validation": {
+						"options": [
+							"hidden field",
+							"Turnstile"
+						]
+					}
 				}
 			]
 		},

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.27.0
+
+From the first GTmetrix reads of a ported site, which the Wix original beat on load time.
+
+- A form's spam protection is the form's choice. Every form keeps its hidden trap field; a Forms record or a Request form section adds Turnstile through its new "Spam protection" field, off by default. The page carries the choice to the lead route as a signed token, so a scraper cannot drop it; a page published before this keeps asking for Turnstile. Turnstile's script was the heaviest thing on a page with a form in a dialog.
+- When a form does ask for Turnstile, its script loads when the form comes near the screen, takes focus, or its dialog button is pressed, not with the page.
+- The first section's pictures load at once and the first of them asks to go first (`fetchpriority`): a Columns image slot, an Intro, Feature or Call to action photo, or the first picture in a custom row. Lazy loading the largest picture on the first screen delayed it.
+- A plain `<img src="/_emdash/api/media/file/…">` in custom HTML gets the resized variants a section's picture has (`srcset`, and `sizes` when the author gave none), so a phone downloads a phone-sized file. An author's own `srcset` stands.
+- The logo (`{{> logo}}`, the theme header and footer) carries resized variants too; a 1000px PNG was served at full size for a 160px slot.
+
 ## 0.26.1
 
 From a third port's running log.

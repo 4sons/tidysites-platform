@@ -10,7 +10,7 @@ const TAGS = new Set(["a","abbr","address","article","aside","b","blockquote","b
 const DROP_WITH_CONTENT = new Set(["script","style","noscript","object","embed","applet","template","head","link","meta","base"]);
 const GLOBAL_ATTRS = new Set(["class","id","title","lang","dir","role","hidden","tabindex","style","aria-label","aria-labelledby","aria-describedby","aria-hidden","aria-expanded","aria-controls","aria-current","aria-live","data-tidy-dialog","data-tidy-dialog-close"]);
 const TAG_ATTRS: Record<string, string[]> = {
-	a: ["href","target","rel","download"], img: ["src","srcset","sizes","alt","width","height","loading","decoding"], source: ["src","srcset","sizes","type","media"],
+	a: ["href","target","rel","download"], img: ["src","srcset","sizes","alt","width","height","loading","decoding","fetchpriority"], source: ["src","srcset","sizes","type","media"],
 	video: ["src","poster","controls","autoplay","muted","loop","playsinline","width","height"], audio: ["src","controls","autoplay","muted","loop"],
 	iframe: ["src","width","height","allow","allowfullscreen","loading","title","referrerpolicy"], form: ["action","method","name"], input: ["type","name","value","placeholder","required","checked","disabled","min","max","step","pattern","autocomplete","inputmode"],
 	textarea: ["name","placeholder","required","rows","disabled"], select: ["name","required","disabled","multiple"], option: ["value","selected","disabled"], button: ["type","name","value","disabled"], label: ["for"],

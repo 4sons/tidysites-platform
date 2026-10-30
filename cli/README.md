@@ -62,6 +62,10 @@ Images: an image field, a hero's image or a Columns image slot takes
 push fetches the file into the website's library. An image already in the
 library keeps the value the pull gave it.
 
+A picture in custom HTML is written as a plain `<img src="{{ s.image.url }}" alt="{{ s.image.alt }}">`: a stored picture gets its resized variants (`srcset`, and a `sizes` hint when none is written) on the way out, so a phone downloads a phone-sized file; write your own `sizes` when the picture is narrower than half the screen on a laptop, and your own `srcset` to take over entirely. Pictures in the first section load at once and the first of them asks to go first; pictures below load when they are needed, unless the markup says `loading="eager"`.
+
+Every form carries a hidden trap field a scraper fills and a person never sees. A Forms record or a Request form section can add Cloudflare Turnstile through its **Spam protection** field; it is off unless chosen, and when chosen its script loads only as the form comes into view or is touched.
+
 References: a record names another by its id (what the pull shows), or by
 `"$ref:<slug>"` for one created in the same push.
 

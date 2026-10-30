@@ -10,6 +10,7 @@
 import { getRow, str } from "./lib";
 import { scopeCss } from "../lib/sanitize";
 import { renderCustomHtml } from "./context";
+import { responsiveImgs } from "../lib/images";
 import Form from "./Form.astro";
 import Dialog from "../frame/Dialog.astro";
 import "./defaults.css";
@@ -23,6 +24,10 @@ const rendered = await renderCustomHtml(html, Astro.request);
 // A picture below the first screen loads when it is needed, unless the markup says otherwise.
 const belowFold = as === "footer" || (as === "section" && index > 0);
 const lazy = (h: string) => (belowFold ? h.replace(/<img\b(?![^>]*\bloading=)([^>]*)>/gi, '<img loading="lazy" decoding="async"$1>') : h);
+// The first picture of the first section is usually the largest thing on the first screen; ask for it first.
+let priorityLeft = as === "section" && index === 0;
+const priority = (h: string) => (priorityLeft ? h.replace(/<img\b(?![^>]*\bfetchpriority=)([^>]*)>/i, (m, attrs: string) => { priorityLeft = false; return `<img fetchpriority="high"${attrs}>`; }) : h);
+const pictures = (h: string) => priority(lazy(responsiveImgs(h)));
 const scoped = css ? scopeCss(css, `.ts-row[data-row="${key}"]`) : "";
 const Tag = as === "header" ? "header" : as === "footer" ? "footer" : "div";
 const hasContent = rendered.segments.some((s) => ("html" in s ? s.html.trim() !== "" : true));
@@ -35,7 +40,7 @@ for (const d of dialogs) seen.add(d.id);
 	<Tag class={`ts-row ts-row-${as} ${fullWidth ? "ts-row-full" : ""}`} data-row={key} data-tidy-frame={as === "header" || as === "footer" ? as : undefined} data-tidy-row={row ? (row.slug ?? row.id) : undefined} {...(row ? { "data-tidy-record": "rows", "data-tidy-record-id": row.id, "data-tidy-record-label": "Custom row" } : {})}>
 		{scoped && <style set:html={scoped} />}
 		<div class={fullWidth ? "" : "ts-row-wrap"}>
-			{rendered.segments.map((s) => ("html" in s ? <Fragment set:html={lazy(s.html)} /> : <Form name={s.form} class="ts-card" hidden={{ section: "row" }} />))}
+			{rendered.segments.map((s) => ("html" in s ? <Fragment set:html={pictures(s.html)} /> : <Form name={s.form} class="ts-card" hidden={{ section: "row" }} />))}
 		</div>
 		{import.meta.env.DEV && rendered.error && <p class="ts-missing" role="alert">{rendered.error}</p>}
 	</Tag>

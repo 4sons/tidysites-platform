@@ -4,10 +4,11 @@ import { nodeOf, pic, str, rich } from "../lib";
 import Action from "../Action.astro";
 import Photo from "../Photo.astro";
 const n = nodeOf(Astro.props);
+const index = Number((Astro.props as { index?: number }).index ?? 0);
 const photo = pic(n.image);
 const has = Boolean(photo.image || photo.url);
 ---
 <section class="ts"><div class={`ts-wrap ${has ? "ts-split" : ""}`}>
 	<div>{str(n.eyebrow) && <p class="ts-eyebrow">{str(n.eyebrow)}</p>}{str(n.headline) && <h2>{str(n.headline)}</h2>}{rich(n.copy).length ? <div class="ts-prose" style="margin-top:14px"><PortableText value={rich(n.copy) as never} /></div> : str(n.body) && <div class="ts-prose" style="margin-top:14px;white-space:pre-line">{str(n.body)}</div>}{str(n.button_label) && <div class="ts-actions"><Action class="ts-btn" href={str(n.button_url, "#")} label={str(n.button_label)} section="intro" /></div>}</div>
-	{has && <Photo image={photo.image} url={photo.url} alt={str(n.headline)} />}
+	{has && <Photo image={photo.image} url={photo.url} alt={str(n.headline)} eager={index === 0} />}
 </div></section>

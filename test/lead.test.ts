@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { signBotCheck } from "../src/lib/botcheck";
 import { forwardLead, handleLead, leadFrom, readLeadBody } from "../src/lib/lead";
 
 const post = (body: Record<string, string>, headers: Record<string, string> = {}) => {
@@ -67,6 +68,21 @@ describe("handleLead", () => {
 		const res = await handleLead(post({ name: "Ada", email: "a@x.test" }, { accept: "application/json" }), { ...env, TURNSTILE_SECRET: "t" });
 		expect(res.status).toBe(400);
 		expect(((await res.json()) as { error: string }).error).toMatch(/verification/i);
+	});
+	it("skips Turnstile when the page's signed check names the trap field alone", async () => {
+		const f = vi.fn(async () => Response.json({ ok: true }));
+		const token = await signBotCheck("t", "Contact", "trap");
+		const res = await handleLead(post({ name: "Ada", email: "a@x.test", form: "Contact", bot_check: token }, { accept: "application/json" }), { ...env, TURNSTILE_SECRET: "t" }, { fetch: f as unknown as typeof fetch });
+		expect(res.status).toBe(200);
+		const sent = JSON.parse(String((f.mock.calls[0] as unknown as [string, RequestInit])[1].body)) as { fields: Record<string, string> };
+		expect(sent.fields.bot_check).toBeUndefined();
+	});
+	it("still asks for Turnstile when the signed check names it, or was signed for another form, or is forged", async () => {
+		const secret = { ...env, TURNSTILE_SECRET: "t" };
+		for (const token of [await signBotCheck("t", "Contact", "turnstile"), await signBotCheck("t", "Quote", "trap"), await signBotCheck("other", "Contact", "trap"), "trap.00000000000000000000000000000000"]) {
+			const res = await handleLead(post({ name: "Ada", email: "a@x.test", form: "Contact", bot_check: token }, { accept: "application/json" }), secret);
+			expect(res.status).toBe(400);
+		}
 	});
 	it("reports when the site is not platform-hosted", async () => {
 		expect(await forwardLead({}, leadFrom({ name: "A", email: "a@x.test" }, null))).toEqual({ forwarded: false, status: "not configured" });
