@@ -7,7 +7,7 @@
  *   status                                    what changed here since the pull
  *   validate                                  check the files against the content model
  *   push [--prune] [--force] [--dry]          write the changes back, then pull
- *   shot <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen] [--no-bands]   screenshot to .tidysites/shots (none = desktop and mobile); a tall one also in 1600px bands
+ *   shot <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen]   screenshot to .tidysites/shots (none = desktop and mobile); a tall page comes in 1600px bands
  *   pages                                     every address the website renders
  *   page <path> [--html]                      the rendered page, section by section
  *   schema [name]                             section types and layouts, or one type's or collection's fields
@@ -26,7 +26,6 @@ import { callTool, ApiError } from '../lib/api.mjs';
 import { diffEntries, entryToFiles, filesToEntry, FILE_NAME, menuItems, menuTree, pushDocument, sameEntry, snapshotOf, SIDECARS } from '../lib/folder.mjs';
 import { validateAll, indexSchema } from '../lib/validate.mjs';
 import { cleanHtml, cssSummary, fetchPage, outline, outlineText } from '../lib/fetch.mjs';
-import { writeBands } from '../lib/bands.mjs';
 
 const META = '.tidysites';
 const argv = process.argv.slice(2);
@@ -369,18 +368,14 @@ async function shot(ctx, target = positional[0] ?? '/', opts = {}) {
 	const stamp = new Date().toISOString().replace(/[-:.]/g, '').slice(4, 18);
 	const base = (opts.name ?? (isUrl ? new URL(target).hostname + new URL(target).pathname : target)).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'home';
 	const named = Array.isArray(json?.captures) ? json.captures : [];
+	// The pictures come in the order of the captures: a tall page as its bands (top to bottom), a short one whole.
+	const slots = named.filter((c) => !c.error).flatMap((c) => (Array.isArray(c.bands) && c.bands.length ? c.bands.map((b) => ({ view: c.view, band: b.index })) : [{ view: c.view, band: 0 }]));
 	images.forEach((img, i) => {
-		const v = named[i]?.view ?? (view === 'both' ? ['desktop', 'mobile'][i] : view === 'all' ? ['desktop', 'mobile', 'tablet', 'wide'][i] : view.split(',')[i] ?? view);
-		const p = join(outDir, `${base}-${v}-${stamp}.${img.mimeType.includes('png') ? 'png' : 'jpg'}`);
-		const buf = Buffer.from(img.base64, 'base64');
-		writeFileSync(p, buf);
+		const v = slots[i]?.view ?? (view === 'both' ? ['desktop', 'mobile'][i] : view === 'all' ? ['desktop', 'mobile', 'tablet', 'wide'][i] : view.split(',')[i] ?? view);
+		const band = slots[i]?.band ? `-band-${String(slots[i].band).padStart(2, '0')}` : '';
+		const p = join(outDir, `${base}-${v}-${stamp}${band}.${img.mimeType.includes('png') ? 'png' : 'jpg'}`);
+		writeFileSync(p, Buffer.from(img.base64, 'base64'));
 		say(relative(process.cwd(), p));
-		// A tall full-page picture is also written in bands an image reader can take in one at a time.
-		if (!flags['no-bands']) {
-			const bands = writeBands(p, buf);
-			for (const b of bands.paths) say(`  ${relative(process.cwd(), b)}`);
-			if (bands.reason) say(`  (${bands.reason})`);
-		}
 	});
 	if (!images.length) say(json ? JSON.stringify(json).slice(0, 500) : 'No image came back.');
 }
