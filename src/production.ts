@@ -40,6 +40,13 @@ async function notFound(env: ProductionEnv, origin: string, status = 404): Promi
 export async function productionFetch<E extends ProductionEnv>(request: Request, env: E, options: ProductionOptions<E> = {}): Promise<Response> {
 	const url = new URL(request.url);
 	if (url.pathname.startsWith("/api/") && options.api) return options.api(request, env);
+	// Resized pictures (/_tidy/img/<width>/<key>) are plain files in the snapshot, fetched from staging at publish.
+	if (url.pathname.startsWith("/_tidy/img/")) {
+		const r = await env.ASSETS.fetch(request);
+		if (r.ok) return r;
+		const key = url.pathname.split("/").slice(4).join("/");
+		return key ? Response.redirect(new URL(`/_emdash/api/media/file/${key}`, url.origin).toString(), 302) : notFound(env, url.origin);
+	}
 	const path = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, "") : url.pathname;
 	const gone = await readGone(env, url.origin);
 	const status = gone[path];

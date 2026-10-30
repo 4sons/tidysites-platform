@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.26.0
+
+- **Responsive pictures.** Every site serves a stored image at 480, 800, 1200 and 1600 pixels wide through `/_tidy/img/<width>/<key>` (routes/img), resized with the worker's Images binding and re-encoded as WebP, immutable. The photo slot, the Columns image slot and the pictures custom HTML reads (`{{ page.image.srcset }}`, `{{ s.featured_image.srcset }}`, `{{ business.logo.srcset }}`) print a `srcset` of those variants with a `sizes` hint for where the picture sits, so a phone downloads a phone-sized file; the original stays the fallback and SVG and GIF keep theirs. The live worker serves the variants from the snapshot (the publish fetches them like media files). Until now the photo slot printed a srcset whose every candidate was the same original, and a 236 KB hero went to every screen.
+- The photo slot takes `sizes` (full, half, third, quarter, icon) and `eager`; the hero's photo loads at once, the rest lazily.
+
 ## 0.25.3
 
 - A picture in a custom row below the first section, or in a footer row, loads lazily unless the markup says otherwise; the header and the first section keep loading theirs at once. A ported homepage was loading three portraits at the foot of the page before anything else.

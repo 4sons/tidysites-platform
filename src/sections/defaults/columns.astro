@@ -14,6 +14,7 @@ import Action from "../Action.astro";
 import { markdownToHtml } from "../../lib/markdown";
 import { sanitizeHtml } from "../../lib/sanitize";
 import { renderCustomHtml } from "../context";
+import { mediaSrcset, sizesFor } from "../../lib/images";
 import Form from "../Form.astro";
 const n = nodeOf(Astro.props);
 const props = Astro.props as { grouped?: boolean; groupTone?: string | null };
@@ -68,7 +69,7 @@ const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ?
 						</>)}
 						{kind === "image" && img && (
 							<figure class="ts-col-pic">
-								{(() => { const alt = pic(s.image).image?.alt || heading || str(s.text); return link ? <a href={link}><img src={img} alt={alt} loading="lazy" /></a> : <img src={img} alt={alt} loading="lazy" />; })()}
+								{(() => { const alt = pic(s.image).image?.alt || heading || str(s.text); const ss = mediaSrcset(s.image) ?? undefined; const sz = ss ? sizesFor(isFull ? "full" : across >= 4 ? "quarter" : across === 3 ? "third" : "half") : undefined; return link ? <a href={link}><img src={img} srcset={ss} sizes={sz} alt={alt} loading="lazy" decoding="async" /></a> : <img src={img} srcset={ss} sizes={sz} alt={alt} loading="lazy" decoding="async" />; })()}
 								{heading && <figcaption>{heading}</figcaption>}
 							</figure>
 						)}
