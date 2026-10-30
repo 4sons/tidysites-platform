@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.28.1
+
+From the fifth port's log (Custom Comfort).
+
+- A condition in custom HTML can compare two paths: `{{#if s.category_title == c.title}}` (and `!=`). It threw, and the whole row rendered blank with the error shown only in development.
+- A row whose custom HTML cannot be rendered now carries the error as an HTML comment (`<!-- tidy-row-error: … -->`) on every environment, so the page tool and a builder see why the row is empty; development still shows it on the page.
+- A Columns card's icon prints its resized variants like every other picture (a hero PNG put in a card slot went out whole, 2 MB).
+- SVG logos and icons: the logo, dark logo and favicon on the Business record, the badge, brand, client, insurer and financing logos, and the service, category and technology pictures accept SVG uploads (`allowedMimeTypes` on the field). Everything else keeps the platform's default list, which leaves SVG out.
+
 ## 0.28.0
 
 From the fourth port's log (Neighbourhood Electric).

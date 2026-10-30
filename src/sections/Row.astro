@@ -42,6 +42,7 @@ for (const d of dialogs) seen.add(d.id);
 		<div class={fullWidth ? "" : "ts-row-wrap"}>
 			{rendered.segments.map((s) => ("html" in s ? <Fragment set:html={pictures(s.html)} /> : <Form name={s.form} class="ts-card" hidden={{ section: "row" }} />))}
 		</div>
+		{rendered.error && <Fragment set:html={`<!-- tidy-row-error: ${rendered.error.replace(/--/g, "- -")} -->`} />}
 		{import.meta.env.DEV && rendered.error && <p class="ts-missing" role="alert">{rendered.error}</p>}
 	</Tag>
 )}

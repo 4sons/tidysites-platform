@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readdirSync } from "node:fs";
 import { validateSeed } from "emdash";
 import { SECTION_TYPES, collections, mergeStructure, sectionTypes, template } from "../src/template/index";
+import { render } from "../src/lib/template";
 
 describe("the template", () => {
 	it("is a valid seed structure", () => {
@@ -62,5 +63,16 @@ describe("formDialog", () => {
 		expect(formDialog("/contact")).toBeNull();
 		expect(formDialog("#form:")).toBeNull();
 		expect(formDialog(undefined)).toBeNull();
+	});
+});
+
+describe("conditions that compare two paths", () => {
+	it("matches an item against the outer loop's item", () => {
+		const out = render(`{{#each cats as c}}<h2>{{ c.title }}</h2>{{#each services as s}}{{#if s.category_title == c.title}}<a>{{ s.title }}</a>{{/if}}{{/each}}{{/each}}`, { cats: [{ title: "Heat" }, { title: "Cool" }], services: [{ title: "Furnace", category_title: "Heat" }, { title: "AC", category_title: "Cool" }] });
+		expect(out).toBe("<h2>Heat</h2><a>Furnace</a><h2>Cool</h2><a>AC</a>");
+		expect(render(`{{#if a != b}}differ{{else}}same{{/if}}`, { a: "1", b: "1" })).toBe("same");
+	});
+	it("still refuses a condition it cannot read", () => {
+		expect(() => render(`{{#if a == }}x{{/if}}`, {})).toThrow(/Cannot read/);
 	});
 });

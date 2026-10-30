@@ -338,7 +338,7 @@ async function push(ctx) {
 			}
 			process.exit(1);
 		}
-		say(`Pushed: ${r.content.created} created, ${r.content.updated} updated${r.images ? `, ${r.images} image${r.images === 1 ? '' : 's'} added` : ''}${r.removed ? `, ${r.removed} removed` : ''}.`);
+		say(`Pushed: ${r.content.created} created, ${r.content.updated} updated${r.images ? `, ${r.images} image${r.images === 1 ? '' : 's'} added` : ''}${r.images_reused ? `, ${r.images_reused} already in the library` : ''}${r.removed ? `, ${r.removed} removed` : ''}.`);
 		if (r.missing?.length) say(`Not found to remove: ${r.missing.map((m) => `${m.collection}/${m.slug}`).join(', ')}`);
 	}
 	for (const name of menus) {

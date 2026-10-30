@@ -3460,17 +3460,47 @@
 				{
 					"slug": "logo",
 					"label": "Logo",
-					"type": "image"
+					"type": "image",
+					"validation": {
+						"allowedMimeTypes": [
+							"image/svg+xml",
+							"image/png",
+							"image/jpeg",
+							"image/webp",
+							"image/avif",
+							"image/gif"
+						]
+					}
 				},
 				{
 					"slug": "logo_dark",
 					"label": "Logo on dark",
-					"type": "image"
+					"type": "image",
+					"validation": {
+						"allowedMimeTypes": [
+							"image/svg+xml",
+							"image/png",
+							"image/jpeg",
+							"image/webp",
+							"image/avif",
+							"image/gif"
+						]
+					}
 				},
 				{
 					"slug": "favicon",
 					"label": "Favicon",
-					"type": "image"
+					"type": "image",
+					"validation": {
+						"allowedMimeTypes": [
+							"image/svg+xml",
+							"image/png",
+							"image/jpeg",
+							"image/webp",
+							"image/avif",
+							"image/gif"
+						]
+					}
 				},
 				{
 					"slug": "ga4_id",
@@ -4296,7 +4326,17 @@
 				{
 					"slug": "featured_image",
 					"label": "Image",
-					"type": "image"
+					"type": "image",
+					"validation": {
+						"allowedMimeTypes": [
+							"image/svg+xml",
+							"image/png",
+							"image/jpeg",
+							"image/webp",
+							"image/avif",
+							"image/gif"
+						]
+					}
 				},
 				{
 					"slug": "sections",
@@ -4431,7 +4471,17 @@
 				{
 					"slug": "featured_image",
 					"label": "Featured image",
-					"type": "image"
+					"type": "image",
+					"validation": {
+						"allowedMimeTypes": [
+							"image/svg+xml",
+							"image/png",
+							"image/jpeg",
+							"image/webp",
+							"image/avif",
+							"image/gif"
+						]
+					}
 				},
 				{
 					"slug": "headline",
@@ -5640,7 +5690,17 @@
 				{
 					"slug": "logo",
 					"label": "Logo",
-					"type": "image"
+					"type": "image",
+					"validation": {
+						"allowedMimeTypes": [
+							"image/svg+xml",
+							"image/png",
+							"image/jpeg",
+							"image/webp",
+							"image/avif",
+							"image/gif"
+						]
+					}
 				},
 				{
 					"slug": "network",
@@ -5682,7 +5742,17 @@
 				{
 					"slug": "logo",
 					"label": "Logo",
-					"type": "image"
+					"type": "image",
+					"validation": {
+						"allowedMimeTypes": [
+							"image/svg+xml",
+							"image/png",
+							"image/jpeg",
+							"image/webp",
+							"image/avif",
+							"image/gif"
+						]
+					}
 				},
 				{
 					"slug": "apply_url",
@@ -5917,7 +5987,17 @@
 				{
 					"slug": "logo",
 					"label": "Logo",
-					"type": "image"
+					"type": "image",
+					"validation": {
+						"allowedMimeTypes": [
+							"image/svg+xml",
+							"image/png",
+							"image/jpeg",
+							"image/webp",
+							"image/avif",
+							"image/gif"
+						]
+					}
 				},
 				{
 					"slug": "url",
@@ -6378,7 +6458,17 @@
 				{
 					"slug": "logo",
 					"label": "Logo",
-					"type": "image"
+					"type": "image",
+					"validation": {
+						"allowedMimeTypes": [
+							"image/svg+xml",
+							"image/png",
+							"image/jpeg",
+							"image/webp",
+							"image/avif",
+							"image/gif"
+						]
+					}
 				},
 				{
 					"slug": "url",
@@ -6430,7 +6520,17 @@
 				{
 					"slug": "image",
 					"label": "Image",
-					"type": "image"
+					"type": "image",
+					"validation": {
+						"allowedMimeTypes": [
+							"image/svg+xml",
+							"image/png",
+							"image/jpeg",
+							"image/webp",
+							"image/avif",
+							"image/gif"
+						]
+					}
 				},
 				{
 					"slug": "url",
