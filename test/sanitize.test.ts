@@ -18,6 +18,10 @@ describe("sanitizeHtml", () => {
 	it("keeps inline style unless it reaches out", () => {
 		expect(sanitizeHtml(`<p style="color:red;background:url(https://ok.test/a.png)">a</p><p style="width:expression(alert(1))">b</p>`)).toBe(`<p style="color:red;background:url(https://ok.test/a.png)">a</p><p>b</p>`);
 	});
+	it("escapes an attribute value once, however it arrived", () => {
+		expect(sanitizeHtml(`<a href="/x" aria-label="Design &amp; Build" title="Say &quot;hi&quot;">x</a>`)).toBe(`<a href="/x" aria-label="Design &amp; Build" title="Say &quot;hi&quot;">x</a>`);
+		expect(sanitizeHtml(`<img alt="Tom & Jerry">`)).toBe(`<img alt="Tom &amp; Jerry">`);
+	});
 	it("keeps the dialog opener so a row can open the booking dialog", () => {
 		expect(sanitizeHtml(`<button type="button" data-tidy-dialog="ts-booking">Book</button>`)).toBe(`<button type="button" data-tidy-dialog="ts-booking">Book</button>`);
 	});

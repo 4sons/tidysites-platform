@@ -11,7 +11,8 @@
  * `{{> logo}}`, …) and turn `#form:<Name>` links into dialog buttons. A
  * form drop-in comes back as a segment for the Astro layer to render.
  */
-import { getMenu } from "emdash";
+import { getEmDashEntry, getMenu } from "emdash";
+import { isPortableText, portableTextToHtml } from "../lib/portable-text";
 import { referenced, render, splitIncludes, hasTemplate, TemplateError, type Include, type Scope } from "../lib/template";
 import { sanitizeHtml } from "../lib/sanitize";
 import { addressLine, entries, entryUrl, formDialog, getBusiness, getLocation, hoursRows, mediaUrl, pic, resolveRoute, slugify, str, type Business } from "./lib";
@@ -34,7 +35,11 @@ const COLLECTIONS: Record<string, { image: string[] }> = {
 const isMedia = (v: unknown): v is Record<string, unknown> => Boolean(v && typeof v === "object" && !Array.isArray(v) && ("storageKey" in (v as Record<string, unknown>) || (typeof (v as Record<string, unknown>).id === "string" && ("provider" in (v as Record<string, unknown>) || "mimeType" in (v as Record<string, unknown>) || "meta" in (v as Record<string, unknown>)))));
 function withMediaUrls(data: Record<string, unknown>): Record<string, unknown> {
 	const out: Record<string, unknown> = {};
-	for (const [k, v] of Object.entries(data)) out[k] = isMedia(v) ? { ...v, url: mediaUrl(v) ?? "", alt: typeof v.alt === "string" ? v.alt : "", srcset: mediaSrcset(v) ?? "" } : v;
+	for (const [k, v] of Object.entries(data)) {
+		out[k] = isMedia(v) ? { ...v, url: mediaUrl(v) ?? "", alt: typeof v.alt === "string" ? v.alt : "", srcset: mediaSrcset(v) ?? "" } : v;
+		// Written content (rich text) prints as HTML through {{{ x.content_html }}}; the blocks themselves stay for loops.
+		if (isPortableText(v)) out[`${k}_html`] = portableTextToHtml(v);
+	}
 	return out;
 }
 
@@ -87,16 +92,27 @@ export function currentPage(request: Request): Promise<Scope> {
 async function readPage(request: Request): Promise<Scope> {
 	const path = new URL(request.url).pathname.replace(/\/+$/, "") || "/";
 	const base = { url: path, kind: "page", collection: "", slug: "", title: "", summary: "", image: null as { url: string; alt: string } | null };
-	if (path === "/") return { ...base, kind: "home", collection: "pages", slug: "home", title: "Home" };
-	let route: Awaited<ReturnType<typeof resolveRoute>> = null;
-	try { route = await resolveRoute(path); } catch { route = null; }
-	if (!route) return base;
-	if (route.kind === "index") { const t = pageType(route.collection); return { ...base, kind: "index", collection: route.collection, title: t?.index?.label ?? route.collection }; }
-	if (route.kind === "blog") return { ...base, kind: "blog", collection: "posts", title: "Blog" };
-	if (route.kind === "home") return { ...base, kind: "home", collection: "pages", slug: "home", title: "Home" };
-	const entry = route.entry as { id?: string; data?: Record<string, unknown> } | undefined;
+	let route: Awaited<ReturnType<typeof resolveRoute>> | null = null;
+	let entry: { id?: string; data?: Record<string, unknown> } | undefined;
+	let collection = "pages";
+	let kind = "page";
+	let slug = "";
+	if (path === "/") {
+		// The home page is the "home" page record: its fields and its hero are page.* like any other page.
+		try { entry = ((await getEmDashEntry("pages", "home")) as { entry?: typeof entry }).entry; } catch { entry = undefined; }
+		kind = "home"; slug = "home";
+		if (!entry) return { ...base, kind, collection, slug, title: "Home" };
+	} else {
+		try { route = await resolveRoute(path); } catch { route = null; }
+		if (!route) return base;
+		if (route.kind === "index") { const t = pageType(route.collection); return { ...base, kind: "index", collection: route.collection, title: t?.index?.label ?? route.collection }; }
+		if (route.kind === "blog") return { ...base, kind: "blog", collection: "posts", title: "Blog" };
+		if (route.kind === "home") return { ...base, kind: "home", collection: "pages", slug: "home", title: "Home" };
+		entry = route.entry as { id?: string; data?: Record<string, unknown> } | undefined;
+		collection = route.kind === "page" ? "pages" : route.collection;
+		kind = route.kind; slug = route.slug;
+	}
 	const data = entry?.data ?? {};
-	const collection = route.kind === "page" ? "pages" : route.collection;
 	const spec = COLLECTIONS[collection] ?? { image: ["featured_image", "image", "photo", "hero_image"] };
 	let category: Scope | null = null;
 	if (collection === "services" && data.category) {
@@ -113,8 +129,8 @@ async function readPage(request: Request): Promise<Scope> {
 	return {
 		...withMediaUrls(data),
 		...base,
-		kind: route.kind, collection, slug: route.slug, id: entry?.id ?? "",
-		title: str(data.title), headline: str(data.headline) || str(data.title), summary: str(data.summary) || str(data.tagline),
+		kind, collection, slug, id: entry?.id ?? "",
+		title: str(data.title) || (kind === "home" ? "Home" : ""), headline: str(data.headline) || str(data.title), summary: str(data.summary) || str(data.tagline),
 		image,
 		...(category ? { category } : {})
 	};

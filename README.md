@@ -192,6 +192,8 @@ A row's markup can read the site's records, so a custom header or footer is as l
 
 `page` is the record the address is for, whatever its collection, with the same names on every kind of page (plus the record's own fields), so one header written against `page.*` fits a service page, an area page and a custom page. Values are HTML-escaped (three braces print a value that is already HTML); the result goes through the sanitizer like any row; the drop-ins print the platform's own markup (`ts-menu`, `ts-logo`, `ts-phone`, `ts-address`, `ts-hours`, `ts-social`, `ts-btn`) after it. A link whose href is `#form:<Form name>` opens that form in a dialog, the way a section button does. Only the roots a text names are read. Columns HTML slots take the same vocabulary (without the form drop-in; the slot kind `form` does that).
 
+A row placed as the header or the footer is already wrapped in `<header class="ts-row ts-row-header">` or `<footer class="ts-row ts-row-footer">` (with `data-tidy-frame`), so its markup starts inside that element; write a `<div>`, not another `<header>`. A record's written content prints as `{{{ s.content_html }}}` (rich text as HTML; the blocks stay in `s.content` for loops). The theme's own rules carry the weight of two classes (`.ts.ts-accent`, `.ts .ts-col h2`); a row's rule wins when written the same way or scoped under its own class.
+
 A page chooses its header and footer: the site's, none, or a named custom row. A theme's layout reads that with `pageFrame(page.data)` and renders `frame/header`, nothing, or `sections/row` with `as="header"`. The `frame` record can replace the site's header or footer everywhere with a row, which `frame/header` and `frame/footer` render on their own.
 
 ## The sections that are not records

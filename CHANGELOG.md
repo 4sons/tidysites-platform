@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.26.1
+
+From a third port's running log.
+
+- Custom HTML on the home page: `page.*` is the "home" page record (its fields, its hero's picture); it was empty on `/`.
+- Written content in custom HTML: a rich-text field comes with `<field>_html` (`{{{ s.content_html }}}` prints a service's description with its lists and links); the blocks stay for loops.
+- A Columns HTML slot renders `{{> form "Name"}}` like a row does (it printed nothing).
+- A value in an attribute (`alt="{{ business.title }}"`) was escaped twice ("Design &amp;amp; Build"); the sanitizer decodes once before escaping once.
+- A custom header or footer row carries `data-tidy-frame`, so the page tool shows it.
+- The display font is requested at weight 400 as well as 600, 700 and 800: ported designs often set headings regular.
+
 ## 0.26.0
 
 - **Responsive pictures.** Every site serves a stored image at 480, 800, 1200 and 1600 pixels wide through `/_tidy/img/<width>/<key>` (routes/img), resized with the worker's Images binding and re-encoded as WebP, immutable. The photo slot, the Columns image slot and the pictures custom HTML reads (`{{ page.image.srcset }}`, `{{ s.featured_image.srcset }}`, `{{ business.logo.srcset }}`) print a `srcset` of those variants with a `sizes` hint for where the picture sits, so a phone downloads a phone-sized file; the original stays the fallback and SVG and GIF keep theirs. The live worker serves the variants from the snapshot (the publish fetches them like media files). Until now the photo slot printed a srcset whose every candidate was the same original, and a 236 KB hero went to every screen.

@@ -58,6 +58,8 @@ export function sanitizeHtml(input: string): string {
 			if (!allowed.has(name) || name.startsWith("on")) continue;
 			let value = m[3] ?? m[4] ?? m[5] ?? "";
 			value = value.replace(/&#x?[0-9a-f]+;?/gi, (e) => { try { const code = e[2]?.toLowerCase() === "x" ? parseInt(e.slice(3), 16) : parseInt(e.slice(2), 10); return String.fromCodePoint(code); } catch { return ""; } });
+			// The value is decoded once here and escaped once below, so a value that arrived escaped (a template's {{ }}) is not escaped twice.
+			value = value.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'");
 			if (URL_ATTRS.has(name)) { const u = safeUrl(value, name, tag); if (u === null) continue; value = u; }
 			if (name === "srcset" && /javascript:/i.test(value)) continue;
 			if (name === "style") { const st = safeStyle(value); if (st === null) continue; value = st; }
