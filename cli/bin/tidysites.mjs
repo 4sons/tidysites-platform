@@ -7,7 +7,7 @@
  *   status                                    what changed here since the pull
  *   validate                                  check the files against the content model
  *   push [--prune] [--force] [--dry]          write the changes back, then pull
- *   shot <path|url> [--mobile|--desktop] [--first-screen]   screenshot to .tidysites/shots
+ *   shot <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen]   screenshot to .tidysites/shots (none = desktop and mobile)
  *   pages                                     every address the website renders
  *   page <path> [--html]                      the rendered page, section by section
  *   schema [name]                             section types and layouts, or one type's or collection's fields
@@ -357,7 +357,9 @@ async function push(ctx) {
 
 async function shot(ctx, target = positional[0] ?? '/', opts = {}) {
 	const isUrl = /^https?:\/\//.test(target);
-	const view = flags.mobile ? 'mobile' : flags.desktop ? 'desktop' : (opts.view ?? 'both');
+	// --desktop, --mobile, --tablet, --wide, any of them together; --all for every width; none = desktop and mobile.
+	const picked = ['desktop', 'mobile', 'tablet', 'wide'].filter((v) => flags[v]);
+	const view = flags.all ? 'all' : picked.length ? picked.join(',') : (opts.view ?? 'both');
 	const args = { site_id: ctx.cfg.site, view, full_page: !(flags['first-screen'] || opts.firstScreen), ...(isUrl ? { url: target } : { path: target, site: flags.live ? 'live' : 'preview' }) };
 	const { json, images } = await tool(ctx.cfg, 'screenshot_website', args);
 	const outDir = join(ctx.dir, META, 'shots');
@@ -366,7 +368,7 @@ async function shot(ctx, target = positional[0] ?? '/', opts = {}) {
 	const base = (opts.name ?? (isUrl ? new URL(target).hostname + new URL(target).pathname : target)).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'home';
 	const named = Array.isArray(json?.captures) ? json.captures : [];
 	images.forEach((img, i) => {
-		const v = named[i]?.view ?? (view === 'both' ? ['desktop', 'mobile'][i] : view);
+		const v = named[i]?.view ?? (view === 'both' ? ['desktop', 'mobile'][i] : view === 'all' ? ['desktop', 'mobile', 'tablet', 'wide'][i] : view.split(',')[i] ?? view);
 		const p = join(outDir, `${base}-${v}-${stamp}.${img.mimeType.includes('png') ? 'png' : 'jpg'}`);
 		writeFileSync(p, Buffer.from(img.base64, 'base64'));
 		say(relative(process.cwd(), p));
