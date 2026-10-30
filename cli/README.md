@@ -61,7 +61,8 @@ shows in `status`.
 
 Images: an image field, a hero's image or a Columns image slot takes
 `{ "$media": { "url": "https://...", "alt": "what it shows" } }` and the
-push fetches the file into the website's library. An image already in the
+push fetches the file into the website's library; a file the library already
+holds (the same bytes) is reused, not added again. An image already in the
 library keeps the value the pull gave it.
 
 A picture in custom HTML is written as a plain `<img src="{{ s.image.url }}" alt="{{ s.image.alt }}">`: a stored picture gets its resized variants (`srcset`, and a `sizes` hint when none is written) on the way out, so a phone downloads a phone-sized file; write your own `sizes` when the picture is narrower than half the screen on a laptop, and your own `srcset` to take over entirely. Pictures in the first section load at once and the first of them asks to go first; pictures below load when they are needed, unless the markup says `loading="eager"`.
