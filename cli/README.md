@@ -62,6 +62,15 @@ References: a record names another by its id (what the pull shows), or by
 
 Rich text (a section's `copy`, a post's `content`) is markdown.
 
+Custom HTML (a row's `.html` file, a Columns HTML slot) reads the records:
+`{{ business.phone }}`, `{{ page.title }}`, `{{#each services as s}}…{{ s.url }}…{{/each}}`,
+`{{#if page.collection == "services"}}…{{/if}}`, and the drop-ins `{{> menu "primary"}}`,
+`{{> logo}}`, `{{> phone}}`, `{{> address}}`, `{{> hours}}`, `{{> social}}`, `{{> year}}`,
+`{{> button "Label" "/url" style=outline}}`, `{{> form "Name"}}`. A link to `#form:<Name>`
+opens that form in a dialog. So a custom header is written once against `page.*` and
+`business.*` and fits every page; `frame/frame.json` names it as `header_row`, or a page
+names its own in `header_row`.
+
 ## Building a site from these files
 
 1. `tidysites schema` for the section types, `tidysites gallery` to see them in this theme.

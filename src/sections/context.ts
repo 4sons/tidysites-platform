@@ -1,0 +1,236 @@
+/**
+ * What custom HTML can read, and the rendering of it. The context carries
+ * `business` (the Business record's fields plus a few derived ones),
+ * `site`, `page` (the record this address is for, whatever its collection,
+ * with the same names on every kind of page) and any collection the text
+ * names, each entry with its `url` and `image`. Only what a text references
+ * is loaded, so a row that prints the phone costs one read.
+ *
+ * Rendering is: fill the values (escaped), sanitise like any row, then put
+ * the platform's own markup where the drop-ins were (`{{> menu}}`,
+ * `{{> logo}}`, …) and turn `#form:<Name>` links into dialog buttons. A
+ * form drop-in comes back as a segment for the Astro layer to render.
+ */
+import { getMenu } from "emdash";
+import { referenced, render, splitIncludes, hasTemplate, TemplateError, type Include, type Scope } from "../lib/template";
+import { sanitizeHtml } from "../lib/sanitize";
+import { addressLine, entries, entryUrl, formDialog, getBusiness, getLocation, hoursRows, mediaUrl, pic, resolveRoute, slugify, str, type Business } from "./lib";
+import { pageType } from "../lib/routes";
+
+export type Segment = { html: string } | { form: string; id: string };
+export interface Rendered { segments: Segment[]; dialogs: Array<{ id: string; name: string }>; error: string | null }
+
+/** The collections custom HTML may loop over, with the fields that stand for their picture. */
+const COLLECTIONS: Record<string, { image: string[] }> = {
+	services: { image: ["featured_image", "image"] }, service_categories: { image: ["featured_image", "image"] }, service_areas: { image: ["featured_image", "image"] },
+	locations: { image: ["photo", "image"] }, people: { image: ["photo", "image"] }, reviews: { image: ["photo"] }, faqs: { image: [] }, posts: { image: ["featured_image", "image"] },
+	audiences: { image: ["featured_image", "image"] }, offers: { image: ["image"] }, plans: { image: [] }, badges: { image: ["image", "logo"] }, brands: { image: ["logo", "image"] },
+	products: { image: ["image", "featured_image"] }, case_studies: { image: ["featured_image", "image"] }, clients: { image: ["logo", "image"] }, conditions: { image: ["featured_image"] },
+	technologies: { image: ["featured_image", "image"] }, insurers: { image: ["logo"] }, financing_providers: { image: ["logo"] }, policies: { image: [] }, downloads: { image: [] }, forms: { image: [] }
+};
+
+const imageOf = (data: Record<string, unknown>, fields: string[]): { url: string; alt: string } | null => {
+	for (const f of fields) {
+		const url = mediaUrl(data[f]);
+		if (url) return { url, alt: pic(data[f]).image?.alt ?? "" };
+	}
+	return null;
+};
+
+async function collectionItems(collection: string): Promise<Scope[]> {
+	const spec = COLLECTIONS[collection];
+	if (!spec) return [];
+	const list = await entries(collection, { limit: 100 });
+	const cats = collection === "services" ? await entries("service_categories", { limit: 100 }) : [];
+	return Promise.all(list.map(async (e) => {
+		const data = e.data;
+		const cat = cats.find((c) => String(data.category ?? "") === String(c.data.id ?? c.id) || String(data.category ?? "") === c.id);
+		return {
+			...data,
+			id: e.id, slug: e.slug ?? null,
+			url: (await entryUrl(collection, e)) ?? "",
+			image: imageOf(data, spec.image),
+			...(cat ? { category_title: str(cat.data.title), category_url: (await entryUrl("service_categories", cat)) ?? "" } : {})
+		};
+	}));
+}
+
+function businessScope(b: Business): Scope {
+	return {
+		...b.raw,
+		title: b.title, tagline: b.tagline, phone: b.phone, phone_href: b.phoneHref, phone_text: b.phoneText, phone_text_href: b.phoneTextHref, email: b.email, email_href: b.email ? `mailto:${b.email}` : "",
+		address: b.address, city: b.city, region: b.region, postal: b.postal, country: b.country, address_line: addressLine(b), hours: b.hours, hours_note: b.hoursNote,
+		founded_year: b.foundedYear, years_line: b.yearsLine, rating: b.rating, review_count: b.reviewCount, rating_source: b.ratingSource, reviews_url: b.reviewsUrl,
+		booking_url: b.bookingUrl || "/contact", booking_label: b.bookingLabel, portal_url: b.portalUrl, portal_label: b.portalLabel, cta_label: b.ctaLabel,
+		logo: b.logo ? { url: b.logo.src, alt: b.logo.alt ?? b.title, width: b.logo.width, height: b.logo.height } : null,
+		social: b.social.map((s) => ({ network: s.network, url: s.url, label: s.network.charAt(0).toUpperCase() + s.network.slice(1) })),
+		license_line: b.licenseLine, insured_line: b.insuredLine, warranty_line: b.warrantyLine, service_area_line: b.serviceAreaLine, same_day_line: b.sameDayLine, emergency_line: b.emergencyLine
+	};
+}
+
+const pageMemo = new WeakMap<Request, Promise<Scope>>();
+/** The record this address is for, with the same names whatever its kind: title, summary, image, url, collection, kind, plus its own fields. */
+export function currentPage(request: Request): Promise<Scope> {
+	let p = pageMemo.get(request);
+	if (!p) { p = readPage(request); pageMemo.set(request, p); }
+	return p;
+}
+async function readPage(request: Request): Promise<Scope> {
+	const path = new URL(request.url).pathname.replace(/\/+$/, "") || "/";
+	const base = { url: path, kind: "page", collection: "", slug: "", title: "", summary: "", image: null as { url: string; alt: string } | null };
+	if (path === "/") return { ...base, kind: "home", collection: "pages", slug: "home", title: "Home" };
+	let route: Awaited<ReturnType<typeof resolveRoute>> = null;
+	try { route = await resolveRoute(path); } catch { route = null; }
+	if (!route) return base;
+	if (route.kind === "index") { const t = pageType(route.collection); return { ...base, kind: "index", collection: route.collection, title: t?.index?.label ?? route.collection }; }
+	if (route.kind === "blog") return { ...base, kind: "blog", collection: "posts", title: "Blog" };
+	if (route.kind === "home") return { ...base, kind: "home", collection: "pages", slug: "home", title: "Home" };
+	const entry = route.entry as { id?: string; data?: Record<string, unknown> } | undefined;
+	const data = entry?.data ?? {};
+	const collection = route.kind === "page" ? "pages" : route.collection;
+	const spec = COLLECTIONS[collection] ?? { image: ["featured_image", "image", "photo", "hero_image"] };
+	let category: Scope | null = null;
+	if (collection === "services" && data.category) {
+		const cats = await entries("service_categories", { limit: 100 });
+		const c = cats.find((x) => String(data.category) === String(x.data.id ?? x.id) || String(data.category) === x.id);
+		if (c) category = { title: str(c.data.title), url: (await entryUrl("service_categories", c)) ?? "" };
+	}
+	return {
+		...data,
+		...base,
+		kind: route.kind, collection, slug: route.slug, id: entry?.id ?? "",
+		title: str(data.title), headline: str(data.headline) || str(data.title), summary: str(data.summary) || str(data.tagline),
+		image: imageOf(data, [...spec.image, "hero_image", "photo", "image"]),
+		...(category ? { category } : {})
+	};
+}
+
+/** The context a text needs, and no more. */
+export async function contextFor(request: Request, text: string): Promise<{ ctx: Scope; includes: Include[] }> {
+	const { roots, includes } = referenced(text);
+	const b = await getBusiness(request);
+	const ctx: Scope = { business: businessScope(b) };
+	const url = new URL(request.url);
+	ctx.site = { title: b.title, url: url.origin, path: url.pathname, year: new Date().getFullYear() };
+	if (roots.has("page")) ctx.page = await currentPage(request);
+	await Promise.all([...roots].filter((r) => r in COLLECTIONS).map(async (r) => { ctx[r] = await collectionItems(r); }));
+	return { ctx, includes };
+}
+
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+type MenuItem = { label: string; url: string; target?: string | null; children?: MenuItem[] };
+
+function menuHtml(items: MenuItem[], current: string, depth: number, level = 1): string {
+	if (!items.length) return "";
+	const li = items.map((i) => {
+		const kids = i.children ?? [];
+		const here = i.url === "/" ? current === "/" : current === i.url || current.startsWith(`${i.url}/`);
+		const sub = kids.length && level < depth ? menuHtml(kids, current, depth, level + 1) : "";
+		return `<li class="ts-menu-item${kids.length ? " ts-menu-has-children" : ""}${here ? " ts-menu-current" : ""}"><a class="ts-menu-link" href="${esc(i.url)}"${i.target ? ` target="${esc(i.target)}"` : ""}${here ? ` aria-current="page"` : ""}>${esc(i.label)}</a>${sub}</li>`;
+	});
+	return `<ul class="${level === 1 ? "ts-menu" : "ts-menu-sub"}">${li.join("")}</ul>`;
+}
+
+/** The platform's own markup for a drop-in; null when the name is unknown. */
+async function includeHtml(inc: Include, b: Business, request: Request): Promise<string | null> {
+	const arg = (i: number, fallback = "") => inc.args[i] ?? fallback;
+	switch (inc.name) {
+		case "menu": {
+			const menu = (await getMenu(arg(0, "primary")).catch(() => null)) as { items?: MenuItem[] } | null;
+			const depth = Math.max(1, Math.min(3, Number(inc.named.depth ?? 3) || 3));
+			return menuHtml(menu?.items ?? [], new URL(request.url).pathname.replace(/\/+$/, "") || "/", depth);
+		}
+		case "logo": {
+			const inner = b.logo ? `<img class="ts-logo-img" src="${esc(b.logo.src)}" alt="${esc(b.logo.alt ?? b.title)}"${b.logo.width ? ` width="${b.logo.width}"` : ""}${b.logo.height ? ` height="${b.logo.height}"` : ""}>` : `<span class="ts-logo-text">${esc(b.title)}</span>`;
+			return `<a class="ts-logo" href="/">${inner}</a>`;
+		}
+		case "phone":
+			return b.phone ? `<a class="ts-phone" href="${esc(b.phoneHref)}">${esc(arg(0) || b.phone)}</a>` : "";
+		case "email":
+			return b.email ? `<a class="ts-email" href="mailto:${esc(b.email)}">${esc(arg(0) || b.email)}</a>` : "";
+		case "address": {
+			const line = addressLine(b);
+			return line ? `<address class="ts-address">${esc(line)}</address>` : "";
+		}
+		case "hours": {
+			const loc = await getLocation(arg(0));
+			const rows = loc ? hoursRows(loc.data) : [];
+			if (rows.length) return `<table class="ts-hours"><tbody>${rows.map((r) => `<tr><th scope="row">${esc(r.day)}</th><td>${esc(r.value)}</td></tr>`).join("")}</tbody></table>`;
+			return b.hours ? `<p class="ts-hours-line">${esc(b.hours)}</p>` : "";
+		}
+		case "social":
+			return b.social.length ? `<ul class="ts-social">${b.social.map((s) => `<li><a class="ts-social-link ts-social-${esc(s.network)}" href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="${esc(s.network)}">${esc(s.network.charAt(0).toUpperCase() + s.network.slice(1))}</a></li>`).join("")}</ul>` : "";
+		case "year":
+			return String(new Date().getFullYear());
+		case "button": {
+			const label = arg(0, b.ctaLabel), href = arg(1, b.bookingUrl || "/contact");
+			const style = inc.named.style ?? arg(2, "primary");
+			const cls = `ts-btn ${style === "outline" ? "ts-btn-outline" : style === "plain" ? "" : "ts-btn-accent"} ${inc.named.class ?? ""}`.trim().replace(/\s+/g, " ");
+			const fd = formDialog(href);
+			return fd ? `<button class="${cls}" type="button" data-tidy-dialog="${esc(fd.id)}" data-ts-form="${esc(fd.name)}">${esc(label)}</button>` : `<a class="${cls}" href="${esc(href)}">${esc(label)}</a>`;
+		}
+		default:
+			return null;
+	}
+}
+
+/**
+ * Custom HTML rendered for the page: values filled, sanitised, drop-ins and
+ * `#form:` links in place. `segments` alternate markup with forms for the
+ * Astro layer to render; `dialogs` are the forms the buttons open.
+ */
+export async function renderCustomHtml(text: string, request: Request): Promise<Rendered> {
+	const dialogs = new Map<string, string>();
+	let filled = text;
+	let includes: Include[] = [];
+	let error: string | null = null;
+	if (hasTemplate(text)) {
+		try {
+			const c = await contextFor(request, text);
+			includes = c.includes;
+			filled = render(text, c.ctx);
+		} catch (e) {
+			error = e instanceof TemplateError ? e.message : "The custom HTML could not be rendered";
+			filled = text.replace(/\{\{[\s\S]*?\}\}/g, "");
+		}
+	}
+	let safe = sanitizeHtml(filled);
+	// A link to #form:<Name> opens that form in a dialog on this page, the way a section button does.
+	safe = safe.replace(/<a\b([^>]*)\shref="#form:([^"]+)"([^>]*)>/gi, (whole, before: string, name: string, after: string) => {
+		const fd = formDialog(`#form:${name}`);
+		if (!fd) return whole;
+		dialogs.set(fd.id, fd.name);
+		return `<button type="button" data-tidy-dialog="${esc(fd.id)}"${before}${after}>`;
+	});
+	const b = await getBusiness(request);
+	const segments: Segment[] = [];
+	for (const part of splitIncludes(safe)) {
+		if ("html" in part) { segments.push({ html: part.html }); continue; }
+		const inc = part.include;
+		if (inc.name === "form") {
+			const name = inc.args[0] ?? "";
+			if (name) segments.push({ form: name, id: `ts-form-${slugify(name)}` });
+			continue;
+		}
+		const html = await includeHtml(inc, b, request);
+		if (html === null) continue;
+		// A button drop-in that opens a form needs the dialog beside it.
+		for (const m of html.matchAll(/data-ts-form="([^"]+)"/g)) { const fd = formDialog(`#form:${m[1]}`); if (fd) dialogs.set(fd.id, fd.name); }
+		segments.push({ html: html.replace(/ data-ts-form="[^"]+"/g, "") });
+	}
+	// A dialog button's closing tag is the anchor's: swap it so the markup stays balanced.
+	const fixed = segments.map((s) => ("html" in s ? { html: closeButtons(s.html) } : s));
+	return { segments: fixed, dialogs: [...dialogs].map(([id, name]) => ({ id, name })), error };
+}
+
+/** After an opening <a> became a <button>, its matching </a> must become </button>. */
+function closeButtons(html: string): string {
+	const stack: string[] = [];
+	return html.replace(/<(\/?)(a|button)\b[^>]*>/gi, (whole, slash: string, tag: string) => {
+		const t = tag.toLowerCase();
+		if (!slash) { stack.push(t); return whole; }
+		const open = stack.pop();
+		return open && open !== t ? `</${open}>` : whole;
+	});
+}
+

@@ -3,10 +3,15 @@
  * A custom row: HTML and CSS written by a person or an agent, rendered as
  * part of the page through the sanitizer (nothing runs) with its CSS scoped
  * to the row. By a saved row's name, or inline. Used by the `row` section and
- * in place of the header or footer.
+ * in place of the header or footer. The markup may read the site's records
+ * ({{ business.phone }}, {{#each services}}, {{> menu}}; see lib/template),
+ * so a custom header or footer is as live as the frame's own.
  */
 import { getRow, str } from "./lib";
-import { sanitizeHtml, scopeCss } from "../lib/sanitize";
+import { scopeCss } from "../lib/sanitize";
+import { renderCustomHtml } from "./context";
+import Form from "./Form.astro";
+import Dialog from "../frame/Dialog.astro";
 import "./defaults.css";
 interface Props { name?: string | null; html?: string | null; css?: string | null; blockKey?: string | null; fullWidth?: boolean; as?: "header" | "footer" | "section" }
 const { name = "", html: inlineHtml = "", css: inlineCss = "", blockKey = null, fullWidth = false, as = "section" } = Astro.props;
@@ -14,13 +19,22 @@ const row = name ? await getRow(name) : null;
 const html = row ? str(row.data.html) : (inlineHtml ?? "");
 const css = row ? str(row.data.css) : (inlineCss ?? "");
 const key = (blockKey || row?.slug || row?.id || "inline").replace(/[^A-Za-z0-9_-]/g, "");
-const safe = sanitizeHtml(html);
+const rendered = await renderCustomHtml(html, Astro.request);
 const scoped = css ? scopeCss(css, `.ts-row[data-row="${key}"]`) : "";
 const Tag = as === "header" ? "header" : as === "footer" ? "footer" : "div";
+const hasContent = rendered.segments.some((s) => ("html" in s ? s.html.trim() !== "" : true));
+// One dialog per form per page, however many rows and buttons open it.
+const seen = ((Astro.locals as unknown as { tidyFormDialogs?: Set<string> }).tidyFormDialogs ??= new Set<string>());
+const dialogs = rendered.dialogs.filter((d) => !seen.has(d.id));
+for (const d of dialogs) seen.add(d.id);
 ---
-{safe && (
+{hasContent && (
 	<Tag class={`ts-row ts-row-${as} ${fullWidth ? "ts-row-full" : ""}`} data-row={key} data-tidy-row={row ? (row.slug ?? row.id) : undefined} {...(row ? { "data-tidy-record": "rows", "data-tidy-record-id": row.id, "data-tidy-record-label": "Custom row" } : {})}>
 		{scoped && <style set:html={scoped} />}
-		<div class={fullWidth ? "" : "ts-row-wrap"}><Fragment set:html={safe} /></div>
+		<div class={fullWidth ? "" : "ts-row-wrap"}>
+			{rendered.segments.map((s) => ("html" in s ? <Fragment set:html={s.html} /> : <Form name={s.form} class="ts-card" hidden={{ section: "row" }} />))}
+		</div>
+		{import.meta.env.DEV && rendered.error && <p class="ts-missing" role="alert">{rendered.error}</p>}
 	</Tag>
 )}
+{dialogs.map((d) => <Dialog id={d.id} title={d.name} class="ts-form-dialog"><Form name={d.name} hidden={{ section: "row" }} /></Dialog>)}

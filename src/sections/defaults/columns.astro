@@ -9,10 +9,11 @@
  * can target. A section that continues the one above renders no background
  * of its own; Sections.astro draws the shared one around the run.
  */
-import { bool, formDialog, int, list, mediaUrl, nodeOf, str } from "../lib";
+import { bool, formDialog, int, list, mediaUrl, nodeOf, pic, str } from "../lib";
 import Action from "../Action.astro";
 import { markdownToHtml } from "../../lib/markdown";
 import { sanitizeHtml } from "../../lib/sanitize";
+import { renderCustomHtml } from "../context";
 import Form from "../Form.astro";
 const n = nodeOf(Astro.props);
 const props = Astro.props as { grouped?: boolean; groupTone?: string | null };
@@ -40,6 +41,9 @@ const toneClass = tone === "dark" ? "ts-ink" : tone === "light" ? "ts-band" : to
 const shade = tone === "dark" || tone === "accent";
 const style = bg ? `background-image:${shade ? "linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.6))," : ""}url(${bg})` : undefined;
 const prose = (md: string) => sanitizeHtml(markdownToHtml(md));
+// An HTML slot reads the records like a custom row does; a form drop-in has no place here (the form slot kind does that).
+const htmlSlots = new Map<number, string>();
+for (const { s, i } of slots) if (kindOf(s) === "html") htmlSlots.set(i, (await renderCustomHtml(str(s.html), Astro.request)).segments.map((seg) => ("html" in seg ? seg.html : "")).join(""));
 const embed = (url: string) => url.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/").replace("vimeo.com/", "player.vimeo.com/video/");
 const full = (s: Slot) => str(s.span) === "full row";
 const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ? "ts-grouped" : "", bool(n.continue_background) ? "ts-continue" : "", align === "center" ? "ts-center" : "", own].filter(Boolean).join(" ");
@@ -64,7 +68,7 @@ const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ?
 						</>)}
 						{kind === "image" && img && (
 							<figure class="ts-col-pic">
-								{link ? <a href={link}><img src={img} alt={heading || str(s.text)} loading="lazy" /></a> : <img src={img} alt={heading || str(s.text)} loading="lazy" />}
+								{(() => { const alt = pic(s.image).image?.alt || heading || str(s.text); return link ? <a href={link}><img src={img} alt={alt} loading="lazy" /></a> : <img src={img} alt={alt} loading="lazy" />; })()}
 								{heading && <figcaption>{heading}</figcaption>}
 							</figure>
 						)}
@@ -86,7 +90,7 @@ const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ?
 							{heading && <H>{heading}</H>}
 							<div class="ts-video">{/\.(mp4|webm|mov)(\?|$)/i.test(str(s.video_url)) ? <video src={str(s.video_url)} controls playsinline></video> : <iframe src={embed(str(s.video_url))} title={heading || "Video"} loading="lazy" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>}</div>
 						</>)}
-						{kind === "html" && <Fragment set:html={sanitizeHtml(str(s.html))} />}
+						{kind === "html" && <Fragment set:html={htmlSlots.get(slotIndex) ?? ""} />}
 					</div>
 				);
 			})}

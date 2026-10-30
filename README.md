@@ -174,6 +174,20 @@ A theme's layout calls `pageHead(Astro.request, { collection, data, sections, pa
 
 A custom row is HTML and CSS a person or an agent wrote, rendered as part of the page: a saved row from the `rows` collection placed by name, or markup written straight into a `row` section. Nothing in a row can run. The sanitizer (`@tideworthy/tidysites-platform/sanitize`) keeps an allowlist of tags and attributes and drops script, event handlers, javascript links, styles in the markup and frames to anywhere but a few known hosts; the row's CSS is scoped to the row (`.ts-row[data-row=…]`) and stripped of imports and remote fetches. A row can open the booking dialog with `data-tidy-dialog="ts-booking"`, and it sees the site's tokens, so a row written for one theme reads right on the next. The sandboxed frame section stays for the calculator or embed that needs script.
 
+A row's markup can read the site's records, so a custom header or footer is as live as the frame's own. The vocabulary is small on purpose (`src/lib/template.ts`):
+
+```
+{{ business.phone }}  {{ business.phone_href }}  {{ business.email }}  {{ business.address_line }}  {{ business.hours }}  {{ business.logo.url }}  {{ business.booking_url }}  {{ business.booking_label }}
+{{ page.title }}  {{ page.headline }}  {{ page.summary }}  {{ page.image.url }}  {{ page.url }}  {{ page.slug }}  {{ page.collection }}  {{ page.kind }}  {{ page.category.title }}
+{{ site.title }}  {{ site.url }}  {{ site.year }}
+{{#each services as s}} <a href="{{ s.url }}">{{ s.title }}</a> {{/each}}        also service_categories, service_areas, locations, people, reviews, faqs, posts, audiences, offers, plans, badges, brands, products, case_studies, clients
+{{#each services limit=6}} … {{else}} nothing yet {{/each}}                     inside a loop: this, @index, @number, @first, @last, and the item's own fields
+{{#if page.summary}} … {{else}} … {{/if}}   {{#unless x}} … {{/unless}}   {{#if page.collection == "services"}} … {{/if}}
+{{> menu "primary"}} {{> menu "footer" depth=1}}  {{> logo}}  {{> phone}}  {{> email}}  {{> address}}  {{> hours}}  {{> social}}  {{> year}}  {{> button "Label" "/url" style=outline}}  {{> form "Name"}}
+```
+
+`page` is the record the address is for, whatever its collection, with the same names on every kind of page (plus the record's own fields), so one header written against `page.*` fits a service page, an area page and a custom page. Values are HTML-escaped (three braces print a value that is already HTML); the result goes through the sanitizer like any row; the drop-ins print the platform's own markup (`ts-menu`, `ts-logo`, `ts-phone`, `ts-address`, `ts-hours`, `ts-social`, `ts-btn`) after it. A link whose href is `#form:<Form name>` opens that form in a dialog, the way a section button does. Only the roots a text names are read. Columns HTML slots take the same vocabulary (without the form drop-in; the slot kind `form` does that).
+
 A page chooses its header and footer: the site's, none, or a named custom row. A theme's layout reads that with `pageFrame(page.data)` and renders `frame/header`, nothing, or `sections/row` with `as="header"`. The `frame` record can replace the site's header or footer everywhere with a row, which `frame/header` and `frame/footer` render on their own.
 
 ## The sections that are not records
