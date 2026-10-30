@@ -108,11 +108,18 @@ export function cssSummary(css) {
 		const f = m[1].split(',')[0].replace(/["']/g, '').trim();
 		if (f && !/^(inherit|initial|unset|var\()/.test(f)) fonts.set(f, (fonts.get(f) ?? 0) + 1);
 	}
-	// The site's own names for its colours and fonts, when its stylesheet defines them; a framework's defaults sit below these.
+	// The site's own names for its colours and fonts, when its stylesheet defines them; a framework's defaults sit below
+	// these. A builder often defines a token as another token (--button-fill: rgb(var(--color_48)); --color_48: 254,96,47):
+	// the references are followed so the list reads as colours, and bare channel triplets become rgb().
+	const defined = {};
+	for (const m of css.matchAll(/--([a-zA-Z][\w-]*)\s*:\s*([^;}]+)/g)) if (!(m[1] in defined)) defined[m[1]] = m[2].trim();
+	const resolve = (v, depth = 0) => (depth > 4 ? v : v.replace(/var\(\s*--([\w-]+)\s*(?:,[^)]*)?\)/g, (_, name) => (name in defined ? resolve(defined[name], depth + 1) : `var(--${name})`)));
 	const variables = {};
-	for (const m of css.matchAll(/--([a-zA-Z][\w-]*)\s*:\s*([^;}]+)/g)) {
-		const v = m[2].trim();
-		if (/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(|font|["'][A-Z][\w ]+["']/i.test(v) && !/^var\(/.test(v)) variables[m[1]] = v;
+	for (const [name, raw] of Object.entries(defined)) {
+		let v = resolve(raw).replace(/rgba?\(\s*(\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\s*\)/g, 'rgb($1,$2,$3)');
+		if (/^\d{1,3},\s*\d{1,3},\s*\d{1,3}$/.test(v)) v = `rgb(${v.replace(/\s/g, '')})`;
+		if (/var\(/.test(v)) continue;
+		if (/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(|font|["'][A-Z][\w ]+["']/i.test(v)) variables[name] = v;
 	}
 	const top = (map, n) => [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([value, count]) => ({ value, count }));
 	return { colors: top(colors, 12), fonts: top(fonts, 6), variables };

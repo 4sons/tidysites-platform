@@ -27,7 +27,7 @@ nothing else; it lives in `.tidysites/key`, which is kept out of git.
 | `tidysites page <path> [--html]` | the rendered page, section by section, with the key each section carries |
 | `tidysites schema [type or collection]` | the section types and layouts, or one type's or collection's fields |
 | `tidysites gallery [type]` | a screenshot of every section type and layout in this website's theme, or the first screen of one type |
-| `tidysites fetch <url> [--out dir]` | a page of the site being ported: cleaned HTML, its outline (headings, navigation, images, phones, fonts, colours) and its stylesheets |
+| `tidysites fetch <url> [--out dir]` | a page of the site being ported: cleaned HTML, its outline (headings, navigation, images, phones, fonts, the stylesheet's own variables and colours) and its stylesheets, inline style blocks included |
 | `tidysites rm <collection>/<slug> ...` | delete entry files with their sidecars (`services/*` for every entry of a collection); `push --prune` then removes them from the website |
 | `tidysites publish --yes` | the live site becomes a copy of the preview site |
 

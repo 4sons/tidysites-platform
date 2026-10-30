@@ -456,6 +456,9 @@ async function fetchCmd(ctx) {
 			/* a stylesheet that will not download is not the port's problem */
 		}
 	}
+	// A page that carries its styles inline (Wix, many builders) has no stylesheet to download: read the <style> blocks too.
+	const inline = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1]).join('\n');
+	if (inline.trim()) { cssTexts.push(inline); writeFileSync(join(outDir, `${base}-inline.css`), inline); }
 	if (cssTexts.length) o.css = cssSummary(cssTexts.join('\n'));
 	writeFileSync(join(outDir, `${base}.raw.html`), html);
 	writeFileSync(join(outDir, `${base}.html`), cleanHtml(html));
