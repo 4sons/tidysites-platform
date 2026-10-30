@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { diffEntries, docToFiles, entryToFiles, filesToEntry, pushDocument, snapshotOf } from '../lib/folder.mjs';
+import { diffEntries, docToFiles, entryToFiles, filesToEntry, menuItems, menuTree, pushDocument, snapshotOf } from '../lib/folder.mjs';
 
 const page = { id: '01A', slug: 'home', status: 'published', updated_at: '2026-10-30T10:00:00Z', data: { title: 'Home', sections: [{ _type: 'hero', _key: 'h', headline: 'Hi' }], custom_css: '.x{color:red}' } };
 const row = { id: '01B', slug: 'footer', status: 'published', updated_at: '2026-10-30T10:00:00Z', data: { title: 'Footer', html: '<footer>f</footer>', css: '.ts-row{}' } };
@@ -72,4 +72,30 @@ test('the same data in another key order is unchanged', () => {
 test('docToFiles writes every entry', () => {
 	const files = docToFiles({ settings: { title: 'T' }, content: { pages: [page], rows: [row] } });
 	assert.deepEqual(Object.keys(files).sort(), ['pages/home.css', 'pages/home.json', 'rows/footer.css', 'rows/footer.html', 'rows/footer.json']);
+});
+
+test('a field taken out of the file goes as null so the website clears it', () => {
+	const snap = snapshotOf({ content: { business: [{ id: 'b', slug: 'business', status: 'published', updated_at: 't', data: { title: 'K', rating: '4.8', review_count: '64', note: '' } }] } });
+	const local = { 'business/business': { id: 'b', slug: 'business', status: 'published', updated_at: 't', data: { title: 'K' } } };
+	const doc = pushDocument(local, snap, { keys: ['business/business'] });
+	assert.deepEqual(doc.content.business[0].data, { title: 'K', rating: null, review_count: null });
+});
+
+test('a menu round-trips between the site\'s flat list and the file\'s tree', () => {
+	const flat = [
+		{ id: 'a', parentId: null, sortOrder: 0, type: 'custom', customUrl: '/services', label: 'Services' },
+		{ id: 'b', parentId: 'a', sortOrder: 0, type: 'custom', customUrl: '/services/water-heaters', label: 'Water Heaters', titleAttr: 'Hot water' },
+		{ id: 'c', parentId: null, sortOrder: 1, type: 'page', referenceCollection: 'pages', referenceId: 'p1', label: 'About', target: '_blank' }
+	];
+	const tree = menuTree(flat);
+	assert.deepEqual(tree, [
+		{ label: 'Services', url: '/services', children: [{ label: 'Water Heaters', url: '/services/water-heaters', title: 'Hot water' }] },
+		{ label: 'About', type: 'page', collection: 'pages', id: 'p1', target: '_blank' }
+	]);
+	assert.deepEqual(menuItems(tree), [
+		{ label: 'Services', type: 'custom', customUrl: '/services' },
+		{ label: 'Water Heaters', type: 'custom', customUrl: '/services/water-heaters', titleAttr: 'Hot water', parentIndex: 0 },
+		{ label: 'About', type: 'page', referenceCollection: 'pages', referenceId: 'p1', target: '_blank' }
+	]);
+	assert.throws(() => menuItems([{ url: '/x' }]), /needs a label/);
 });

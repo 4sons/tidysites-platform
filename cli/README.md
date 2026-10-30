@@ -26,7 +26,7 @@ nothing else; it lives in `.tidysites/key`, which is kept out of git.
 | `tidysites pages` | every address the website renders |
 | `tidysites page <path> [--html]` | the rendered page, section by section, with the key each section carries |
 | `tidysites schema [type or collection]` | the section types and layouts, or one type's or collection's fields |
-| `tidysites gallery` | a screenshot of every section type and layout in this website's theme |
+| `tidysites gallery [type]` | a screenshot of every section type and layout in this website's theme, or the first screen of one type |
 | `tidysites fetch <url> [--out dir]` | a page of the site being ported: cleaned HTML, its outline (headings, navigation, images, phones, fonts, colours) and its stylesheets |
 | `tidysites publish --yes` | the live site becomes a copy of the preview site |
 
@@ -40,13 +40,17 @@ what you need first) or push `--force`.
 <collection>/<slug>.json      { "id", "slug", "status", "updated_at", "data": { ... } }
 <collection>/<slug>.css       data.custom_css as a file (for rows: data.css)
 rows/<slug>.html              data.html as a file
+menus/<name>.json             a menu as a tree: { "label", "items": [{ "label", "url", "children": [...] }] }
 .tidysites/                   config.json, key, snapshot.json (the last pull), schema.json (the content model), shots/, source/
 ```
 
 A new entry is a new `<collection>/<slug>.json` with at least `"data"`; the
 slug is the file name, the status is `published` unless the file says
-`draft`. Delete a file and `push --prune` removes the entry. `id` and
-`updated_at` are the website's; leave them as pulled.
+`draft`. Delete a file and `push --prune` removes the entry. A field taken
+out of a file is cleared on the website at the next push. `id` and
+`updated_at` are the website's; leave them as pulled. A pull never overwrites
+a file you changed and have not pushed; it keeps the file and the difference
+shows in `status`.
 
 Images: an image field, a hero's image or a Columns image slot takes
 `{ "$media": { "url": "https://...", "alt": "what it shows" } }` and the
@@ -62,7 +66,7 @@ Rich text (a section's `copy`, a post's `content`) is markdown.
 
 1. `tidysites schema` for the section types, `tidysites gallery` to see them in this theme.
 2. Records first: `business/business.json` (the company's name, tagline, phone, hours, brand), `locations/`, `services/`, `people/`, `reviews/`, `faqs/`.
-3. `frame/frame.json` for the top bar, the call bar, the footer headings, the wording; the menu through the website's own tools.
+3. `frame/frame.json` for the top bar, the call bar, the footer headings, the wording; `menus/primary.json` and `menus/footer.json` for the menus (an item with `children` is a dropdown).
 4. Pages as sections: `pages/<slug>.json`, each a list in `data.sections`. Columns is the section for a band with no record behind it.
-5. The look: brand colours and fonts on the Business record, `business/business.css` for what the tokens cannot say.
+5. The look: brand colours and fonts on the Business record, `business/business.css` for what the tokens cannot say. The theme's own rules are written as `.ts.ts-accent` and `.ts.ts-ink .ts-prose a`, so a rule of yours needs the same weight (`.ts.ts-accent …`) to win.
 6. `tidysites validate`, `tidysites push`, `tidysites shot /` and `tidysites shot / --mobile`, and look.

@@ -140,8 +140,12 @@ export function pushDocument(local, snapshot, { keys, removeKeys = [], settings 
 	for (const key of keys) {
 		const [collection, slug] = splitKey(key);
 		const e = local[key];
-		(content[collection] ??= []).push({ id: e.id, slug, status: e.status, data: e.data });
 		const was = snapshot.entries[key];
+		// A field taken out of the file is cleared on the site: the site keeps what a push does not name,
+		// so the names the snapshot had and the file no longer has go as null.
+		const data = { ...e.data };
+		if (was?.data) for (const k of Object.keys(was.data)) if (!(k in data) && was.data[k] !== null && was.data[k] !== '') data[k] = null;
+		(content[collection] ??= []).push({ id: e.id, slug, status: e.status, data });
 		if (was?.updated_at) expect[key] = was.updated_at;
 	}
 	const remove = {};
@@ -162,4 +166,55 @@ export function pushDocument(local, snapshot, { keys, removeKeys = [], settings 
 export function splitKey(key) {
 	const i = key.indexOf('/');
 	return [key.slice(0, i), key.slice(i + 1)];
+}
+
+// ---------------------------------------------------------------------------
+// Menus: menus/<name>.json, a tree of items; the site keeps a flat list with parent indexes.
+// ---------------------------------------------------------------------------
+
+/** The site's flat item list (parentId, sortOrder) as the tree the file holds. */
+export function menuTree(items) {
+	const byParent = new Map();
+	for (const it of [...items].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))) {
+		const k = it.parentId ?? null;
+		(byParent.get(k) ?? byParent.set(k, []).get(k)).push(it);
+	}
+	const node = (it) => {
+		const out = { label: it.label };
+		if (it.type === 'custom' || !it.type) out.url = it.customUrl ?? '';
+		else {
+			out.type = it.type;
+			if (it.referenceCollection) out.collection = it.referenceCollection;
+			if (it.referenceId) out.id = it.referenceId;
+		}
+		if (it.titleAttr) out.title = it.titleAttr;
+		if (it.target) out.target = it.target;
+		if (it.cssClasses) out.classes = it.cssClasses;
+		const kids = byParent.get(it.id) ?? [];
+		if (kids.length) out.children = kids.map(node);
+		return out;
+	};
+	return (byParent.get(null) ?? []).map(node);
+}
+
+/** The tree flattened to what menu_set_items takes: each child names its parent's index. */
+export function menuItems(tree) {
+	const out = [];
+	const walk = (nodes, parentIndex) => {
+		for (const n of nodes) {
+			if (!n || typeof n.label !== 'string' || !n.label) throw new Error('every menu item needs a label');
+			const item = { label: n.label, type: n.url !== undefined || !n.type ? 'custom' : n.type };
+			if (item.type === 'custom') item.customUrl = n.url ?? '#';
+			if (n.collection) item.referenceCollection = n.collection;
+			if (n.id) item.referenceId = n.id;
+			if (n.title) item.titleAttr = n.title;
+			if (n.target) item.target = n.target;
+			if (n.classes) item.cssClasses = n.classes;
+			if (parentIndex !== null) item.parentIndex = parentIndex;
+			out.push(item);
+			if (Array.isArray(n.children) && n.children.length) walk(n.children, out.length - 1);
+		}
+	};
+	walk(tree, null);
+	return out;
 }

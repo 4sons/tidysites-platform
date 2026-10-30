@@ -11,7 +11,7 @@
  *   pages                                     every address the website renders
  *   page <path> [--html]                      the rendered page, section by section
  *   schema [name]                             section types and layouts, or one type's or collection's fields
- *   gallery                                   screenshot of every section type in this theme
+ *   gallery [type]                            screenshot of every section type in this theme, or the first screen of one type
  *   fetch <url> [--out dir]                   a page of the site being ported: cleaned HTML and its outline
  *   publish --yes                             the live site becomes a copy of the preview site
  *
@@ -22,7 +22,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { callTool, ApiError } from '../lib/api.mjs';
-import { diffEntries, docToFiles, filesToEntry, FILE_NAME, pushDocument, snapshotOf, SIDECARS } from '../lib/folder.mjs';
+import { diffEntries, entryToFiles, filesToEntry, FILE_NAME, menuItems, menuTree, pushDocument, sameEntry, snapshotOf, SIDECARS } from '../lib/folder.mjs';
 import { validateAll, indexSchema } from '../lib/validate.mjs';
 import { cleanHtml, cssSummary, fetchPage, outline, outlineText } from '../lib/fetch.mjs';
 
@@ -87,7 +87,7 @@ function readLocal(dir, only = null) {
 		if (name.startsWith('.') || name === 'node_modules') continue;
 		const colDir = join(dir, name);
 		if (!statSync(colDir).isDirectory()) continue;
-		if (!/^[a-z][a-z0-9_]*$/.test(name)) continue;
+		if (!/^[a-z][a-z0-9_]*$/.test(name) || name === 'menus') continue;
 		if (only && !only.includes(name)) continue;
 		const sidecarExts = Object.keys(SIDECARS[name] ?? SIDECARS.default);
 		for (const file of readdirSync(colDir)) {
@@ -116,20 +116,53 @@ function readJson(path, fallback = null) {
 	return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : fallback;
 }
 
+function describeError(e) {
+	let msg = e.message;
+	if (e.details?.conflicts) {
+		msg += '\n' + e.details.conflicts.map((c) => `  ${c.collection}/${c.slug}: ${c.kind === 'changed' ? `changed on the website (${c.site_updated_at})` : c.kind === 'gone' ? 'removed on the website' : 'already exists on the website'}`).join('\n');
+		msg += '\n\nRun `tidysites pull` to take the website\'s version (a file you changed here is kept and shows as changed against the new snapshot), or push --force to overwrite the website.';
+	} else if (e.details) msg += `\n${JSON.stringify(e.details, null, 2).slice(0, 4000)}`;
+	return msg;
+}
+
 async function tool(cfg, name, args) {
 	try {
 		return await callTool(cfg, name, args);
 	} catch (e) {
-		if (e instanceof ApiError) {
-			let msg = e.message;
-			if (e.details?.conflicts) {
-				msg += '\n' + e.details.conflicts.map((c) => `  ${c.collection}/${c.slug}: ${c.kind === 'changed' ? `changed on the website (${c.site_updated_at})` : c.kind === 'gone' ? 'removed on the website' : 'already exists on the website'}`).join('\n');
-				msg += '\n\nRun `tidysites pull` to take the website\'s version (your files are overwritten; copy what you need first), or push --force to overwrite the website.';
-			} else if (e.details) msg += `\n${JSON.stringify(e.details, null, 2).slice(0, 4000)}`;
-			fail(msg);
-		}
+		if (e instanceof ApiError) fail(describeError(e));
 		throw e;
 	}
+}
+
+/** The site's menus as trees, by name. */
+async function readMenus(cfg) {
+	const { json: list } = await tool(cfg, 'call_website_site_tool', { site_id: cfg.site, tool: 'menu_list', arguments: {} });
+	const rows = list?.result ?? list?.menus ?? [];
+	const menus = {};
+	for (const m of Array.isArray(rows) ? rows : []) {
+		if (!m?.name) continue;
+		const { json: one } = await tool(cfg, 'call_website_site_tool', { site_id: cfg.site, tool: 'menu_get', arguments: { name: m.name } });
+		const menu = one?.result ?? one;
+		menus[m.name] = { name: m.name, label: menu?.label ?? m.label ?? m.name, items: menuTree(Array.isArray(menu?.items) ? menu.items : []) };
+	}
+	return menus;
+}
+
+function readLocalMenus(dir) {
+	const out = {};
+	const d = join(dir, 'menus');
+	if (!existsSync(d)) return out;
+	for (const f of readdirSync(d)) {
+		if (!f.endsWith('.json')) continue;
+		const name = f.slice(0, -5);
+		try {
+			const j = JSON.parse(readFileSync(join(d, f), 'utf8'));
+			out[name] = { name, label: j.label ?? name, items: Array.isArray(j.items) ? j.items : [] };
+		} catch (e) {
+			out[name] = { name, error: `menus/${f}: ${e.message}` };
+		}
+	}
+	return out;
 }
 
 async function pull({ dir, cfg }, collections = null) {
@@ -139,11 +172,25 @@ async function pull({ dir, cfg }, collections = null) {
 		tool(cfg, 'get_website_schema', { site_id: cfg.site })
 	]);
 	if (!doc?.content) fail('The pull came back without content.');
-	const files = docToFiles(doc);
-	// The folder mirrors the website for the collections pulled: files for entries it no longer has go.
 	const pulled = new Set(doc.collections.map((c) => c.slug));
 	const { local } = readLocal(dir, [...pulled]);
 	const prev = readJson(join(dir, META, 'snapshot.json'));
+	// A file changed here since the last pull and not pushed yet is kept; the snapshot moves to the
+	// website's version underneath it, so status shows the difference and a push carries the new stamp.
+	const files = {};
+	const kept = [];
+	for (const [collection, entries] of Object.entries(doc.content)) {
+		for (const e of entries) {
+			const key = `${collection}/${e.slug ?? e.id}`;
+			const mine = local[key];
+			const was = prev?.entries?.[key];
+			if (mine && was && !sameEntry(mine, was) && !sameEntry(mine, { status: e.status, data: e.data })) {
+				kept.push(key);
+				continue;
+			}
+			Object.assign(files, entryToFiles(collection, e));
+		}
+	}
 	let removed = 0;
 	for (const key of Object.keys(local)) {
 		const [collection, slug] = key.split('/');
@@ -158,6 +205,20 @@ async function pull({ dir, cfg }, collections = null) {
 	}
 	writeFiles(dir, files);
 	const snap = snapshotOf(doc);
+	if (!want) {
+		const menus = await readMenus(cfg);
+		snap.menus = menus;
+		const localMenus = readLocalMenus(dir);
+		for (const [name, menu] of Object.entries(menus)) {
+			const mine = localMenus[name];
+			const wasMenu = prev?.menus?.[name];
+			if (mine && !mine.error && wasMenu && JSON.stringify(mine.items) !== JSON.stringify(wasMenu.items) && JSON.stringify(mine.items) !== JSON.stringify(menu.items)) {
+				kept.push(`menus/${name}`);
+				continue;
+			}
+			writeFiles(dir, { [`menus/${name}.json`]: `${JSON.stringify({ label: menu.label, items: menu.items }, null, '\t')}\n` });
+		}
+	} else if (prev?.menus) snap.menus = prev.menus;
 	if (want && prev) {
 		// A partial pull refreshes only its collections in the snapshot.
 		for (const [k, v] of Object.entries(prev.entries)) if (!pulled.has(k.split('/')[0])) snap.entries[k] = v;
@@ -169,6 +230,8 @@ async function pull({ dir, cfg }, collections = null) {
 	const n = doc.collections.reduce((a, c) => a + c.count, 0);
 	say(`Pulled ${n} entr${n === 1 ? 'y' : 'ies'} in ${doc.collections.length} collections from ${doc.site.preview_url ?? cfg.site}${removed ? `; ${removed} file${removed === 1 ? '' : 's'} removed (gone on the website)` : ''}.`);
 	for (const c of doc.collections.filter((c) => c.count)) say(`  ${c.slug.padEnd(20)} ${c.count}`);
+	if (snap.menus) say(`  ${'menus'.padEnd(20)} ${Object.keys(snap.menus).length}`);
+	for (const k of kept) say(`  kept your unpushed changes in ${k}`);
 }
 
 function status({ dir }) {
@@ -176,7 +239,13 @@ function status({ dir }) {
 	if (!snap) fail('Nothing pulled yet. Run `tidysites pull`.');
 	const { local, problems } = readLocal(dir);
 	const d = diffEntries(local, snap);
-	return { snap, local, problems, diff: d, settings: null, settingsChanged: false };
+	const menus = readLocalMenus(dir);
+	const menusChanged = [];
+	for (const [name, m] of Object.entries(menus)) {
+		if (m.error) problems.push(m.error);
+		else if (JSON.stringify(m.items) !== JSON.stringify(snap.menus?.[name]?.items ?? null) || m.label !== (snap.menus?.[name]?.label ?? m.label)) menusChanged.push(name);
+	}
+	return { snap, local, problems, diff: d, menus, menusChanged };
 }
 
 function printStatus(s) {
@@ -184,7 +253,8 @@ function printStatus(s) {
 	for (const k of s.diff.created) say(`+ ${k}`);
 	for (const k of s.diff.updated) say(`~ ${k}`);
 	for (const k of s.diff.removed) say(`- ${k} (file deleted; push --prune removes it from the website)`);
-	const n = s.diff.created.length + s.diff.updated.length;
+	for (const m of s.menusChanged) say(`~ menus/${m}`);
+	const n = s.diff.created.length + s.diff.updated.length + s.menusChanged.length;
 	if (!n && !s.diff.removed.length && !s.problems.length) say(`Nothing changed since the pull (${s.diff.unchanged.length} entries).`);
 	return n;
 }
@@ -207,36 +277,63 @@ async function push(ctx) {
 	const only = flags.only ? String(flags.only).split(',') : null;
 	const keys = [...s.diff.created, ...s.diff.updated].filter((k) => !only || only.includes(k.split('/')[0]));
 	const removeKeys = flags.prune ? s.diff.removed.filter((k) => !only || only.includes(k.split('/')[0])) : [];
-	const settings = null;
-	if (!keys.length && !removeKeys.length) {
+	const menus = s.menusChanged.filter((m) => !only || only.includes('menus'));
+	if (!keys.length && !removeKeys.length && !menus.length) {
 		say('Nothing to push.');
 		return;
 	}
-	const doc = pushDocument(s.local, s.snap, { keys, removeKeys, settings });
+	const doc = pushDocument(s.local, s.snap, { keys, removeKeys });
 	if (flags.force) doc.force = true;
 	if (flags.dry) {
-		say(`Would push ${keys.length} entr${keys.length === 1 ? 'y' : 'ies'}${removeKeys.length ? `, remove ${removeKeys.length}` : ''}:`);
+		say(`Would push ${keys.length} entr${keys.length === 1 ? 'y' : 'ies'}${removeKeys.length ? `, remove ${removeKeys.length}` : ''}${menus.length ? `, rewrite menu${menus.length === 1 ? '' : 's'} ${menus.join(', ')}` : ''}:`);
 		printStatus(s);
 		if (flags.json) say(JSON.stringify(doc, null, 2));
 		return;
 	}
 	printStatus(s);
-	const { json: r } = await tool(ctx.cfg, 'push_website', { site_id: ctx.cfg.site, ...doc });
-	say(`Pushed: ${r.content.created} created, ${r.content.updated} updated${r.images ? `, ${r.images} image${r.images === 1 ? '' : 's'} added` : ''}${r.removed ? `, ${r.removed} removed` : ''}.`);
-	if (r.missing?.length) say(`Not found to remove: ${r.missing.map((m) => `${m.collection}/${m.slug}`).join(', ')}`);
-	await pull(ctx, null);
+	const touched = [...new Set([...keys, ...removeKeys].map((k) => k.split('/')[0]))];
+	if (keys.length || removeKeys.length) {
+		let r;
+		try {
+			({ json: r } = await callTool(ctx.cfg, 'push_website', { site_id: ctx.cfg.site, ...doc }));
+		} catch (e) {
+			if (!(e instanceof ApiError)) throw e;
+			say(describeError(e));
+			if (e.status !== 409 && e.status !== 422) {
+				// The website writes entry by entry, so a failure part way leaves some of them written.
+				say('\nThe website may have taken part of the push. Pulling what it has now; a file of yours that still differs is kept and stays listed in status.');
+				await pull(ctx, touched);
+			}
+			process.exit(1);
+		}
+		say(`Pushed: ${r.content.created} created, ${r.content.updated} updated${r.images ? `, ${r.images} image${r.images === 1 ? '' : 's'} added` : ''}${r.removed ? `, ${r.removed} removed` : ''}.`);
+		if (r.missing?.length) say(`Not found to remove: ${r.missing.map((m) => `${m.collection}/${m.slug}`).join(', ')}`);
+	}
+	for (const name of menus) {
+		const m = s.menus[name];
+		let items;
+		try {
+			items = menuItems(m.items);
+		} catch (e) {
+			fail(`menus/${name}.json: ${e.message}`);
+		}
+		await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_set_items', arguments: { name, items } });
+		say(`Menu ${name}: ${items.length} item${items.length === 1 ? '' : 's'} written.`);
+	}
+	// Refresh only what went: a partial push leaves the other collections' files exactly as they are.
+	await pull(ctx, menus.length && !touched.length ? null : touched.length ? touched : null);
 }
 
 async function shot(ctx, target = positional[0] ?? '/', opts = {}) {
 	const isUrl = /^https?:\/\//.test(target);
 	const view = flags.mobile ? 'mobile' : flags.desktop ? 'desktop' : (opts.view ?? 'both');
-	const args = { site_id: ctx.cfg.site, view, full_page: !flags['first-screen'], ...(isUrl ? { url: target } : { path: target, site: flags.live ? 'live' : 'preview' }) };
+	const args = { site_id: ctx.cfg.site, view, full_page: !(flags['first-screen'] || opts.firstScreen), ...(isUrl ? { url: target } : { path: target, site: flags.live ? 'live' : 'preview' }) };
 	const { json, images } = await tool(ctx.cfg, 'screenshot_website', args);
 	const outDir = join(ctx.dir, META, 'shots');
 	mkdirSync(outDir, { recursive: true });
 	const stamp = new Date().toISOString().replace(/[-:]/g, '').slice(4, 15);
 	const base = (opts.name ?? (isUrl ? new URL(target).hostname + new URL(target).pathname : target)).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'home';
-	const named = Array.isArray(json?.screenshots) ? json.screenshots : [];
+	const named = Array.isArray(json?.captures) ? json.captures : [];
 	images.forEach((img, i) => {
 		const v = named[i]?.view ?? (view === 'both' ? ['desktop', 'mobile'][i] : view);
 		const p = join(outDir, `${base}-${v}-${stamp}.${img.mimeType.includes('png') ? 'png' : 'jpg'}`);
@@ -343,7 +440,7 @@ async function publish(ctx) {
 
 function help() {
 	say(readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(2, 20).map((l) => l.replace(/^ \* ?/, '')).join('\n'));
-	say(`\nFiles:\n  <collection>/<slug>.json      { "id", "slug", "status", "updated_at", "data": {...} }; a new entry is a new file with "data"\n  <collection>/<slug>.css       data.custom_css as a file (rows: data.css); rows/<slug>.html is data.html\n  ${META}/                   config, key, the last pull, the content model, screenshots\n\nImages: an image field or a Columns image slot takes { "$media": { "url": "https://...", "alt": "..." } }; the push fetches it into the library.\nReferences: a record names another by its id, or "$ref:<slug-or-id>" for one in the same push.`);
+	say(`\nFiles:\n  <collection>/<slug>.json      { "id", "slug", "status", "updated_at", "data": {...} }; a new entry is a new file with "data"\n  <collection>/<slug>.css       data.custom_css as a file (rows: data.css); rows/<slug>.html is data.html\n  menus/<name>.json             a menu as a tree: { label, items: [{ label, url, children: [...] }] }\n  ${META}/                   config, key, the last pull, the content model, screenshots\n\nA field taken out of a file is cleared on the website at the next push; a file you changed here is never overwritten by a pull.\nImages: an image field or a Columns image slot takes { "$media": { "url": "https://...", "alt": "..." } }; the push fetches it into the library.\nReferences: a record names another by its id, or "$ref:<slug-or-id>" for one in the same push.`);
 }
 
 async function main() {
@@ -381,8 +478,11 @@ async function main() {
 			return push(config());
 		case 'shot':
 			return shot(config());
-		case 'gallery':
-			return shot(config(), '/_tidy/gallery', { view: 'desktop', name: 'gallery' });
+		case 'gallery': {
+			// One type at a time is readable; the whole gallery is a very tall picture.
+			const type = positional[0];
+			return shot(config(), `/_tidy/gallery${type ? `#${type}` : ''}`, { view: 'desktop', name: type ? `gallery-${type}` : 'gallery', firstScreen: Boolean(type) });
+		}
 		case 'pages':
 			return pages(config());
 		case 'page':
