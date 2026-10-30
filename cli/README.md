@@ -22,7 +22,7 @@ nothing else; it lives in `.tidysites/key`, which is kept out of git.
 | `tidysites status` | what changed here since the pull |
 | `tidysites validate` | every file against the content model, with the file and the field in each message |
 | `tidysites push [--prune] [--force] [--dry] [--only pages]` | validate, then write the created and updated entries back (with `--prune`, delete the entries whose files are gone), then pull |
-| `tidysites shot <path or url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen] [--live]` | a screenshot of a page of the preview site, the live site, or any address, saved under `.tidysites/shots/`; none of the width flags means desktop and mobile; a port compares all four |
+| `tidysites shot <path or url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen] [--live] [--no-bands]` | a screenshot of a page of the preview site, the live site, or any address, saved under `.tidysites/shots/`; none of the width flags means desktop and mobile; a port compares all four. A picture taller than 2400px is also written in 1600px bands (`<name>-band-01.jpg`, …) that an image reader can take in one at a time |
 | `tidysites pages` | every address the website renders |
 | `tidysites page <path> [--html]` | the rendered page, section by section, with the key each section carries |
 | `tidysites schema [type or collection]` | the section types and layouts, or one type's or collection's fields |
