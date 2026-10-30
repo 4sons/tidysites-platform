@@ -1,7 +1,6 @@
 /**
  * The folder: a Tidysite's content as files.
  *
- *   settings.json               { "title", "tagline" }
  *   <collection>/<slug>.json    { "id", "slug", "status", "updated_at", "data": { ... } }
  *   <collection>/<slug>.css     data.custom_css, as a file (rows: data.css)
  *   rows/<slug>.html            data.html, as a file
@@ -43,9 +42,9 @@ export function entryToFiles(collection, entry) {
 	return files;
 }
 
-/** The whole document as files (settings and every entry). */
+/** The whole document as files: every entry. The site title and tagline a theme prints are the Business record's, so there is no settings file. */
 export function docToFiles(doc) {
-	const files = { 'settings.json': `${JSON.stringify(doc.settings ?? {}, null, '\t')}\n` };
+	const files = {};
 	for (const [collection, entries] of Object.entries(doc.content ?? {})) {
 		for (const e of entries) Object.assign(files, entryToFiles(collection, e));
 	}

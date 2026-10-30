@@ -156,7 +156,6 @@ async function pull({ dir, cfg }, collections = null) {
 			removed++;
 		}
 	}
-	if (want) delete files['settings.json'];
 	writeFiles(dir, files);
 	const snap = snapshotOf(doc);
 	if (want && prev) {
@@ -177,18 +176,15 @@ function status({ dir }) {
 	if (!snap) fail('Nothing pulled yet. Run `tidysites pull`.');
 	const { local, problems } = readLocal(dir);
 	const d = diffEntries(local, snap);
-	const settings = readJson(join(dir, 'settings.json'), {});
-	const settingsChanged = JSON.stringify(settings) !== JSON.stringify(snap.settings ?? {});
-	return { snap, local, problems, diff: d, settings, settingsChanged };
+	return { snap, local, problems, diff: d, settings: null, settingsChanged: false };
 }
 
 function printStatus(s) {
 	for (const p of s.problems) say(`! ${p}`);
-	if (s.settingsChanged) say('~ settings.json');
 	for (const k of s.diff.created) say(`+ ${k}`);
 	for (const k of s.diff.updated) say(`~ ${k}`);
 	for (const k of s.diff.removed) say(`- ${k} (file deleted; push --prune removes it from the website)`);
-	const n = s.diff.created.length + s.diff.updated.length + (s.settingsChanged ? 1 : 0);
+	const n = s.diff.created.length + s.diff.updated.length;
 	if (!n && !s.diff.removed.length && !s.problems.length) say(`Nothing changed since the pull (${s.diff.unchanged.length} entries).`);
 	return n;
 }
@@ -211,22 +207,22 @@ async function push(ctx) {
 	const only = flags.only ? String(flags.only).split(',') : null;
 	const keys = [...s.diff.created, ...s.diff.updated].filter((k) => !only || only.includes(k.split('/')[0]));
 	const removeKeys = flags.prune ? s.diff.removed.filter((k) => !only || only.includes(k.split('/')[0])) : [];
-	const settings = s.settingsChanged ? s.settings : null;
-	if (!keys.length && !removeKeys.length && !settings) {
+	const settings = null;
+	if (!keys.length && !removeKeys.length) {
 		say('Nothing to push.');
 		return;
 	}
 	const doc = pushDocument(s.local, s.snap, { keys, removeKeys, settings });
 	if (flags.force) doc.force = true;
 	if (flags.dry) {
-		say(`Would push ${keys.length} entr${keys.length === 1 ? 'y' : 'ies'}${removeKeys.length ? `, remove ${removeKeys.length}` : ''}${settings ? ', and the settings' : ''}:`);
+		say(`Would push ${keys.length} entr${keys.length === 1 ? 'y' : 'ies'}${removeKeys.length ? `, remove ${removeKeys.length}` : ''}:`);
 		printStatus(s);
 		if (flags.json) say(JSON.stringify(doc, null, 2));
 		return;
 	}
 	printStatus(s);
 	const { json: r } = await tool(ctx.cfg, 'push_website', { site_id: ctx.cfg.site, ...doc });
-	say(`Pushed: ${r.content.created} created, ${r.content.updated} updated${r.images ? `, ${r.images} image${r.images === 1 ? '' : 's'} added` : ''}${r.removed ? `, ${r.removed} removed` : ''}${r.settings?.length ? `, settings: ${r.settings.join(', ')}` : ''}.`);
+	say(`Pushed: ${r.content.created} created, ${r.content.updated} updated${r.images ? `, ${r.images} image${r.images === 1 ? '' : 's'} added` : ''}${r.removed ? `, ${r.removed} removed` : ''}.`);
 	if (r.missing?.length) say(`Not found to remove: ${r.missing.map((m) => `${m.collection}/${m.slug}`).join(', ')}`);
 	await pull(ctx, null);
 }
@@ -347,7 +343,7 @@ async function publish(ctx) {
 
 function help() {
 	say(readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(2, 20).map((l) => l.replace(/^ \* ?/, '')).join('\n'));
-	say(`\nFiles:\n  settings.json                 the site title and tagline\n  <collection>/<slug>.json      { "id", "slug", "status", "updated_at", "data": {...} }; a new entry is a new file with "data"\n  <collection>/<slug>.css       data.custom_css as a file (rows: data.css); rows/<slug>.html is data.html\n  ${META}/                   config, key, the last pull, the content model, screenshots\n\nImages: an image field or a Columns image slot takes { "$media": { "url": "https://...", "alt": "..." } }; the push fetches it into the library.\nReferences: a record names another by its id, or "$ref:<slug-or-id>" for one in the same push.`);
+	say(`\nFiles:\n  <collection>/<slug>.json      { "id", "slug", "status", "updated_at", "data": {...} }; a new entry is a new file with "data"\n  <collection>/<slug>.css       data.custom_css as a file (rows: data.css); rows/<slug>.html is data.html\n  ${META}/                   config, key, the last pull, the content model, screenshots\n\nImages: an image field or a Columns image slot takes { "$media": { "url": "https://...", "alt": "..." } }; the push fetches it into the library.\nReferences: a record names another by its id, or "$ref:<slug-or-id>" for one in the same push.`);
 }
 
 async function main() {

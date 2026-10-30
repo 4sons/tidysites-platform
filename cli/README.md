@@ -37,7 +37,6 @@ what you need first) or push `--force`.
 ## The folder
 
 ```
-settings.json                 { "title", "tagline" }
 <collection>/<slug>.json      { "id", "slug", "status", "updated_at", "data": { ... } }
 <collection>/<slug>.css       data.custom_css as a file (for rows: data.css)
 rows/<slug>.html              data.html as a file
@@ -62,7 +61,7 @@ Rich text (a section's `copy`, a post's `content`) is markdown.
 ## Building a site from these files
 
 1. `tidysites schema` for the section types, `tidysites gallery` to see them in this theme.
-2. Records first: `business/business.json`, `locations/`, `services/`, `people/`, `reviews/`, `faqs/`.
+2. Records first: `business/business.json` (the company's name, tagline, phone, hours, brand), `locations/`, `services/`, `people/`, `reviews/`, `faqs/`.
 3. `frame/frame.json` for the top bar, the call bar, the footer headings, the wording; the menu through the website's own tools.
 4. Pages as sections: `pages/<slug>.json`, each a list in `data.sections`. Columns is the section for a band with no record behind it.
 5. The look: brand colours and fonts on the Business record, `business/business.css` for what the tokens cannot say.

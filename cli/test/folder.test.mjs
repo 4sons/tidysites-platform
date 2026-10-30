@@ -69,7 +69,7 @@ test('the same data in another key order is unchanged', () => {
 	assert.deepEqual(diffEntries({ 'pages/home': reordered }, snap).unchanged, ['pages/home']);
 });
 
-test('docToFiles writes settings and every entry', () => {
+test('docToFiles writes every entry', () => {
 	const files = docToFiles({ settings: { title: 'T' }, content: { pages: [page], rows: [row] } });
-	assert.deepEqual(Object.keys(files).sort(), ['pages/home.css', 'pages/home.json', 'rows/footer.css', 'rows/footer.html', 'rows/footer.json', 'settings.json']);
+	assert.deepEqual(Object.keys(files).sort(), ['pages/home.css', 'pages/home.json', 'rows/footer.css', 'rows/footer.html', 'rows/footer.json']);
 });
