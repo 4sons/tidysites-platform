@@ -13,13 +13,16 @@ import { renderCustomHtml } from "./context";
 import Form from "./Form.astro";
 import Dialog from "../frame/Dialog.astro";
 import "./defaults.css";
-interface Props { name?: string | null; html?: string | null; css?: string | null; blockKey?: string | null; fullWidth?: boolean; as?: "header" | "footer" | "section" }
-const { name = "", html: inlineHtml = "", css: inlineCss = "", blockKey = null, fullWidth = false, as = "section" } = Astro.props;
+interface Props { name?: string | null; html?: string | null; css?: string | null; blockKey?: string | null; fullWidth?: boolean; as?: "header" | "footer" | "section"; /** The row's place on the page: the first section and the header load their pictures at once, the rest lazily. */ index?: number }
+const { name = "", html: inlineHtml = "", css: inlineCss = "", blockKey = null, fullWidth = false, as = "section", index = 0 } = Astro.props;
 const row = name ? await getRow(name) : null;
 const html = row ? str(row.data.html) : (inlineHtml ?? "");
 const css = row ? str(row.data.css) : (inlineCss ?? "");
 const key = (blockKey || row?.slug || row?.id || "inline").replace(/[^A-Za-z0-9_-]/g, "");
 const rendered = await renderCustomHtml(html, Astro.request);
+// A picture below the first screen loads when it is needed, unless the markup says otherwise.
+const belowFold = as === "footer" || (as === "section" && index > 0);
+const lazy = (h: string) => (belowFold ? h.replace(/<img\b(?![^>]*\bloading=)([^>]*)>/gi, '<img loading="lazy" decoding="async"$1>') : h);
 const scoped = css ? scopeCss(css, `.ts-row[data-row="${key}"]`) : "";
 const Tag = as === "header" ? "header" : as === "footer" ? "footer" : "div";
 const hasContent = rendered.segments.some((s) => ("html" in s ? s.html.trim() !== "" : true));
@@ -32,7 +35,7 @@ for (const d of dialogs) seen.add(d.id);
 	<Tag class={`ts-row ts-row-${as} ${fullWidth ? "ts-row-full" : ""}`} data-row={key} data-tidy-row={row ? (row.slug ?? row.id) : undefined} {...(row ? { "data-tidy-record": "rows", "data-tidy-record-id": row.id, "data-tidy-record-label": "Custom row" } : {})}>
 		{scoped && <style set:html={scoped} />}
 		<div class={fullWidth ? "" : "ts-row-wrap"}>
-			{rendered.segments.map((s) => ("html" in s ? <Fragment set:html={s.html} /> : <Form name={s.form} class="ts-card" hidden={{ section: "row" }} />))}
+			{rendered.segments.map((s) => ("html" in s ? <Fragment set:html={lazy(s.html)} /> : <Form name={s.form} class="ts-card" hidden={{ section: "row" }} />))}
 		</div>
 		{import.meta.env.DEV && rendered.error && <p class="ts-missing" role="alert">{rendered.error}</p>}
 	</Tag>

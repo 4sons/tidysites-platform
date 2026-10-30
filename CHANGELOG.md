@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.25.3
+
+- A picture in a custom row below the first section, or in a footer row, loads lazily unless the markup says otherwise; the header and the first section keep loading theirs at once. A ported homepage was loading three portraits at the foot of the page before anything else.
+
 ## 0.25.2
 
 - Custom HTML: every stored image on `page` and on a collection item carries `url` and `alt` (`{{ page.hero_image.url }}`, `{{ s.featured_image.url }}`, `{{ p.photo.url }}`), and a page with no image field of its own takes its first hero section's photo as `page.image`, the way its share image is derived. A port's homepage hero had to read the location's photo instead.
