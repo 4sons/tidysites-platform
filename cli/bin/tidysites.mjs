@@ -331,7 +331,7 @@ async function shot(ctx, target = positional[0] ?? '/', opts = {}) {
 	const { json, images } = await tool(ctx.cfg, 'screenshot_website', args);
 	const outDir = join(ctx.dir, META, 'shots');
 	mkdirSync(outDir, { recursive: true });
-	const stamp = new Date().toISOString().replace(/[-:]/g, '').slice(4, 15);
+	const stamp = new Date().toISOString().replace(/[-:.]/g, '').slice(4, 18);
 	const base = (opts.name ?? (isUrl ? new URL(target).hostname + new URL(target).pathname : target)).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'home';
 	const named = Array.isArray(json?.captures) ? json.captures : [];
 	images.forEach((img, i) => {
