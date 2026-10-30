@@ -84,7 +84,7 @@ const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ?
 						)}
 						{kind === "card" && (() => { const opensForm = Boolean(formDialog(link)); const Tag = link && !opensForm ? "a" : "div"; return (
 							<Tag class="ts-card" href={link && !opensForm ? link : undefined}>
-								{img && <img class="ts-col-icon" src={img} alt={pic(s.image).image?.alt || ""} loading={loading} />}
+								{img && <img class="ts-col-icon" src={img} srcset={mediaSrcset(s.image) ?? undefined} sizes={mediaSrcset(s.image) ? sizesFor("icon") : undefined} alt={pic(s.image).image?.alt || ""} loading={loading} />}
 								{heading && <h3>{heading}</h3>}
 								{str(s.text).trim() && <div class="ts-prose" data-tidy-md={`slots.${slotIndex}.text`} set:html={prose(str(s.text))} />}
 								{link && str(s.link_label) && (opensForm ? <Action class="ts-btn" href={link} label={str(s.link_label)} section="columns" /> : <span class="ts-card-link">{str(s.link_label)}</span>)}
