@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.25.0
+
+Custom HTML that reads the records, and the section gaps a real port hit.
+
+- **Custom rows and Columns HTML slots read the site.** A row's markup may say `{{ business.phone }}`, `{{ page.title }}`, `{{#each services as s}}…{{/each}}`, `{{#if page.collection == "services"}}…{{/if}}`, and drop in the platform's own markup with `{{> menu "primary"}}`, `{{> logo}}`, `{{> phone}}`, `{{> address}}`, `{{> hours}}`, `{{> social}}`, `{{> year}}`, `{{> button "Label" "/url" style=outline}}` and `{{> form "Name"}}`. A link to `#form:<Name>` in a row opens that form in a dialog like a section button does. `page` is the record the address is for, with the same names on every kind of page (title, headline, summary, image, url, slug, collection, kind, category), so one custom header written against `page.*` fits a service page, an area page and a custom page alike. Values are escaped, the result is sanitised as before, and only what a text names is read (`src/lib/template.ts`, `src/sections/context.ts`). Until now a custom header or footer was dead HTML with the phone typed in, which is why the ports bent the frame's header instead of writing their own.
+- **Any number of buttons.** The hero and the call-to-action band take a `buttons` list (label, link, style) that replaces the two fixed buttons when set; the frame record takes `header_buttons` beside the booking button. A port with three hero buttons no longer drops one.
+- **Services tiles** show each item's summary when `show_summary` is on and print a `link_label` ("View services") on every card. **The call-to-action band** has a `band with photo` layout that shows its image. **A Columns image slot** keeps the alt text its image carries.
+
 ## 0.24.1
 
 - A listing page (`/services`, `/conditions`, `/technology`, `/products`, `/for`, `/service-areas`, `/case-studies`, `/team`) exists only when its switch on the frame record is on, or when the switch is untouched and the collection has at least one record with its page on. A site that never filled a collection no longer serves an empty page at a real address or lists it in the sitemap; the menus and links that build those addresses follow the same rule. An art school had six blank pages this way.

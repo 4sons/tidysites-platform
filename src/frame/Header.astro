@@ -8,7 +8,8 @@
  * it and a site's custom CSS carries between themes.
  */
 import type { Business } from "../sections/lib";
-import { getOffer, mediaUrl, str, wording } from "../sections/lib";
+import { buttonClass, getOffer, mediaUrl, str, wording } from "../sections/lib";
+import Action from "../sections/Action.astro";
 import { bookingEmbedUrl } from "../lib/providers";
 import Dialog from "./Dialog.astro";
 import Row from "../sections/Row.astro";
@@ -71,6 +72,7 @@ const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, tr
 		<div class="ts-header-actions">
 			{b.headerPhone && b.phone && <a class="ts-header-phone" href={b.phoneHref}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z" fill="currentColor"/></svg><span>{b.phone}</span></a>}
 			{portal && <a class="ts-btn ts-btn-outline ts-header-portal" href={portal.href} target="_blank" rel="noopener">{portal.label}</a>}
+			{b.headerButtons.map((x) => <Action class={`${buttonClass(x.style)} ts-header-extra`} href={x.url} label={x.label} section="header" />)}
 			{bookInDialog
 				? <button class="ts-btn ts-btn-accent ts-header-book" type="button" data-tidy-dialog="ts-booking">{b.bookingLabel}</button>
 				: <a class="ts-btn ts-btn-accent ts-header-book" href={bookHref}>{b.bookingLabel}</a>}
@@ -89,6 +91,7 @@ const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, tr
 		<div class="ts-mobile-actions">
 			{b.phone && <a class="ts-btn ts-btn-outline" href={b.phoneHref}>{b.phone}</a>}
 			{portal && <a class="ts-btn ts-btn-outline" href={portal.href} target="_blank" rel="noopener">{portal.label}</a>}
+			{b.headerButtons.map((x) => <Action class={buttonClass(x.style)} href={x.url} label={x.label} section="header" />)}
 			{bookInDialog ? <button class="ts-btn ts-btn-accent" type="button" data-tidy-dialog="ts-booking">{b.bookingLabel}</button> : <a class="ts-btn ts-btn-accent" href={bookHref}>{b.bookingLabel}</a>}
 		</div>
 	</nav>

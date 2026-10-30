@@ -27,6 +27,8 @@ if (variant === "grouped by category") {
 	if (!groups.length) groups = [{ title: "", items: all }];
 }
 const showAll = bool(n.show_all, true);
+const showSummary = bool(n.show_summary, false);
+const linkLabel = str(n.link_label);
 const allHref = await collectionUrl("services");
 ---
 {(items.length > 0 || groups.length > 0) && (
@@ -51,8 +53,9 @@ const allHref = await collectionUrl("services");
 					{variant === "image tiles" && (() => { const p = pic(s.data.featured_image); return <Photo image={p.image} url={p.url} alt={str(s.data.title)} ratio="wide" />; })()}
 					{variant === "icon cards" && str(s.data.icon) && <span class="ts-eyebrow" style="margin:0">{str(s.data.icon)}</span>}
 					<h3>{str(s.data.title)}</h3>
-					{variant !== "image tiles" && str(s.data.summary) && <p>{str(s.data.summary)}</p>}
+					{(variant !== "image tiles" || showSummary) && str(s.data.summary) && <p>{str(s.data.summary)}</p>}
 					{str(s.data.price_from) && <p class="ts-muted" style="font-size:13px">From {str(s.data.price_from)}</p>}
+					{linkLabel && <span class="ts-card-link">{linkLabel}</span>}
 				</a>
 			))}
 		</div>

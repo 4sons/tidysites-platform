@@ -115,6 +115,8 @@ export interface Business {
 	bookingOpens: "link" | "form" | "embed"; bookingForm: string; portalLabel: string; headerPhone: boolean;
 	/** The bar at the bottom of a phone screen and the line above the header. */
 	callBar: "call and book" | "call only" | "book only" | "off"; topBarText: string; topBarLink: string;
+	/** Buttons the frame record adds beside the booking button. */
+	headerButtons: Array<{ label: string; url: string; style: "primary" | "outline" | "plain" }>;
 	/** Third parties by id (or the pasted embed the id is read from): see lib/providers. */
 	chatProvider: string; chatId: string; reviewsWidget: string; reviewsWidgetId: string; bookingEmbed: string; bookingEmbedId: string; metaPixelId: string; googleAdsId: string;
 	instagramWidget: string; instagramWidgetId: string; accessibilityWidget: string; accessibilityWidgetId: string;
@@ -147,6 +149,12 @@ function mediaSrc(v: unknown): Business["logo"] {
 	const img = pic(v).image;
 	return { src, alt: img?.alt, width: img?.width, height: img?.height };
 }
+/** A buttons repeater (label, url, style) as the sections and the frame render it; rows without a label are skipped. */
+export function buttonsOf(v: unknown): Array<{ label: string; url: string; style: "primary" | "outline" | "plain" }> {
+	return list<Record<string, unknown>>(v).map((x) => ({ label: str(x.label), url: str(x.url) || "/contact", style: pickOne(x.style, ["primary", "outline", "plain"], "primary") })).filter((x) => x.label);
+}
+/** The classes a button style wears. */
+export const buttonClass = (style: "primary" | "outline" | "plain", size = ""): string => `ts-btn ${style === "primary" ? "ts-btn-accent" : style === "outline" ? "ts-btn-outline" : ""} ${size}`.replace(/\s+/g, " ").trim();
 /** The one published record of a one-record collection, or nothing on a site that lacks it. */
 async function oneRecord(collection: string): Promise<Entry | null> {
 	try {
@@ -188,6 +196,7 @@ async function readBusiness(): Promise<Business> {
 		brandRadius: pickOne(d.brand_radius, ["sharp", "soft", "rounded", "pill"], ""), brandDensity: pickOne(d.brand_density, ["compact", "regular", "airy"], ""), brandTypeScale: pickOne(d.brand_type_scale, ["compact", "regular", "large"], ""), brandWidth: pickOne(d.brand_width, ["narrow", "regular", "wide"], ""),
 		bookingOpens: s("booking_opens") === "a form on this site" ? "form" : s("booking_opens") === "the booking embed" ? "embed" : "link", bookingForm: s("booking_form"), portalLabel: s("portal_label") || "Log in", headerPhone: bool(d.header_phone, true),
 		callBar: pickOne(fr.call_bar, ["call and book", "call only", "book only", "off"], "call and book"), topBarText: str(fr.top_bar_text), topBarLink: str(fr.top_bar_link),
+		headerButtons: buttonsOf(fr.header_buttons),
 		chatProvider: str(ig.chat_provider), chatId: str(ig.chat_id), reviewsWidget: str(ig.reviews_widget), reviewsWidgetId: str(ig.reviews_widget_id), bookingEmbed: str(ig.booking_embed), bookingEmbedId: str(ig.booking_embed_id), metaPixelId: str(ig.meta_pixel_id), googleAdsId: str(ig.google_ads_id),
 		instagramWidget: str(ig.instagram_widget), instagramWidgetId: str(ig.instagram_widget_id), accessibilityWidget: str(ig.accessibility_widget), accessibilityWidgetId: str(ig.accessibility_widget_id),
 		callTracking: str(ig.call_tracking), callTrackingId: str(ig.call_tracking_id), heatmaps: str(ig.heatmaps), heatmapsId: str(ig.heatmaps_id), tiktokPixelId: str(ig.tiktok_pixel_id), linkedinInsightId: str(ig.linkedin_insight_id), adobeFontsKit: str(ig.adobe_fonts_kit),
