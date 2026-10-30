@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.25.1
+
+- **A new site's platform token no longer dies minutes after provisioning.** The seed takes minutes on D1, longer than the control plane's step waited, so a second bootstrap call started a second seed beside the first; whichever finished last minted a token nobody stored, and the stored one stopped working (two sites in a row this week). Bootstrap now holds a lock: a second call waits for the first and mints the token its caller keeps; a first call whose lock was taken over mints nothing; the token is minted before setup is marked complete.
+
 ## 0.25.0
 
 Custom HTML that reads the records, and the section gaps a real port hit.

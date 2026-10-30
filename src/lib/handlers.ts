@@ -73,10 +73,25 @@ export interface BootstrapResult {
 	steps: Record<string, unknown>;
 }
 
+/** Where a running bootstrap leaves its mark, so a second call waits for it instead of running the seed beside it. */
+export const BOOTSTRAP_LOCK = "tidy:bootstrap";
+const BOOTSTRAP_WAIT_MS = 270_000;
+const BOOTSTRAP_STALE_MS = 30 * 60_000;
+
 /**
  * Headless first run for a freshly provisioned site: apply the template seed,
- * create the platform's admin user, mark setup complete, mint an API token.
+ * create the platform's admin user, mint an API token, mark setup complete.
  * Idempotent: a later call skips the seed and setup, and re-mints the token.
+ *
+ * The seed takes minutes on D1, longer than a caller may wait, so a caller
+ * that gave up and called again used to start a second seed beside the
+ * first; whichever finished last minted the token the caller never saw, and
+ * the token the caller stored stopped working minutes after "done". Now the
+ * first call holds a lock; a second call waits for it to finish (up to four
+ * and a half minutes, then answers 409 so the caller tries again later), and
+ * a first call that finds its lock taken over mints nothing. The token is
+ * minted before setup is marked complete, so the call that sees "complete"
+ * always mints last.
  */
 export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin: string): Promise<BootstrapResult> {
 	if (!isEmail(input.adminEmail)) throw new HttpError(400, "adminEmail must be an email address");
@@ -88,7 +103,30 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 	const { store, seed, tokens } = deps;
 	const steps: Record<string, unknown> = {};
 
-	const alreadyComplete = (await store.getOption("emdash:setup_complete")) === true;
+	let alreadyComplete = (await store.getOption("emdash:setup_complete")) === true;
+	const now = deps.now ?? Date.now;
+	let lockId: string | null = null;
+	if (!alreadyComplete) {
+		const lock = (await store.getOption(BOOTSTRAP_LOCK)) as { id?: string; startedAt?: number } | null;
+		if (lock?.id && typeof lock.startedAt === "number" && now() - lock.startedAt < BOOTSTRAP_STALE_MS) {
+			// Another call is seeding. Wait for it; when it is through, this call mints the token the caller keeps.
+			const until = now() + BOOTSTRAP_WAIT_MS;
+			while (now() < until) {
+				await new Promise((r) => setTimeout(r, 3000));
+				if ((await store.getOption("emdash:setup_complete")) === true) break;
+				const l = (await store.getOption(BOOTSTRAP_LOCK)) as { id?: string } | null;
+				if (!l?.id) break;
+			}
+			alreadyComplete = (await store.getOption("emdash:setup_complete")) === true;
+			if (!alreadyComplete) throw new HttpError(409, "bootstrap in progress; try again in a minute");
+			steps.waitedFor = lock.id;
+			// Take the lock over: the first call, if it is still finishing, sees that and mints nothing.
+			await store.deleteOption(BOOTSTRAP_LOCK);
+		} else {
+			lockId = randomToken(8);
+			await store.setOption(BOOTSTRAP_LOCK, { id: lockId, startedAt: now() });
+		}
+	}
 	steps.alreadyComplete = alreadyComplete;
 
 	if (!alreadyComplete) {
@@ -124,13 +162,32 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 		if (typeof input.title === "string") await store.setOption("emdash:site_title", input.title);
 		if (typeof input.tagline === "string") await store.setOption("emdash:site_tagline", input.tagline);
 		await store.setOptionIfAbsent("emdash:site_url", typeof input.siteUrl === "string" ? input.siteUrl : requestOrigin);
+	}
+
+	// The first call mints only while the lock is still its own: a call that waited for it has taken the lock
+	// over and will mint the token its caller keeps; this call's answer was given up on long ago.
+	let token = "";
+	if (lockId) {
+		const l = (await store.getOption(BOOTSTRAP_LOCK)) as { id?: string } | null;
+		if (l?.id === lockId) {
+			const t = tokens.generate();
+			await store.replaceToken({ userId: user.id, name, hash: t.hash, prefix: t.prefix, scopes: [...tokens.scopes] });
+			token = t.raw;
+		} else steps.tokenLeftToWaiter = true;
+	} else {
+		const t = tokens.generate();
+		await store.replaceToken({ userId: user.id, name, hash: t.hash, prefix: t.prefix, scopes: [...tokens.scopes] });
+		token = t.raw;
+	}
+	if (!alreadyComplete) {
 		await store.setOption("emdash:setup_complete", true);
 		await store.deleteOption("emdash:setup_state");
 	}
-
-	const t = tokens.generate();
-	await store.replaceToken({ userId: user.id, name, hash: t.hash, prefix: t.prefix, scopes: [...tokens.scopes] });
-	return { ok: true, userId: user.id, token: t.raw, steps };
+	if (lockId) {
+		const l = (await store.getOption(BOOTSTRAP_LOCK)) as { id?: string } | null;
+		if (l?.id === lockId) await store.deleteOption(BOOTSTRAP_LOCK);
+	} else if (steps.waitedFor) await store.deleteOption(BOOTSTRAP_LOCK);
+	return { ok: true, userId: user.id, token, steps };
 }
 
 // ---------------------------------------------------------------------------
