@@ -36,7 +36,8 @@ export const PLATFORM_ROUTES = [
 	{ pattern: "/_tidy/pages", entrypoint: `${PACKAGE}/routes/pages` },
 	{ pattern: "/_tidy/strings", entrypoint: `${PACKAGE}/routes/strings` },
 	{ pattern: "/_tidy/lead-file", entrypoint: `${PACKAGE}/routes/lead-file` },
-	{ pattern: "/_tidy/gallery", entrypoint: `${PACKAGE}/routes/gallery` }
+	{ pattern: "/_tidy/gallery", entrypoint: `${PACKAGE}/routes/gallery` },
+	{ pattern: "/_tidy/img/[width]/[...key]", entrypoint: `${PACKAGE}/routes/img` }
 ] as const;
 
 /**

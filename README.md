@@ -170,6 +170,10 @@ The structured data on every page is the business: its type from the Business re
 
 A theme's layout calls `pageHead(Astro.request, { collection, data, sections, path, origin, title, description, image, crumbs })` from `sections/lib` once and hands the result to the page context (`title`, `description`, `canonical`, `seo: { ogTitle, ogDescription, ogImage, robots }`) and the head (`jsonLdHtml`). The pure side is `seo` (`pageSeo`, `identityGraph`, `parseHours`). `sitePages()` marks a `noindex` page and the publish leaves it out of the sitemap.
 
+## Responsive pictures
+
+A stored image is served at 480, 800, 1200 and 1600 pixels wide through `/_tidy/img/<width>/<key>` (`routes/img`), resized with the worker's `IMAGES` binding and re-encoded as WebP, immutable. `lib/images` prints the `srcset` (`mediaSrcset(value)`) and a `sizes` hint (`sizesFor("half")`: full, half, third, quarter, icon); `sections/photo` and the Columns image slot use them, and every image custom HTML reads carries `srcset` (`<img src="{{ page.image.url }}" srcset="{{ page.image.srcset }}" sizes="100vw">`). SVG and GIF keep their original. The live worker serves the variants from the publish snapshot; the control plane's publish fetches `/_tidy/img/` like media files.
+
 ## Custom rows
 
 A custom row is HTML and CSS a person or an agent wrote, rendered as part of the page: a saved row from the `rows` collection placed by name, or markup written straight into a `row` section. Nothing in a row can run. The sanitizer (`@tideworthy/tidysites-platform/sanitize`) keeps an allowlist of tags and attributes and drops script, event handlers, javascript links, styles in the markup and frames to anywhere but a few known hosts; the row's CSS is scoped to the row (`.ts-row[data-row=…]`) and stripped of imports and remote fetches. A row can open the booking dialog with `data-tidy-dialog="ts-booking"`, and it sees the site's tokens, so a row written for one theme reads right on the next. The sandboxed frame section stays for the calculator or embed that needs script.

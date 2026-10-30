@@ -21,7 +21,7 @@ describe("tidyPlatform()", () => {
 		expect(injectRoute).toHaveBeenCalledTimes(PLATFORM_ROUTES.length);
 		const patterns = injectRoute.mock.calls.map((c) => (c[0] as { pattern: string }).pattern).sort();
 		expect(patterns).toEqual(["/_tidy/bootstrap", "/_tidy/change", "/_tidy/edit", "/_tidy/fill", "/_tidy/gallery", "/_tidy/health", "/_tidy/lead-file", "/_tidy/maintenance", "/_tidy/pages",
-			"/_tidy/revisions", "/_tidy/rotate-token", "/_tidy/schema", "/_tidy/session", "/_tidy/session/claim", "/_tidy/strings"]);
+			"/_tidy/img/[width]/[...key]", "/_tidy/revisions", "/_tidy/rotate-token", "/_tidy/schema", "/_tidy/session", "/_tidy/session/claim", "/_tidy/strings"]);
 		for (const call of injectRoute.mock.calls) {
 			const r = call[0] as { entrypoint: string; prerender: boolean };
 			expect(r.prerender).toBe(false);

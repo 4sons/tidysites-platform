@@ -40,7 +40,7 @@ const over = variant === "photo with headline over";
 				</p>
 			)}
 		</div>
-		{variant === "headline and photo" && <Photo image={photo.image} url={photo.url} alt={str(n.headline) || b.title} ratio="wide" />}
+		{variant === "headline and photo" && <Photo image={photo.image} url={photo.url} alt={str(n.headline) || b.title} ratio="wide" eager />}
 		{variant === "headline and booking card" && (
 			<div class="ts-card" style="gap:0">
 				<Photo image={photo.image} url={photo.url} alt={b.title} ratio="wide" class="ts-hero-card-photo" />

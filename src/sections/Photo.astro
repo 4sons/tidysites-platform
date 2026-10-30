@@ -1,18 +1,30 @@
 ---
-/** A photo slot: the CMS image, a plain URL, or a labelled empty slot. Never a broken image. */
-import { Image } from "emdash/ui";
+/**
+ * A photo slot: the CMS image, a plain URL, or a labelled empty slot. Never a
+ * broken image. A stored image prints a `srcset` of resized variants (see
+ * lib/images) with a `sizes` hint for where it sits, so a phone downloads a
+ * phone-sized file; the original stays the fallback.
+ */
+import { mediaSrcset, sizesFor, type SizeKind } from "../lib/images";
+import { mediaUrl } from "./lib";
 interface Props {
-	image?: { id?: string; src?: string; alt?: string; width?: number; height?: number } | null;
+	image?: { id?: string; src?: string; alt?: string; width?: number; height?: number; mimeType?: string; meta?: { storageKey?: string } } | null;
 	url?: string | null;
 	alt: string;
 	ratio?: "wide" | "tall" | "square" | "video";
 	width?: number;
 	height?: number;
+	/** How wide the picture is on a laptop: full, half (default), third, quarter or icon. */
+	sizes?: SizeKind;
+	/** Loads at once (the first screen) instead of lazily. */
+	eager?: boolean;
 	class?: string;
 }
-const { image, url, alt, ratio = "wide", width = 1200, height = 750, class: cls = "" } = Astro.props;
-const has = Boolean(image?.id || image?.src || url);
+const { image, url, alt, ratio = "wide", width, height, sizes, eager = false, class: cls = "" } = Astro.props;
+const src = image ? mediaUrl(image) : (url ?? null);
+const srcset = image ? mediaSrcset(image) : null;
+const has = Boolean(src);
 ---
 <div class={`ts-photo ts-photo-${ratio} ${has ? "ts-photo-has" : ""} ${cls}`.trim()}>
-	{image?.id || image?.src ? <Image image={image as never} width={width} height={height} alt={image?.alt ?? alt} /> : url ? <img src={url} alt={alt} loading="lazy" /> : <span>{alt}</span>}
+	{src ? <img src={src} srcset={srcset ?? undefined} sizes={srcset ? sizesFor(sizes) : undefined} alt={image?.alt ?? alt} width={image?.width ?? width} height={image?.height ?? height} loading={eager ? "eager" : "lazy"} decoding="async" /> : <span>{alt}</span>}
 </div>

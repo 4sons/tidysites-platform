@@ -16,6 +16,7 @@ import { referenced, render, splitIncludes, hasTemplate, TemplateError, type Inc
 import { sanitizeHtml } from "../lib/sanitize";
 import { addressLine, entries, entryUrl, formDialog, getBusiness, getLocation, hoursRows, mediaUrl, pic, resolveRoute, slugify, str, type Business } from "./lib";
 import { pageType } from "../lib/routes";
+import { mediaSrcset } from "../lib/images";
 
 export type Segment = { html: string } | { form: string; id: string };
 export interface Rendered { segments: Segment[]; dialogs: Array<{ id: string; name: string }>; error: string | null }
@@ -33,14 +34,14 @@ const COLLECTIONS: Record<string, { image: string[] }> = {
 const isMedia = (v: unknown): v is Record<string, unknown> => Boolean(v && typeof v === "object" && !Array.isArray(v) && ("storageKey" in (v as Record<string, unknown>) || (typeof (v as Record<string, unknown>).id === "string" && ("provider" in (v as Record<string, unknown>) || "mimeType" in (v as Record<string, unknown>) || "meta" in (v as Record<string, unknown>)))));
 function withMediaUrls(data: Record<string, unknown>): Record<string, unknown> {
 	const out: Record<string, unknown> = {};
-	for (const [k, v] of Object.entries(data)) out[k] = isMedia(v) ? { ...v, url: mediaUrl(v) ?? "", alt: typeof v.alt === "string" ? v.alt : "" } : v;
+	for (const [k, v] of Object.entries(data)) out[k] = isMedia(v) ? { ...v, url: mediaUrl(v) ?? "", alt: typeof v.alt === "string" ? v.alt : "", srcset: mediaSrcset(v) ?? "" } : v;
 	return out;
 }
 
-const imageOf = (data: Record<string, unknown>, fields: string[]): { url: string; alt: string } | null => {
+const imageOf = (data: Record<string, unknown>, fields: string[]): { url: string; alt: string; srcset: string } | null => {
 	for (const f of fields) {
 		const url = mediaUrl(data[f]);
-		if (url) return { url, alt: pic(data[f]).image?.alt ?? "" };
+		if (url) return { url, alt: pic(data[f]).image?.alt ?? "", srcset: mediaSrcset(data[f]) ?? "" };
 	}
 	return null;
 };
@@ -70,7 +71,7 @@ function businessScope(b: Business): Scope {
 		address: b.address, city: b.city, region: b.region, postal: b.postal, country: b.country, address_line: addressLine(b), hours: b.hours, hours_note: b.hoursNote,
 		founded_year: b.foundedYear, years_line: b.yearsLine, rating: b.rating, review_count: b.reviewCount, rating_source: b.ratingSource, reviews_url: b.reviewsUrl,
 		booking_url: b.bookingUrl || "/contact", booking_label: b.bookingLabel, portal_url: b.portalUrl, portal_label: b.portalLabel, cta_label: b.ctaLabel,
-		logo: b.logo ? { url: b.logo.src, alt: b.logo.alt ?? b.title, width: b.logo.width, height: b.logo.height } : null,
+		logo: b.logo ? { url: b.logo.src, alt: b.logo.alt ?? b.title, width: b.logo.width, height: b.logo.height, srcset: mediaSrcset(b.raw.logo) ?? "" } : null,
 		social: b.social.map((s) => ({ network: s.network, url: s.url, label: s.network.charAt(0).toUpperCase() + s.network.slice(1) })),
 		license_line: b.licenseLine, insured_line: b.insuredLine, warranty_line: b.warrantyLine, service_area_line: b.serviceAreaLine, same_day_line: b.sameDayLine, emergency_line: b.emergencyLine
 	};
@@ -104,10 +105,10 @@ async function readPage(request: Request): Promise<Scope> {
 		if (c) category = { title: str(c.data.title), url: (await entryUrl("service_categories", c)) ?? "" };
 	}
 	// A page's picture: its own image field, else the first hero section's photo, the way the share image is derived.
-	let image = imageOf(data, [...spec.image, "hero_image", "photo", "image"]);
+	let image: { url: string; alt: string; srcset: string } | null = imageOf(data, [...spec.image, "hero_image", "photo", "image"]);
 	if (!image && Array.isArray(data.sections)) {
 		const hero = (data.sections as Array<Record<string, unknown>>).find((b) => b && b._type === "hero" && mediaUrl(b.image));
-		if (hero) image = { url: mediaUrl(hero.image) ?? "", alt: pic(hero.image).image?.alt ?? "" };
+		if (hero) image = { url: mediaUrl(hero.image) ?? "", alt: pic(hero.image).image?.alt ?? "", srcset: mediaSrcset(hero.image) ?? "" };
 	}
 	return {
 		...withMediaUrls(data),
