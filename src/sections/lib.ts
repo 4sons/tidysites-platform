@@ -284,7 +284,8 @@ export function fontFaces(b: Business): string {
 /** Google Fonts stylesheet for the two brand families. */
 export function fontsHref(b: Business): string {
 	const fam = (name: string, axes: string) => `family=${encodeURIComponent(name).replace(/%20/g, "+")}:${axes}`;
-	return `https://fonts.googleapis.com/css2?${fam(b.fontDisplay, "wght@600;700;800")}&${fam(b.fontBody, "wght@400;500;600;700")}&display=swap`;
+	// Headings at a regular weight are common in ported designs, so the display family comes with 400 as well.
+	return `https://fonts.googleapis.com/css2?${fam(b.fontDisplay, "wght@400;600;700;800")}&${fam(b.fontBody, "wght@400;500;600;700")}&display=swap`;
 }
 /** The one line of address a section prints. */
 export function addressLine(b: { address: string; city: string; region: string; postal: string; hideAddress?: boolean }): string {
