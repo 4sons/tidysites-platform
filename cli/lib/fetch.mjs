@@ -108,8 +108,14 @@ export function cssSummary(css) {
 		const f = m[1].split(',')[0].replace(/["']/g, '').trim();
 		if (f && !/^(inherit|initial|unset|var\()/.test(f)) fonts.set(f, (fonts.get(f) ?? 0) + 1);
 	}
+	// The site's own names for its colours and fonts, when its stylesheet defines them; a framework's defaults sit below these.
+	const variables = {};
+	for (const m of css.matchAll(/--([a-zA-Z][\w-]*)\s*:\s*([^;}]+)/g)) {
+		const v = m[2].trim();
+		if (/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(|font|["'][A-Z][\w ]+["']/i.test(v) && !/^var\(/.test(v)) variables[m[1]] = v;
+	}
 	const top = (map, n) => [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([value, count]) => ({ value, count }));
-	return { colors: top(colors, 12), fonts: top(fonts, 6) };
+	return { colors: top(colors, 12), fonts: top(fonts, 6), variables };
 }
 
 export function outlineText(o) {
@@ -133,6 +139,8 @@ export function outlineText(o) {
 	if (o.emails.length) lines.push(`Emails: ${o.emails.join(', ')}`);
 	if (o.fonts.length) lines.push(`Google fonts: ${o.fonts.join(', ')}`);
 	if (o.css) {
+		const vars = Object.entries(o.css.variables ?? {});
+		if (vars.length) { lines.push('', 'Stylesheet variables (the site\'s own names; trust these over the counts below):'); for (const [k, v] of vars.slice(0, 40)) lines.push(`  --${k}: ${v}`); }
 		lines.push('', 'Stylesheet colours (most used first):', `  ${o.css.colors.map((c) => `${c.value} ×${c.count}`).join('  ')}`);
 		lines.push('Stylesheet fonts:', `  ${o.css.fonts.map((c) => `${c.value} ×${c.count}`).join('  ')}`);
 	}

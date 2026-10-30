@@ -29,6 +29,14 @@ const COLLECTIONS: Record<string, { image: string[] }> = {
 	technologies: { image: ["featured_image", "image"] }, insurers: { image: ["logo"] }, financing_providers: { image: ["logo"] }, policies: { image: [] }, downloads: { image: [] }, forms: { image: [] }
 };
 
+/** A stored media value as custom HTML reads it: the value plus `url` and `alt`, so `{{ page.hero_image.url }}` and `{{ s.featured_image.url }}` work. */
+const isMedia = (v: unknown): v is Record<string, unknown> => Boolean(v && typeof v === "object" && !Array.isArray(v) && ("storageKey" in (v as Record<string, unknown>) || (typeof (v as Record<string, unknown>).id === "string" && ("provider" in (v as Record<string, unknown>) || "mimeType" in (v as Record<string, unknown>) || "meta" in (v as Record<string, unknown>)))));
+function withMediaUrls(data: Record<string, unknown>): Record<string, unknown> {
+	const out: Record<string, unknown> = {};
+	for (const [k, v] of Object.entries(data)) out[k] = isMedia(v) ? { ...v, url: mediaUrl(v) ?? "", alt: typeof v.alt === "string" ? v.alt : "" } : v;
+	return out;
+}
+
 const imageOf = (data: Record<string, unknown>, fields: string[]): { url: string; alt: string } | null => {
 	for (const f of fields) {
 		const url = mediaUrl(data[f]);
@@ -46,7 +54,7 @@ async function collectionItems(collection: string): Promise<Scope[]> {
 		const data = e.data;
 		const cat = cats.find((c) => String(data.category ?? "") === String(c.data.id ?? c.id) || String(data.category ?? "") === c.id);
 		return {
-			...data,
+			...withMediaUrls(data),
 			id: e.id, slug: e.slug ?? null,
 			url: (await entryUrl(collection, e)) ?? "",
 			image: imageOf(data, spec.image),
@@ -95,12 +103,18 @@ async function readPage(request: Request): Promise<Scope> {
 		const c = cats.find((x) => String(data.category) === String(x.data.id ?? x.id) || String(data.category) === x.id);
 		if (c) category = { title: str(c.data.title), url: (await entryUrl("service_categories", c)) ?? "" };
 	}
+	// A page's picture: its own image field, else the first hero section's photo, the way the share image is derived.
+	let image = imageOf(data, [...spec.image, "hero_image", "photo", "image"]);
+	if (!image && Array.isArray(data.sections)) {
+		const hero = (data.sections as Array<Record<string, unknown>>).find((b) => b && b._type === "hero" && mediaUrl(b.image));
+		if (hero) image = { url: mediaUrl(hero.image) ?? "", alt: pic(hero.image).image?.alt ?? "" };
+	}
 	return {
-		...data,
+		...withMediaUrls(data),
 		...base,
 		kind: route.kind, collection, slug: route.slug, id: entry?.id ?? "",
 		title: str(data.title), headline: str(data.headline) || str(data.title), summary: str(data.summary) || str(data.tagline),
-		image: imageOf(data, [...spec.image, "hero_image", "photo", "image"]),
+		image,
 		...(category ? { category } : {})
 	};
 }

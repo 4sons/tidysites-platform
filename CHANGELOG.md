@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.25.2
+
+- Custom HTML: every stored image on `page` and on a collection item carries `url` and `alt` (`{{ page.hero_image.url }}`, `{{ s.featured_image.url }}`, `{{ p.photo.url }}`), and a page with no image field of its own takes its first hero section's photo as `page.image`, the way its share image is derived. A port's homepage hero had to read the location's photo instead.
+
 ## 0.25.1
 
 - **A new site's platform token no longer dies minutes after provisioning.** The seed takes minutes on D1, longer than the control plane's step waited, so a second bootstrap call started a second seed beside the first; whichever finished last minted a token nobody stored, and the stored one stopped working (two sites in a row this week). Bootstrap now holds a lock: a second call waits for the first and mints the token its caller keeps; a first call whose lock was taken over mints nothing; the token is minted before setup is marked complete.
