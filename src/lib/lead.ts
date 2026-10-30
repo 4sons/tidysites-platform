@@ -3,10 +3,11 @@
  * and on the live site (the production worker), so a theme's server routes
  * delegate here and never touch EmDash or the database. Takes a posted form
  * (form-encoded or JSON), drops honeypot hits, checks Turnstile when a secret
- * is bound, keeps every answer, and forwards the lead to the control plane,
+ * is bound and the form asks for it, keeps every answer, and forwards the lead to the control plane,
  * which hands it to the platform (stored beside the site, emailed to the
  * site's recipients, sent to its webhooks).
  */
+import { readBotCheck } from "./botcheck";
 export interface LeadEnv {
 	TIDY_CONTROL_ORIGIN?: string;
 	TIDY_SITE_ID?: string;
@@ -41,7 +42,7 @@ export const LEAD_FILE_MAX = 10 * 1024 * 1024;
 export interface LeadOutcome { ok: boolean; status: number; error?: string; lead?: Lead; forwarded?: boolean; forwardStatus?: number | string }
 
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { "cache-control": "no-store" } });
-const RESERVED = new Set(["name", "email", "phone", "form", "website_hp", "cf-turnstile-response"]);
+const RESERVED = new Set(["name", "email", "phone", "form", "website_hp", "cf-turnstile-response", "bot_check"]);
 
 /** The posted body as flat strings; repeated names (checkbox groups) join with ", ". */
 export async function readLeadBody(request: Request): Promise<Record<string, string>> {
@@ -160,8 +161,12 @@ export async function handleLead(request: Request, env: LeadEnv, opts: { fetch?:
 	const attachments = request.clone() as Request;
 	const body = await readLeadBody(request);
 	if (body.website_hp) return json({ ok: true });
-	const ts = await turnstileOk(env, body["cf-turnstile-response"], request.headers.get("cf-connecting-ip"), opts.fetch);
-	if (!ts.ok) return json({ ok: false, error: ts.error }, 400);
+	// The form's own choice, signed into the page: the trap field alone, or Turnstile too. No token (a page published before the choice existed) keeps the old rule: Turnstile whenever the secret is bound.
+	const check = env.TURNSTILE_SECRET ? await readBotCheck(env.TURNSTILE_SECRET, body.bot_check, body.form || "contact") : null;
+	if (check !== "trap") {
+		const ts = await turnstileOk(env, body["cf-turnstile-response"], request.headers.get("cf-connecting-ip"), opts.fetch);
+		if (!ts.ok) return json({ ok: false, error: ts.error }, 400);
+	}
 	const stored = await storeLeadFiles(env, await readLeadFiles(attachments), leadLabels(body));
 	const lead = leadFrom(body, request.headers.get("referer"), undefined, stored.files);
 	if (stored.refused.length) lead.fields["Files not accepted"] = stored.refused.join(", ");

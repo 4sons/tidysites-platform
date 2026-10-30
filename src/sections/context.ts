@@ -17,7 +17,7 @@ import { referenced, render, splitIncludes, hasTemplate, TemplateError, type Inc
 import { sanitizeHtml } from "../lib/sanitize";
 import { addressLine, entries, entryUrl, formDialog, getBusiness, getLocation, hoursRows, mediaUrl, pic, resolveRoute, slugify, str, type Business } from "./lib";
 import { pageType } from "../lib/routes";
-import { mediaSrcset } from "../lib/images";
+import { LOGO_SIZES, mediaSrcset } from "../lib/images";
 
 export type Segment = { html: string } | { form: string; id: string };
 export interface Rendered { segments: Segment[]; dialogs: Array<{ id: string; name: string }>; error: string | null }
@@ -172,7 +172,8 @@ async function includeHtml(inc: Include, b: Business, request: Request): Promise
 			return menuHtml(menu?.items ?? [], new URL(request.url).pathname.replace(/\/+$/, "") || "/", depth);
 		}
 		case "logo": {
-			const inner = b.logo ? `<img class="ts-logo-img" src="${esc(b.logo.src)}" alt="${esc(b.logo.alt ?? b.title)}"${b.logo.width ? ` width="${b.logo.width}"` : ""}${b.logo.height ? ` height="${b.logo.height}"` : ""}>` : `<span class="ts-logo-text">${esc(b.title)}</span>`;
+			const logoSrcset = b.logo ? mediaSrcset(b.raw.logo) : null;
+			const inner = b.logo ? `<img class="ts-logo-img" src="${esc(b.logo.src)}"${logoSrcset ? ` srcset="${esc(logoSrcset)}" sizes="${LOGO_SIZES}"` : ""} alt="${esc(b.logo.alt ?? b.title)}"${b.logo.width ? ` width="${b.logo.width}"` : ""}${b.logo.height ? ` height="${b.logo.height}"` : ""}>` : `<span class="ts-logo-text">${esc(b.title)}</span>`;
 			return `<a class="ts-logo" href="/">${inner}</a>`;
 		}
 		case "phone":

@@ -1,5 +1,7 @@
 ---
 /** A request or contact form, each extra question a switch, beside the business details. */
+import Turnstile from "../Turnstile.astro";
+import { botCheckOf, signBotCheck } from "../../lib/botcheck";
 import { bool, entries, getBusiness, nodeOf, str, addressLine, wording } from "../lib";
 import Head from "./_Head.astro";
 import Form from "../Form.astro";
@@ -9,8 +11,12 @@ const tx = await wording(Astro.request);
 const variant = str(n.variant, "appointment request");
 const services = bool(n.ask_service, variant !== "question only") ? await entries("services", { limit: 40 }) : [];
 const providers = bool(n.ask_provider) ? await entries("people", { limit: 20 }) : [];
-let turnstile: string | undefined;
-try { const m = (await import("cloudflare:workers")) as unknown as { env?: Record<string, unknown> }; turnstile = typeof m.env?.TURNSTILE_SITEKEY === "string" ? m.env.TURNSTILE_SITEKEY : undefined; } catch { turnstile = undefined; }
+// The section's own form keeps the hidden trap field; it adds Turnstile when the section asks and the site has a widget. The choice travels to the lead route as a signed token.
+const check = botCheckOf(n.bot_check);
+let sitekey: string | undefined, secret: string | undefined;
+try { const m = (await import("cloudflare:workers")) as unknown as { env?: Record<string, unknown> }; sitekey = typeof m.env?.TURNSTILE_SITEKEY === "string" ? m.env.TURNSTILE_SITEKEY : undefined; secret = typeof m.env?.TURNSTILE_SECRET === "string" ? m.env.TURNSTILE_SECRET : undefined; } catch { sitekey = undefined; secret = undefined; }
+const turnstile = check === "turnstile" && sitekey && secret ? sitekey : undefined;
+const botCheck = secret ? await signBotCheck(secret, "contact", turnstile ? "turnstile" : "trap") : null;
 const details = bool(n.show_business_details, true);
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 ---
@@ -31,7 +37,9 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 			{bool(n.ask_referrer) && <label class="ts-full">{tx("How did you hear about us?")}<input name="referrer" /></label>}
 			{variant !== "short" && <label class="ts-full">{variant === "question only" ? tx("Your question") : tx("Anything we should know?")}<textarea name="message"></textarea></label>}
 			<input class="ts-hp" type="text" name="website_hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
-			{turnstile && <div class="cf-turnstile ts-full" data-sitekey={turnstile} data-size="flexible" data-appearance="interaction-only"></div>}
+			<input type="hidden" name="form" value="contact" />
+			{botCheck && <input type="hidden" name="bot_check" value={botCheck} />}
+			{turnstile && <Turnstile sitekey={turnstile} />}
 			<div class="ts-full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="ts-btn ts-btn-accent" type="submit">{str(n.submit_label) || (variant === "question only" ? tx("Send question") : tx("Send request"))}</button>{str(n.promise) && <span class="ts-muted" style="font-size:13px">{str(n.promise)}</span>}</div>
 		</form>
 		)}
@@ -47,4 +55,3 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 		)}
 	</div>
 </div></section>
-{turnstile && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}

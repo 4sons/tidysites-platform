@@ -6,6 +6,8 @@
  * the form's thank-you in place. Any theme section, the header dialog or a
  * site's own page can place it: <Form name="Schedule a make up" />.
  */
+import Turnstile from "./Turnstile.astro";
+import { botCheckOf, signBotCheck } from "../lib/botcheck";
 import { getForm, list, lines, str, bool, type FormRecord, wording } from "./lib";
 const tx = await wording(Astro.request);
 interface Props {
@@ -38,9 +40,13 @@ const doneText = str(d.success_message) || "We have your message and will be in 
 const consent = str(d.consent_text);
 const intro = str(d.intro);
 const slugOf = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 60) || "answer";
-let turnstile: string | undefined;
-try { const m = (await import("cloudflare:workers")) as unknown as { env?: Record<string, unknown> }; turnstile = typeof m.env?.TURNSTILE_SITEKEY === "string" ? m.env.TURNSTILE_SITEKEY : undefined; } catch { turnstile = undefined; }
 const formName = form?.title || (onlyEmail ? tx("Newsletter") : tx("Contact"));
+// The form's check: the hidden trap field always, Turnstile when the form asks for it and the site has a widget. The choice travels to the lead route as a signed token.
+const check = botCheckOf(d.bot_check);
+let sitekey: string | undefined, secret: string | undefined;
+try { const m = (await import("cloudflare:workers")) as unknown as { env?: Record<string, unknown> }; sitekey = typeof m.env?.TURNSTILE_SITEKEY === "string" ? m.env.TURNSTILE_SITEKEY : undefined; secret = typeof m.env?.TURNSTILE_SECRET === "string" ? m.env.TURNSTILE_SECRET : undefined; } catch { sitekey = undefined; secret = undefined; }
+const turnstile = check === "turnstile" && sitekey && secret ? sitekey : undefined;
+const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turnstile" : "trap") : null;
 ---
 <form class={`ts-form ${cls}`} action="/api/lead" method="post" data-tidy-form={form?.slug ?? form?.id ?? "contact"} data-error={tx("Something went wrong. Please try again.")}>
 	<div class="ts-form-fields">
@@ -63,14 +69,14 @@ const formName = form?.title || (onlyEmail ? tx("Newsletter") : tx("Contact"));
 		<input type="hidden" name="form" value={formName} />
 		{Object.entries(hidden).map(([k, v]) => <input type="hidden" name={k} value={v} />)}
 		<input class="ts-hp" type="text" name="website_hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
-		{turnstile && <div class="cf-turnstile ts-full" data-sitekey={turnstile} data-size="flexible" data-appearance="interaction-only"></div>}
+		{botCheck && <input type="hidden" name="bot_check" value={botCheck} />}
+		{turnstile && <Turnstile sitekey={turnstile} />}
 		<p class="ts-form-error" role="alert"></p>
 		<div class="ts-full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="ts-btn ts-btn-accent" type="submit">{submit}</button></div>
 		{consent && <p class="ts-consent">{consent}</p>}
 	</div>
 	<div class="ts-form-done" aria-live="polite"><h3>{doneTitle}</h3><p>{doneText}</p></div>
 </form>
-{turnstile && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
 <script is:inline>
 (function(){
 	if (window.__tidyForms) return; window.__tidyForms = true;

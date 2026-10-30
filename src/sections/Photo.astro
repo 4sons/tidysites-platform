@@ -26,5 +26,5 @@ const srcset = image ? mediaSrcset(image) : null;
 const has = Boolean(src);
 ---
 <div class={`ts-photo ts-photo-${ratio} ${has ? "ts-photo-has" : ""} ${cls}`.trim()}>
-	{src ? <img src={src} srcset={srcset ?? undefined} sizes={srcset ? sizesFor(sizes) : undefined} alt={image?.alt ?? alt} width={image?.width ?? width} height={image?.height ?? height} loading={eager ? "eager" : "lazy"} decoding="async" /> : <span>{alt}</span>}
+	{src ? <img src={src} srcset={srcset ?? undefined} sizes={srcset ? sizesFor(sizes) : undefined} alt={image?.alt ?? alt} width={image?.width ?? width} height={image?.height ?? height} loading={eager ? "eager" : "lazy"} fetchpriority={eager ? "high" : undefined} decoding="async" /> : <span>{alt}</span>}
 </div>
