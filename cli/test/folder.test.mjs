@@ -51,6 +51,18 @@ test('the diff names created, updated and removed entries against the snapshot',
 	assert.equal(push.settings.title, 'New');
 });
 
+test('a sidecar whose text ends in a newline round-trips exactly', () => {
+	const r = { ...row, data: { ...row.data, css: '\n.a{}\n' } };
+	const files = entryToFiles('rows', r);
+	assert.equal(files['rows/footer.css'], '\n.a{}\n\n');
+	assert.deepEqual(filesToEntry('rows', 'footer', files['rows/footer.json'], { css: files['rows/footer.css'], html: files['rows/footer.html'] }), r);
+});
+
+test('an empty field and a missing field are the same entry', () => {
+	const snap = snapshotOf({ content: { pages: [{ ...page, data: { ...page.data, summary: '', note: null } }] } });
+	assert.deepEqual(diffEntries({ 'pages/home': page }, snap).unchanged, ['pages/home']);
+});
+
 test('the same data in another key order is unchanged', () => {
 	const snap = snapshotOf({ content: { pages: [page] } });
 	const reordered = { ...page, data: { custom_css: page.data.custom_css, sections: page.data.sections, title: 'Home' } };

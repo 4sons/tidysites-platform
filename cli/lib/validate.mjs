@@ -42,7 +42,8 @@ function checkScalar(type, value, at, errors) {
 			}
 			return;
 		case 'boolean':
-			if (typeof value !== 'boolean') errors.push(`${at}: expected true or false, got ${describe(value)}`);
+			// The site stores a switch as 1 or 0, so a pull shows numbers; both spellings are fine.
+			if (typeof value !== 'boolean' && value !== 0 && value !== 1) errors.push(`${at}: expected true or false, got ${describe(value)}`);
 			return;
 		case 'integer':
 		case 'number':

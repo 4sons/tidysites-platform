@@ -31,7 +31,8 @@ export function entryToFiles(collection, entry) {
 	for (const [ext, field] of Object.entries(sidecarsFor(collection))) {
 		const v = data[field];
 		if (typeof v === 'string' && v.trim()) {
-			files[`${collection}/${name}.${ext}`] = v.endsWith('\n') ? v : `${v}\n`;
+			// Always one newline added on write and one taken on read, so the text round-trips exactly.
+			files[`${collection}/${name}.${ext}`] = `${v}\n`;
 			delete data[field];
 		} else if (v === '' || v === null) {
 			delete data[field];
@@ -101,9 +102,16 @@ function stable(value) {
 	return JSON.stringify(value);
 }
 
+/** An empty field and a missing one say the same thing to a push (the site keeps what it has). */
+function bare(data) {
+	const out = {};
+	for (const [k, v] of Object.entries(data ?? {})) if (v !== null && v !== '' && v !== undefined) out[k] = v;
+	return out;
+}
+
 /** Whether two entries would write the same thing. */
 export function sameEntry(a, b) {
-	return a.status === b.status && stable(a.data) === stable(b.data);
+	return a.status === b.status && stable(bare(a.data)) === stable(bare(b.data));
 }
 
 /**
