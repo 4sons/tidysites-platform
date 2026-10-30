@@ -28,6 +28,7 @@ nothing else; it lives in `.tidysites/key`, which is kept out of git.
 | `tidysites schema [type or collection]` | the section types and layouts, or one type's or collection's fields |
 | `tidysites gallery [type]` | a screenshot of every section type and layout in this website's theme, or the first screen of one type |
 | `tidysites fetch <url> [--out dir]` | a page of the site being ported: cleaned HTML, its outline (headings, navigation, images, phones, fonts, colours) and its stylesheets |
+| `tidysites rm <collection>/<slug> ...` | delete entry files with their sidecars (`services/*` for every entry of a collection); `push --prune` then removes them from the website |
 | `tidysites publish --yes` | the live site becomes a copy of the preview site |
 
 A section keeps its type with its key: to replace an intro with a row, give the row its own `_key`
@@ -50,7 +51,7 @@ menus/<name>.json             a menu as a tree: { "label", "items": [{ "label", 
 
 A new entry is a new `<collection>/<slug>.json` with at least `"data"`; the
 slug is the file name, the status is `published` unless the file says
-`draft`. Delete a file and `push --prune` removes the entry. A field taken
+`draft`. Delete a file (`tidysites rm services/old-one`, or `services/*` for all) and `push --prune` removes the entry. A field taken
 out of a file is cleared on the website at the next push. `id` and
 `updated_at` are the website's; leave them as pulled. A pull never overwrites
 a file you changed and have not pushed; it keeps the file and the difference

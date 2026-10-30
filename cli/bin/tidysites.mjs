@@ -13,6 +13,7 @@
  *   schema [name]                             section types and layouts, or one type's or collection's fields
  *   gallery [type]                            screenshot of every section type in this theme, or the first screen of one type
  *   fetch <url> [--out dir]                   a page of the site being ported: cleaned HTML and its outline
+ *   rm <collection>/<slug> ...                 delete entry files (globs allowed: services/*); push --prune then removes them from the website
  *   publish --yes                             the live site becomes a copy of the preview site
  *
  * The site is the remote: pull, edit, push. A push that would overwrite an
@@ -465,6 +466,32 @@ async function fetchCmd(ctx) {
 	say(`Saved to ${relative(process.cwd(), outDir)}/: ${base}.html (cleaned), ${base}.raw.html, ${base}.outline.json${cssTexts.length ? `, ${cssTexts.length} stylesheet${cssTexts.length === 1 ? '' : 's'}` : ''}`);
 }
 
+/**
+ * Delete entry files inside the folder, with their sidecars, so nobody has to reach for the shell's rm (which a
+ * harness may stop to ask about). Takes collection/slug paths; a trailing * takes every entry of the collection.
+ */
+function rmCmd({ dir }) {
+	if (!positional.length) fail('Usage: tidysites rm <collection>/<slug> [...]   (services/* for every entry of a collection)');
+	let removed = 0;
+	for (const arg of positional) {
+		const m = /^([a-z][a-z0-9_]*)\/(\*|[A-Za-z0-9][A-Za-z0-9_-]*)(?:\.json)?$/.exec(arg.replace(/^\.\//, ''));
+		if (!m) fail(`${arg}: write collection/slug or collection/*`);
+		const [, collection, slug] = m;
+		const colDir = join(dir, collection);
+		if (!existsSync(colDir)) { say(`${collection}/: no such collection folder`); continue; }
+		const slugs = slug === '*' ? readdirSync(colDir).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5)) : [slug];
+		for (const sl of slugs) {
+			let hit = false;
+			for (const ext of ['json', ...Object.keys(SIDECARS[collection] ?? SIDECARS.default)]) {
+				const f = join(colDir, `${sl}.${ext}`);
+				if (existsSync(f)) { rmSync(f); hit = true; }
+			}
+			if (hit) { removed++; say(`- ${collection}/${sl}`); } else say(`${collection}/${sl}: no such entry file`);
+		}
+	}
+	say(`${removed} entr${removed === 1 ? 'y' : 'ies'} removed from the folder; \`tidysites push --prune\` removes them from the website.`);
+}
+
 async function publish(ctx) {
 	if (!flags.yes) fail('Publishing makes the live site a copy of the preview site. Look at it first (`tidysites shot /`), then run `tidysites publish --yes`.');
 	const { json, text } = await tool(ctx.cfg, 'publish_website', { site_id: ctx.cfg.site });
@@ -524,6 +551,8 @@ async function main() {
 			return schema(config());
 		case 'fetch':
 			return fetchCmd(config(false));
+		case 'rm':
+			return rmCmd(config());
 		case 'publish':
 			return publish(config());
 		case 'help':
