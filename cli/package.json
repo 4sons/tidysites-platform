@@ -1,0 +1,27 @@
+{
+  "name": "@tideworthy/tidysites",
+  "version": "0.1.0",
+  "description": "Pull a Tidysites website to files, edit, validate against its content model, push it back, screenshot the result.",
+  "type": "module",
+  "bin": {
+    "tidysites": "./bin/tidysites.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check bin/tidysites.mjs && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/4sons/tidysites-platform.git",
+    "directory": "cli"
+  },
+  "license": "UNLICENSED"
+}
