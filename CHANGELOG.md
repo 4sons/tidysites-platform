@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.29.1
+
+From the ninth port's log (Snowillow Marketing).
+
+- A form drop-in inside a custom row (`{{> form "Name"}}`) gets the form styling. Every form rule was scoped to a section or the frame, so in a row the fields stacked unstyled, the honeypot field showed and the thank-you block was visible before anyone sent anything.
+
 ## 0.29.0
 
 From the eighth port's log (Springbank Landscapes).

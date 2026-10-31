@@ -71,15 +71,15 @@
 .ts summary::after{content:"+";color:var(--ts-primary);font-weight:400}
 .ts details[open] summary::after{content:"–"}
 .ts details .ts-a{padding:0 0 16px;color:var(--ts-ink-2);max-width:64ch;white-space:pre-line}
-:is(.ts,.ts-frame) .ts-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-:is(.ts,.ts-frame) .ts-form label{display:grid;gap:6px;font-size:13px;font-weight:600;color:var(--ts-ink-2)}
-:is(.ts,.ts-frame) .ts-form input,:is(.ts,.ts-frame) .ts-form select,:is(.ts,.ts-frame) .ts-form textarea{font:inherit;font-size:15px;padding:12px 13px;border:1.5px solid var(--ts-line);border-radius:calc(var(--ts-radius) * .7);background:var(--ts-surface);color:var(--ts-ink);width:100%}
-:is(.ts,.ts-frame) .ts-form textarea{min-height:110px}
-:is(.ts,.ts-frame) .ts-form .ts-full{grid-column:1/-1}
-:is(.ts,.ts-frame) .ts-form .ts-choices{display:flex;flex-wrap:wrap;gap:8px}
-:is(.ts,.ts-frame) .ts-form .ts-choices label{flex-direction:row;align-items:center;gap:8px;font-weight:500;padding:9px 12px;border:1.5px solid var(--ts-line);border-radius:999px;background:var(--ts-surface)}
-:is(.ts,.ts-frame) .ts-form .ts-hp{position:absolute;left:-10000px;width:1px;height:1px}
-@media (max-width:640px){:is(.ts,.ts-frame) .ts-form{grid-template-columns:1fr}}
+:is(.ts,.ts-frame,.ts-row) .ts-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+:is(.ts,.ts-frame,.ts-row) .ts-form label{display:grid;gap:6px;font-size:13px;font-weight:600;color:var(--ts-ink-2)}
+:is(.ts,.ts-frame,.ts-row) .ts-form input,:is(.ts,.ts-frame,.ts-row) .ts-form select,:is(.ts,.ts-frame,.ts-row) .ts-form textarea{font:inherit;font-size:15px;padding:12px 13px;border:1.5px solid var(--ts-line);border-radius:calc(var(--ts-radius) * .7);background:var(--ts-surface);color:var(--ts-ink);width:100%}
+:is(.ts,.ts-frame,.ts-row) .ts-form textarea{min-height:110px}
+:is(.ts,.ts-frame,.ts-row) .ts-form .ts-full{grid-column:1/-1}
+:is(.ts,.ts-frame,.ts-row) .ts-form .ts-choices{display:flex;flex-wrap:wrap;gap:8px}
+:is(.ts,.ts-frame,.ts-row) .ts-form .ts-choices label{flex-direction:row;align-items:center;gap:8px;font-weight:500;padding:9px 12px;border:1.5px solid var(--ts-line);border-radius:999px;background:var(--ts-surface)}
+:is(.ts,.ts-frame,.ts-row) .ts-form .ts-hp{position:absolute;left:-10000px;width:1px;height:1px}
+@media (max-width:640px){:is(.ts,.ts-frame,.ts-row) .ts-form{grid-template-columns:1fr}}
 .ts .ts-stat{text-align:left}
 .ts .ts-stat b{display:block;font-family:var(--ts-display);font-size:40px;letter-spacing:-.03em;line-height:1}
 .ts .ts-stat span{display:block;font-size:13px;color:var(--ts-ink-3);margin-top:6px}
@@ -112,15 +112,15 @@
 .ts .ts-prose p+p{margin-top:12px}
 
 /* Forms rendered from a form record (sections/form), and the thank-you state. */
-:is(.ts,.ts-frame) .ts-form .ts-form-fields{display:contents}
-:is(.ts,.ts-frame) .ts-form .ts-form-intro{grid-column:1/-1;color:var(--ts-ink-2);margin-bottom:4px}
-:is(.ts,.ts-frame) .ts-form .ts-consent{grid-column:1/-1;font-size:13px;color:var(--ts-ink-3)}
-:is(.ts,.ts-frame) .ts-form-done{display:none;padding:28px;text-align:center}
-:is(.ts,.ts-frame) .ts-form-done h3{margin-bottom:8px}
-:is(.ts,.ts-frame) .ts-form[data-done] .ts-form-fields{display:none}
-:is(.ts,.ts-frame) .ts-form[data-done] .ts-form-done{display:block}
-:is(.ts,.ts-frame) .ts-form .ts-form-error{grid-column:1/-1;color:#b42318;font-size:14px}
-:is(.ts,.ts-frame) .ts-form .ts-form-error:empty{display:none}
+:is(.ts,.ts-frame,.ts-row) .ts-form .ts-form-fields{display:contents}
+:is(.ts,.ts-frame,.ts-row) .ts-form .ts-form-intro{grid-column:1/-1;color:var(--ts-ink-2);margin-bottom:4px}
+:is(.ts,.ts-frame,.ts-row) .ts-form .ts-consent{grid-column:1/-1;font-size:13px;color:var(--ts-ink-3)}
+:is(.ts,.ts-frame,.ts-row) .ts-form-done{display:none;padding:28px;text-align:center}
+:is(.ts,.ts-frame,.ts-row) .ts-form-done h3{margin-bottom:8px}
+:is(.ts,.ts-frame,.ts-row) .ts-form[data-done] .ts-form-fields{display:none}
+:is(.ts,.ts-frame,.ts-row) .ts-form[data-done] .ts-form-done{display:block}
+:is(.ts,.ts-frame,.ts-row) .ts-form .ts-form-error{grid-column:1/-1;color:#b42318;font-size:14px}
+:is(.ts,.ts-frame,.ts-row) .ts-form .ts-form-error:empty{display:none}
 
 /* Carousels: a scroll-snap track, arrows at the sides; cols = items in view on a wide screen. */
 .ts .ts-carousel{position:relative}
