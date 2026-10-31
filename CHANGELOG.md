@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.10
+
+- A video in a row below the first screen downloads only when it comes within a screen of view (`data-tidy-src`, restored by the frame's script; an autoplay starts then); two 15 MB videos used to download on every visit of a ported homepage. A video in the first section, or one marked `preload="auto"`, is left as written.
+
 ## 0.30.9
 
 From the Daigle Plumbing port (WordPress, Elementor).
