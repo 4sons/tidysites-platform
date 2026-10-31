@@ -1,6 +1,6 @@
 {
   "name": "@tideworthy/tidysites",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Pull a Tidysites website to files, edit, validate against its content model, push it back, screenshot the result.",
   "type": "module",
   "bin": {

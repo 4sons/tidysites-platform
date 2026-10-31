@@ -22,8 +22,8 @@ nothing else; it lives in `.tidysites/key`, which is kept out of git.
 | `tidysites status` | what changed here since the pull |
 | `tidysites validate` | every file against the content model, with the file and the field in each message |
 | `tidysites push [--prune] [--force] [--dry] [--only pages]` | validate, then write the created and updated entries back (with `--prune`, delete the entries whose files are gone), then pull |
-| `tidysites shot <path or url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen] [--live]` | a screenshot of a page of the preview site, the live site, or any address, saved under `.tidysites/shots/`; none of the width flags means desktop and mobile; a port compares all four. A page taller than 2400px comes in 1600px bands (`<name>-band-01.jpg`, …), top to bottom, that an image reader can take in one at a time |
-| `tidysites measure <path or url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--full]` | the page as the browser lays it out: every heading, paragraph, button, picture and section box with its computed type (size, line height, weight, family, colour) and box (position, size, padding, margin, background), saved as JSON under `.tidysites/measures/` and printed. Measure the old page and the new one at the same width and style to the numbers |
+| `tidysites shot <path or url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen] [--live]` | a screenshot of a page of the preview site, the live site, or any address, saved under `.tidysites/shots/`; none of the width flags means desktop and mobile; a port compares all four. A page taller than 2400px comes in 1600px bands (`<name>-band-01.jpg`, …), top to bottom, that an image reader can take in one at a time. `--menu` opens every navigation menu (burgers, `<details>`, hover dropdowns) before the capture; `--open a,b` clicks those selectors and `--hover a,b` shows the submenus under them, for a popup, a tab or one dropdown |
+| `tidysites measure <path or url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--full]` | the page as the browser lays it out: every heading, paragraph, button, picture and section box with its computed type (size, line height, weight, family, colour) and box (position, size, padding, margin, background), saved as JSON under `.tidysites/measures/` and printed. Measure the old page and the new one at the same width and style to the numbers. The same `--menu`, `--open` and `--hover` as `shot`, so a dropdown's open type is measured |
 | `tidysites redirect [add <old path> <new path> \| rm <old path>]` | the website's redirects: an old address that must keep working after a port goes here; they ship with the next publish |
 | `tidysites pages` | every address the website renders |
 | `tidysites page <path> [--html]` | the rendered page, section by section, with the key each section carries |
@@ -58,6 +58,8 @@ out of a file is cleared on the website at the next push. `id` and
 `updated_at` are the website's; leave them as pulled. A pull never overwrites
 a file you changed and have not pushed; it keeps the file and the difference
 shows in `status`.
+
+Styling: a row's `.css` file is scoped to that row (every rule is prefixed with the row's own selector), so it cannot style the rest of the page; rules for the whole page, the sections and the theme's classes go in `business/business.css`.
 
 Images: an image field, a hero's image or a Columns image slot takes
 `{ "$media": { "url": "https://...", "alt": "what it shows" } }` and the
