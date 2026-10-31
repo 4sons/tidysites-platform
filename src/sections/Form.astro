@@ -39,11 +39,6 @@ const contactAfter = str(d.contact_fields_position) === "after the questions";
 const contactOrder = (["name", "phone", "email"] as const).map((k) => ({ k, at: contact.indexOf(k) })).filter((x) => x.at >= 0 || (x.k === "name" && !onlyEmail && !noContact)).sort((a, b) => (a.at < 0 ? -1 : b.at < 0 ? 1 : a.at - b.at)).map((x) => x.k);
 // "inside the box": the label stays for screen readers and the hint (or the label) sits inside the box, the way many old forms read.
 const labelsInside = str(d.label_style) === "inside the box";
-// The boxes and the questions render from one ordered list; the contact boxes lead unless the form puts them after the questions.
-type Item = { k: "name" | "phone" | "email" } | { q: (typeof questions)[number]; i: number };
-const contactItems: Item[] = contactOrder.map((k) => ({ k }));
-const questionItems: Item[] = questions.map((q, i) => ({ q, i }));
-const items: Item[] = contactAfter ? [...questionItems, ...contactItems] : [...contactItems, ...questionItems];
 const markRequired = bool(d.mark_required);
 const allRequired = str(d.contact_required).startsWith("every");
 const req = (required: boolean, cls = "") => `${cls} ${markRequired && required ? "ts-required" : ""}`.trim() || undefined;
@@ -53,6 +48,11 @@ const questions: Q[] = onlyEmail && !form
 	: form
 	? list<Record<string, unknown>>(d.questions).map((q) => ({ label: str(q.label), kind: str(q.kind, "short answer"), options: str(q.options), required: bool(q.required), placeholder: str(q.placeholder) })).filter((q) => q.label)
 	: [{ label: tx("How can we help?"), kind: "long answer", options: "", required: false, placeholder: "" }];
+// The boxes and the questions render from one ordered list; the contact boxes lead unless the form puts them after the questions.
+type Item = { k: "name" | "phone" | "email" } | { q: (typeof questions)[number]; i: number };
+const contactItems: Item[] = contactOrder.map((k) => ({ k }));
+const questionItems: Item[] = questions.map((q, i) => ({ q, i }));
+const items: Item[] = contactAfter ? [...questionItems, ...contactItems] : [...contactItems, ...questionItems];
 const submit = submitLabel || str(d.submit_label) || (onlyEmail ? tx("Subscribe") : tx("Send"));
 const doneTitle = str(d.success_title) || "Thank you";
 const doneText = str(d.success_message) || "We have your message and will be in touch soon.";
