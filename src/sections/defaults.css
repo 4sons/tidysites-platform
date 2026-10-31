@@ -123,7 +123,9 @@
 /* Forms rendered from a form record (sections/form), and the thank-you state. */
 :is(.ts,.ts-frame,.ts-row) .ts-form .ts-form-fields{display:contents}
 :is(.ts,.ts-frame,.ts-row) .ts-form .ts-form-intro{grid-column:1/-1;color:var(--ts-ink-2);margin-bottom:4px}
-:is(.ts,.ts-frame,.ts-row) .ts-form .ts-consent{grid-column:1/-1;font-size:13px;color:var(--ts-ink-3)}
+:is(.ts,.ts-frame,.ts-row) .ts-form .ts-form-consent{grid-column:1/-1;font-size:13px;color:var(--ts-ink-3)}
+:is(.ts,.ts-frame,.ts-row) .ts-form label.ts-label-inside>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+:is(.ts,.ts-frame,.ts-row) .ts-form label.ts-label-inside{position:relative}
 :is(.ts,.ts-frame,.ts-row) .ts-form-done{display:none;padding:28px;text-align:center}
 :is(.ts,.ts-frame,.ts-row) .ts-form-done h3{margin-bottom:8px}
 :is(.ts,.ts-frame,.ts-row) .ts-form[data-done] .ts-form-fields{display:none}
@@ -181,7 +183,7 @@
 
 /* Forms on a dark band */
 .ts.ts-ink .ts-form label{color:rgba(255,255,255,.82)}
-.ts.ts-ink .ts-form .ts-consent,.ts.ts-ink .ts-form .ts-form-intro{color:rgba(255,255,255,.7)}
+.ts.ts-ink .ts-form .ts-form-consent,.ts.ts-ink .ts-form .ts-form-intro{color:rgba(255,255,255,.7)}
 
 /* Email band */
 .ts .ts-form-email{grid-template-columns:1fr auto;align-items:end;max-width:560px}

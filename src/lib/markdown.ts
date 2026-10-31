@@ -86,3 +86,18 @@ export function markdownToHtml(input: string): string {
 	flushPara();
 	return out.join("\n");
 }
+
+/** One line of text with links, bold and italics only ([text](url), **bold**, *italic*), escaped; for a consent note or a caption. */
+export function inlineMarkdown(input: string): string {
+	const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+	let out = ""; let i = 0; const s = input ?? "";
+	const re = /\[([^\]]+)\]\(((?:https?:\/\/|\/|mailto:|tel:)[^)\s]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*/g;
+	for (const x of s.matchAll(re)) {
+		out += esc(s.slice(i, x.index));
+		if (x[1] !== undefined) out += `<a href="${esc(x[2]!)}"${/^https?:/.test(x[2]!) ? ' target="_blank" rel="noopener"' : ""}>${esc(x[1])}</a>`;
+		else if (x[3] !== undefined) out += `<strong>${esc(x[3])}</strong>`;
+		else out += `<em>${esc(x[4]!)}</em>`;
+		i = x.index! + x[0].length;
+	}
+	return out + esc(s.slice(i));
+}

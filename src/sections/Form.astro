@@ -9,6 +9,7 @@
 import Turnstile from "./Turnstile.astro";
 import { botCheckOf, signBotCheck, turnstileAppearance } from "../lib/botcheck";
 import { getForm, list, lines, str, bool, type FormRecord, wording } from "./lib";
+import { inlineMarkdown } from "../lib/markdown";
 const tx = await wording(Astro.request);
 interface Props {
 	/** The form's name, slug or id. Empty renders the default contact form. */
@@ -34,6 +35,15 @@ const askPhone = !noContact && contact.includes("phone"), askEmail = !noContact 
 const nameLabel = str(d.name_label) || tx("Name"), phoneLabel = str(d.phone_label) || tx("Phone"), emailLabel = str(d.email_label) || tx("Email");
 const nameHint = str(d.name_placeholder) || undefined, phoneHint = str(d.phone_placeholder) || undefined, emailHint = str(d.email_placeholder) || undefined;
 const contactAfter = str(d.contact_fields_position) === "after the questions";
+// The contact boxes come in the order the setting names them ("name, email and phone" puts email before phone).
+const contactOrder = (["name", "phone", "email"] as const).map((k) => ({ k, at: contact.indexOf(k) })).filter((x) => x.at >= 0 || (x.k === "name" && !onlyEmail && !noContact)).sort((a, b) => (a.at < 0 ? -1 : b.at < 0 ? 1 : a.at - b.at)).map((x) => x.k);
+// "inside the box": the label stays for screen readers and the hint (or the label) sits inside the box, the way many old forms read.
+const labelsInside = str(d.label_style) === "inside the box";
+const contactBox = (k: "name" | "phone" | "email") => {
+	if (k === "name") return !onlyEmail && !noContact ? <label class={req(true, `${askPhone && askEmail ? "ts-full" : ""} ${labelsInside ? "ts-label-inside" : ""}`.trim())}><span>{nameLabel}</span><input name="name" autocomplete="name" required placeholder={labelsInside ? nameHint || nameLabel : nameHint} /></label> : null;
+	if (k === "phone") return askPhone ? <label class={req(allRequired || !askEmail, labelsInside ? "ts-label-inside" : "")}><span>{phoneLabel}</span><input name="phone" type="tel" autocomplete="tel" required={allRequired || !askEmail} placeholder={labelsInside ? phoneHint || phoneLabel : phoneHint} /></label> : null;
+	return askEmail ? <label class={req(allRequired || !askPhone, labelsInside ? "ts-label-inside" : "")}><span>{emailLabel}</span><input name="email" type="email" autocomplete="email" required={allRequired || !askPhone} placeholder={labelsInside ? emailHint || emailLabel : emailHint} /></label> : null;
+};
 const markRequired = bool(d.mark_required);
 const allRequired = str(d.contact_required).startsWith("every");
 const req = (required: boolean, cls = "") => `${cls} ${markRequired && required ? "ts-required" : ""}`.trim() || undefined;
@@ -61,11 +71,7 @@ const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turn
 <form class={`ts-form ${cls}`} action="/api/lead" method="post" data-tidy-form={form?.slug ?? form?.id ?? "contact"} data-error={tx("Something went wrong. Please try again.")}>
 	<div class="ts-form-fields">
 		{intro && <p class="ts-form-intro">{intro}</p>}
-		{!contactAfter && <>
-			{!onlyEmail && !noContact && <label class={req(true, askPhone && askEmail ? "ts-full" : "")}>{nameLabel}<input name="name" autocomplete="name" required placeholder={nameHint} /></label>}
-			{askPhone && <label class={req(allRequired || !askEmail)}>{phoneLabel}<input name="phone" type="tel" autocomplete="tel" required={allRequired || !askEmail} placeholder={phoneHint} /></label>}
-			{askEmail && <label class={req(allRequired || !askPhone)}>{emailLabel}<input name="email" type="email" autocomplete="email" required={allRequired || !askPhone} placeholder={emailHint} /></label>}
-		</>}
+		{!contactAfter && contactOrder.map((k) => contactBox(k))}
 		{questions.map((q, i) => {
 			const key = `q_${slugOf(q.label)}`;
 			const opts = lines(q.options);
@@ -77,11 +83,7 @@ const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turn
 			if (q.kind === "file upload") return <label class={req(q.required, "ts-full")}>{q.label}<input name={key} type="file" required={q.required} accept=".pdf,.doc,.docx,.txt,.rtf,.jpg,.jpeg,.png,.gif,.webp,.heic" /></label>;
 			return <label class={req(q.required, i === questions.length - 1 && questions.length % 2 ? "ts-full" : "")}>{q.label}<input name={key} required={q.required} placeholder={q.placeholder || undefined} /></label>;
 		})}
-		{contactAfter && <>
-			{!onlyEmail && !noContact && <label class={req(true, askPhone && askEmail ? "ts-full" : "")}>{nameLabel}<input name="name" autocomplete="name" required placeholder={nameHint} /></label>}
-			{askPhone && <label class={req(allRequired || !askEmail)}>{phoneLabel}<input name="phone" type="tel" autocomplete="tel" required={allRequired || !askEmail} placeholder={phoneHint} /></label>}
-			{askEmail && <label class={req(allRequired || !askPhone)}>{emailLabel}<input name="email" type="email" autocomplete="email" required={allRequired || !askPhone} placeholder={emailHint} /></label>}
-		</>}
+		{contactAfter && contactOrder.map((k) => contactBox(k))}
 		{questions.map((q) => <input type="hidden" name={`label:q_${slugOf(q.label)}`} value={q.label} />)}
 		<input type="hidden" name="form" value={formName} />
 		{Object.entries(hidden).map(([k, v]) => <input type="hidden" name={k} value={v} />)}
@@ -90,7 +92,7 @@ const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turn
 		{turnstile && <Turnstile sitekey={turnstile} appearance={appearance} />}
 		<p class="ts-form-error" role="alert"></p>
 		<div class="ts-full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="ts-btn ts-btn-accent" type="submit">{submit}</button></div>
-		{consent && <p class="ts-consent">{consent}</p>}
+		{consent && <p class="ts-form-consent" set:html={inlineMarkdown(consent)} />}
 	</div>
 	<div class="ts-form-done" aria-live="polite"><h3>{doneTitle}</h3><p>{doneText}</p></div>
 </form>
