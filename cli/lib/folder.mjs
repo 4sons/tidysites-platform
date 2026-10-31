@@ -145,9 +145,20 @@ export function pushDocument(local, snapshot, { keys, removeKeys = [], settings 
 		// so the names the snapshot had and the file no longer has go as null.
 		const data = { ...e.data };
 		if (was?.data) for (const k of Object.keys(was.data)) if (!(k in data) && !emptyValue(was.data[k])) data[k] = null;
-		(content[collection] ??= []).push({ id: e.id, slug, status: e.status, data });
+		// A new entry's seed key is its slug, so "$ref:<slug>" from another file resolves to it once it is created.
+		(content[collection] ??= []).push({ id: e.id || slug, slug, status: e.status, data });
 		if (was?.updated_at) expect[key] = was.updated_at;
 	}
+	// "$ref:<slug>" (or "$ref:<collection>/<slug>") to an entry the folder already knows the website's id for becomes that id; a reference to an entry created by this same push stays for the website to resolve.
+	const ids = new Map();
+	for (const [k, e] of Object.entries(local)) if (e?.id) { const [, slug] = splitKey(k); ids.set(slug, e.id); ids.set(k, e.id); }
+	const resolveRefs = (v) => {
+		if (typeof v === 'string' && v.startsWith('$ref:')) { const target = v.slice(5).trim(); const id = ids.get(target) ?? ids.get(target.split('/').pop()); return id ?? `$ref:${target.split('/').pop()}`; }
+		if (Array.isArray(v)) return v.map(resolveRefs);
+		if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, resolveRefs(x)]));
+		return v;
+	};
+	for (const entries of Object.values(content)) for (const e of entries) e.data = resolveRefs(e.data);
 	const remove = {};
 	for (const key of removeKeys) {
 		const [collection, slug] = splitKey(key);
