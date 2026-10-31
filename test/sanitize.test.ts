@@ -57,3 +57,14 @@ describe("sanitizeHtml and inline SVG", () => {
 		expect(out).toBe(`<svg><path d="M0 0"></path><image></image></svg>`);
 	});
 });
+
+describe("urls in row CSS", () => {
+	it("keeps inline pictures, quoted or bare, with parentheses inside, and the site's own and web addresses", () => {
+		const css = `.a{background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><path d='M0 0h10' fill='rgb(0,0,0)'/></svg>")}.b{background:url(data:image/png;base64,AAAA)}.c{background-image:url('/x.png')}.d{background:url(https://x.test/a.png)}`;
+		expect(scopeCss(css, ".r")).toBe(`.r .a{background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><path d='M0 0h10' fill='rgb(0,0,0)'/></svg>")}.r .b{background:url(data:image/png;base64,AAAA)}.r .c{background-image:url('/x.png')}.r .d{background:url(https://x.test/a.png)}`);
+	});
+	it("empties a relative or unknown-scheme url", () => {
+		expect(scopeCss(`.d{background:url(../x.png)}.e{mask:url('file:///etc/passwd')}`, ".r")).toBe(`.r .d{background:url()}.r .e{mask:url()}`);
+		expect(sanitizeHtml(`<p style="background:url(&quot;data:image/png;base64,AA&quot;)">a</p><p style="background:url(../x.png)">b</p>`)).toBe(`<p style="background:url(&quot;data:image/png;base64,AA&quot;)">a</p><p>b</p>`);
+	});
+});

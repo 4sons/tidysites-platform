@@ -9,6 +9,6 @@ const faces = fontFaces(b);
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 {fontLinks(b).map((href) => <link rel="stylesheet" href={href} />)}
-{b.favicon?.src && <link rel="icon" href={b.favicon.src} type={b.favicon.src.endsWith(".svg") ? "image/svg+xml" : b.favicon.src.endsWith(".ico") ? "image/x-icon" : "image/png"} />}
+{b.favicon?.src && <link rel="icon" href={b.favicon.src} type={/\.svg(\?|$)/i.test(b.favicon.src) ? "image/svg+xml" : /\.ico(\?|$)/i.test(b.favicon.src) ? "image/x-icon" : /\.webp(\?|$)/i.test(b.favicon.src) ? "image/webp" : /\.jpe?g(\?|$)/i.test(b.favicon.src) ? "image/jpeg" : "image/png"} />}
 {b.favicon?.src && <link rel="apple-touch-icon" href={b.favicon.src} />}
 {faces && <style set:html={faces} />}

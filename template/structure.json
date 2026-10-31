@@ -944,7 +944,8 @@
 								"options": [
 									"accordion",
 									"tabs",
-									"two columns"
+									"two columns",
+									"intro beside"
 								]
 							},
 							"defaultValue": "accordion"
@@ -992,6 +993,11 @@
 						{
 							"slug": "open_first",
 							"label": "First question open",
+							"type": "boolean"
+						},
+						{
+							"slug": "numbered",
+							"label": "Number the questions (01., 02., ...)",
 							"type": "boolean"
 						},
 						{
@@ -3400,6 +3406,11 @@
 					"type": "string"
 				},
 				{
+					"slug": "extra_fonts",
+					"label": "More Google fonts the site's CSS uses (one per line: Lato, or Lato:400,700)",
+					"type": "text"
+				},
+				{
 					"slug": "brand_ground",
 					"label": "Page background colour",
 					"type": "string"
@@ -5574,6 +5585,18 @@
 						"options": [
 							"before the questions",
 							"after the questions"
+						]
+					}
+				},
+				{
+					"slug": "contact_required",
+					"label": "Which contact boxes are required",
+					"type": "select",
+					"defaultValue": "name, and a phone or an email",
+					"validation": {
+						"options": [
+							"name, and a phone or an email",
+							"every contact box"
 						]
 					}
 				},
