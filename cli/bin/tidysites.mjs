@@ -7,8 +7,8 @@
  *   status                                    what changed here since the pull
  *   validate                                  check the files against the content model
  *   push [--prune] [--force] [--dry]          write the changes back, then pull
- *   shot <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen]   screenshot to .tidysites/shots (none = desktop and mobile); a tall page comes in 1600px bands
- *   measure <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--full]   the computed type and boxes of a page: the numbers to style to and diff
+ *   shot <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen] [--menu] [--open sel,..] [--hover sel,..]   screenshot to .tidysites/shots (none = desktop and mobile); a tall page comes in 1600px bands; --menu opens every navigation menu first
+ *   measure <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--full] [--menu] [--open sel,..] [--hover sel,..]   the computed type and boxes of a page: the numbers to style to and diff
  *   redirect [add <old> <new> | rm <old>]      the website's redirects (an old address that must keep working goes here)
  *   pages                                     every address the website renders
  *   page <path> [--html]                      the rendered page, section by section
@@ -189,9 +189,13 @@ async function pull({ dir, cfg }, collections = null, { overwrite = new Set(), m
 	// website's version underneath it, so status shows the difference and a push carries the new stamp.
 	const files = {};
 	const kept = [];
+	const removedHere = readRemoved(dir);
+	const heldBack = [];
 	for (const [collection, entries] of Object.entries(doc.content)) {
 		for (const e of entries) {
 			const key = `${collection}/${e.slug ?? e.id}`;
+			// Removed here with `tidysites rm` and not pruned yet: the website still has it, the folder does not get it back.
+			if (removedHere.has(key) && !overwrite.has(key)) { heldBack.push(key); continue; }
 			const mine = local[key];
 			const was = prev?.entries?.[key];
 			// An entry this push just wrote is the website's now: its file takes the website's version ($media
@@ -244,6 +248,7 @@ async function pull({ dir, cfg }, collections = null, { overwrite = new Set(), m
 	for (const c of doc.collections.filter((c) => c.count)) say(`  ${c.slug.padEnd(20)} ${c.count}`);
 	if (snap.menus) say(`  ${'menus'.padEnd(20)} ${Object.keys(snap.menus).length}`);
 	for (const k of kept) say(`  kept your unpushed changes in ${k}`);
+	if (heldBack.length) say(`  ${heldBack.length} entr${heldBack.length === 1 ? 'y' : 'ies'} you removed here stay removed (the website still has them until \`push --prune\`)`);
 }
 
 /** The menus alone: files and the snapshot's menus, the entries untouched. */
@@ -339,6 +344,8 @@ async function push(ctx) {
 			process.exit(1);
 		}
 		say(`Pushed: ${r.content.created} created, ${r.content.updated} updated${r.images ? `, ${r.images} image${r.images === 1 ? '' : 's'} added` : ''}${r.images_reused ? `, ${r.images_reused} already in the library` : ''}${r.removed ? `, ${r.removed} removed` : ''}.`);
+		// Removed from the website now: the folder stops holding them back.
+		if (removeKeys.length) { const rem = readRemoved(ctx.dir); for (const k of removeKeys) rem.delete(k); writeRemoved(ctx.dir, rem); }
 		if (r.missing?.length) say(`Not found to remove: ${r.missing.map((m) => `${m.collection}/${m.slug}`).join(', ')}`);
 	}
 	for (const name of menus) {
@@ -363,7 +370,7 @@ async function shot(ctx, target = positional[0] ?? '/', opts = {}) {
 	// --desktop, --mobile, --tablet, --wide, any of them together; --all for every width; none = desktop and mobile.
 	const picked = ['desktop', 'mobile', 'tablet', 'wide'].filter((v) => flags[v]);
 	const view = flags.all ? 'all' : picked.length ? picked.join(',') : (opts.view ?? 'both');
-	const args = { site_id: ctx.cfg.site, view, full_page: !(flags['first-screen'] || opts.firstScreen), ...(isUrl ? { url: target } : { path: target, site: flags.live ? 'live' : 'preview' }) };
+	const args = { site_id: ctx.cfg.site, view, full_page: !(flags['first-screen'] || opts.firstScreen), ...openStates(), ...(isUrl ? { url: target } : { path: target, site: flags.live ? 'live' : 'preview' }) };
 	const { json, images } = await tool(ctx.cfg, 'screenshot_website', args);
 	const outDir = join(ctx.dir, META, 'shots');
 	mkdirSync(outDir, { recursive: true });
@@ -382,13 +389,23 @@ async function shot(ctx, target = positional[0] ?? '/', opts = {}) {
 	if (!images.length) say(json ? JSON.stringify(json).slice(0, 500) : 'No image came back.');
 }
 
+/** What a shot or a measure opens first: --menu (every navigation menu), --open <selector,...> (clicked), --hover <selector,...> (their submenus shown). */
+function openStates() {
+	const list = (v) => (v ? String(v).split(',').map((x) => x.trim()).filter(Boolean) : []);
+	const out = {};
+	if (flags.menu) out.menu = true;
+	if (flags.open) out.open = list(flags.open);
+	if (flags.hover) out.hover = list(flags.hover);
+	return out;
+}
+
 /** The computed type and boxes of a page, old or new, at one or several widths: the numbers a port styles to. */
 async function measure(ctx) {
 	const target = positional[0] ?? '/';
 	const isUrl = /^https?:\/\//.test(target);
 	const picked = ['desktop', 'mobile', 'tablet', 'wide'].filter((v) => flags[v]);
 	const view = flags.all ? 'all' : picked.length ? picked.join(',') : 'desktop';
-	const args = { site_id: ctx.cfg.site, view, ...(isUrl ? { url: target } : { path: target, site: flags.live ? 'live' : 'preview' }) };
+	const args = { site_id: ctx.cfg.site, view, ...openStates(), ...(isUrl ? { url: target } : { path: target, site: flags.live ? 'live' : 'preview' }) };
 	const { json } = await tool(ctx.cfg, 'measure_website', args);
 	if (!json?.views) fail('No measurements came back.');
 	const outDir = join(ctx.dir, META, 'measures');
@@ -556,11 +573,20 @@ function rmCmd({ dir }) {
 				const f = join(colDir, `${sl}.${ext}`);
 				if (existsSync(f)) { rmSync(f); hit = true; }
 			}
-			if (hit) { removed++; say(`- ${collection}/${sl}`); } else say(`${collection}/${sl}: no such entry file`);
+			if (hit) { removed++; say(`- ${collection}/${sl}`); rememberRemoved(dir, `${collection}/${sl}`); } else say(`${collection}/${sl}: no such entry file`);
 		}
 	}
 	say(`${removed} entr${removed === 1 ? 'y' : 'ies'} removed from the folder; \`tidysites push --prune\` removes them from the website.`);
 }
+
+/**
+ * Entries removed here and not yet pruned from the website. A pull (the one after a failed push included) does not
+ * write them back; `push --prune` removes them from the website and forgets them. The list lives beside the snapshot.
+ */
+const REMOVED_FILE = 'removed.json';
+function readRemoved(dir) { return new Set(readJson(join(dir, META, REMOVED_FILE)) ?? []); }
+function writeRemoved(dir, set) { writeFileSync(join(dir, META, REMOVED_FILE), JSON.stringify([...set].sort(), null, '\t')); }
+function rememberRemoved(dir, key) { const s = readRemoved(dir); s.add(key); writeRemoved(dir, s); }
 
 async function publish(ctx) {
 	if (!flags.yes) fail('Publishing makes the live site a copy of the preview site. Look at it first (`tidysites shot /`), then run `tidysites publish --yes`.');

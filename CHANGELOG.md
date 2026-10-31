@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.28.2
+
+From the sixth port's log (Hanwell Plumbing).
+
+- The favicon field accepts `.ico` files (`image/x-icon`, `image/vnd.microsoft.icon`) beside SVG and the rasters.
+- The live site answers a HEAD request the way it answers a GET, without the body: a redirected or existing address no longer looks dead to a link checker or a crawler.
+
 ## 0.28.1
 
 From the fifth port's log (Custom Comfort).

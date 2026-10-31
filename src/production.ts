@@ -40,6 +40,12 @@ async function notFound(env: ProductionEnv, origin: string, status = 404): Promi
 export async function productionFetch<E extends ProductionEnv>(request: Request, env: E, options: ProductionOptions<E> = {}): Promise<Response> {
 	const url = new URL(request.url);
 	if (url.pathname.startsWith("/api/") && options.api) return options.api(request, env);
+	// A HEAD request (a link checker, a crawler) reaches this worker when the assets answered nothing for it; answer
+	// what a GET would, without the body, so a redirected or existing address never looks dead to a crawler.
+	if (request.method === "HEAD") {
+		const r = await env.ASSETS.fetch(new Request(url.toString(), { method: "GET", headers: request.headers, redirect: "manual" }));
+		if (r.status !== 404) return new Response(null, { status: r.status, headers: r.headers });
+	}
 	// Resized pictures (/_tidy/img/<width>/<key>) are plain files in the snapshot, fetched from staging at publish.
 	if (url.pathname.startsWith("/_tidy/img/")) {
 		const r = await env.ASSETS.fetch(request);
