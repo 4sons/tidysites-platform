@@ -356,6 +356,7 @@ async function push(ctx) {
 		if (removeKeys.length) { const rem = readRemoved(ctx.dir); for (const k of removeKeys) rem.delete(k); writeRemoved(ctx.dir, rem); }
 		if (r.missing?.length) say(`Not found to remove: ${r.missing.map((m) => `${m.collection}/${m.slug}`).join(', ')}`);
 	}
+	const menuProblems = [];
 	for (const name of menus) {
 		const m = s.menus[name];
 		let items;
@@ -364,9 +365,22 @@ async function push(ctx) {
 		} catch (e) {
 			fail(`menus/${name}.json: ${e.message}`);
 		}
-		await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_set_items', arguments: { name, items } });
-		say(`Menu ${name}: ${items.length} item${items.length === 1 ? '' : 's'} written.`);
+		try {
+			try {
+				await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_set_items', arguments: { name, items } });
+			} catch (e) {
+				// A menu the website does not have yet (a phone drawer, a footer column) is created from the file, then filled.
+				if (!/not.?found/i.test(e.message ?? '')) throw e;
+				await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_create', arguments: { name, label: m.label || name } });
+				await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_set_items', arguments: { name, items } });
+				say(`Menu ${name}: created.`);
+			}
+			say(`Menu ${name}: ${items.length} item${items.length === 1 ? '' : 's'} written.`);
+		} catch (e) {
+			menuProblems.push(`menus/${name}.json: ${e.message}`);
+		}
 	}
+	if (menuProblems.length) fail(menuProblems.join('\n'));
 	// Refresh only what went, and take the website's version of exactly those entries; every other file stays as it is.
 	const pushed = new Set([...keys, ...menus.map((m) => `menus/${m}`)]);
 	if (touched.length) await pull(ctx, touched, { overwrite: pushed, menus: menus.length > 0 });

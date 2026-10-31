@@ -5637,6 +5637,11 @@
 					}
 				},
 				{
+					"slug": "mark_required",
+					"label": "Mark required boxes with *",
+					"type": "boolean"
+				},
+				{
 					"slug": "submit_label",
 					"label": "Button label",
 					"type": "string"
@@ -6740,6 +6745,11 @@
 					"slug": "read_minutes",
 					"label": "Read time",
 					"type": "integer"
+				},
+				{
+					"slug": "published_at",
+					"label": "Publish date (the date shown and sorted by; empty means when it was published here)",
+					"type": "datetime"
 				},
 				{
 					"slug": "content",

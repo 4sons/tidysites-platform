@@ -41,10 +41,10 @@ function withMediaUrls(data: Record<string, unknown>): Record<string, unknown> {
 		// Written content (rich text) prints as HTML through {{{ x.content_html }}}; the blocks themselves stay for loops.
 		if (isPortableText(v)) out[`${k}_html`] = portableTextToHtml(v);
 		// A plain text field with paragraphs prints as <p>s through {{{ x.summary_html }}}; the text itself stays for {{ x.summary }}.
-		else if (typeof v === "string" && v.includes("\n")) out[`${k}_html`] = paragraphsHtml(v);
+		else if (typeof v === "string" && v.trim() && !/^(id|slug|status|_type|_key)$/.test(k)) out[`${k}_html`] = paragraphsHtml(v);
 	}
 	// Dates print ready to read: {{ p.published_date }} and {{ p.updated_date }} ("Oct 30, 2026"); the raw values stay for sorting.
-	if (data.publishedAt) out.published_date = dateOf(data.publishedAt);
+	if (data.published_at || data.publishedAt) out.published_date = dateOf(data.published_at || data.publishedAt);
 	if (data.updatedAt) out.updated_date = dateOf(data.updatedAt);
 	return out;
 }

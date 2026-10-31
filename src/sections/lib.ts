@@ -298,8 +298,8 @@ export function googleFontHrefs(b: Business): string[] {
 	const display = b.displayFontFile ? "" : b.fontDisplay.trim();
 	const body = b.bodyFontFile ? "" : b.fontBody.trim();
 	const out: string[] = [];
-	if (display) out.push(fam(display, "wght@300;400;500;600;700;800"));
-	if (body && body.toLowerCase() !== display.toLowerCase()) out.push(fam(body, "wght@300;400;500;600;700"));
+	if (display) out.push(fam(display, "ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,700"));
+	if (body && body.toLowerCase() !== display.toLowerCase()) out.push(fam(body, "ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700"));
 	return out;
 }
 /** The first of the Google Fonts stylesheets, kept for themes that printed one link. */

@@ -98,7 +98,8 @@ function scopeRules(css: string, scope: string): string {
 			if (/^@(media|supports|container|layer)\b/i.test(head)) out += `${head}{${scopeRules(body, scope)}}`;
 			else if (/^@(keyframes|font-face|page|property|counter-style)\b/i.test(head)) out += `${head}{${body}}`;
 		} else if (head) {
-			const selectors = head.split(",").map((sel) => { const t = sel.trim(); if (!t) return ""; if (/^(:root|html|body)\b/i.test(t)) return scope; return `${scope} ${t}`; }).filter(Boolean);
+			// `.ts-row`, `.ts-row-header`, `&` or `:scope` at the start of a selector is the row's own wrapper (the element the platform puts around the markup); anything else is inside it.
+			const selectors = head.split(",").map((sel) => { const t = sel.trim(); if (!t) return ""; if (/^(:root|html|body)\b/i.test(t)) return scope; const m = /^(?:&|:scope|\.ts-row(?:-[a-z]+)?)((?:[.:#[][^\s>+~]*)?)(.*)$/i.exec(t); if (m) return `${scope}${m[1] ?? ""}${m[2] ?? ""}`; return `${scope} ${t}`; }).filter(Boolean);
 			if (selectors.length) out += `${selectors.join(",")}{${body}}`;
 		}
 		i = close + 1;
