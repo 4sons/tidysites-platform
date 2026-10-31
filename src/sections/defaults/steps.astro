@@ -3,6 +3,7 @@
 import { bool, entries, lines, list, nodeOf, pic, str, wording } from "../lib";
 import Photo from "../Photo.astro";
 import Head from "./_Head.astro";
+import Paras from "../Paras.astro";
 const tx = await wording(Astro.request);
 const n = nodeOf(Astro.props);
 const items = list<Record<string, unknown>>(n.steps).filter((s) => str(s.title));
@@ -18,7 +19,7 @@ const aside = bool(n.show_prep) && (prep.length > 0 || forms.length > 0);
 			{items.map((s, i) => (
 				<div class="ts-step">
 					<span class="ts-n">{str(s.duration) || String(i + 1).padStart(2, "0")}</span>
-					<div><h3>{str(s.title)}</h3>{str(s.body) && <p>{str(s.body)}</p>}{(() => { const p = pic(s.image); return p.image || p.url ? <Photo image={p.image} url={p.url} alt={str(s.title)} ratio="wide" class="ts-step-photo" /> : null; })()}</div>
+					<div><h3>{str(s.title)}</h3><Paras text={str(s.body)} />{(() => { const p = pic(s.image); return p.image || p.url ? <Photo image={p.image} url={p.url} alt={str(s.title)} ratio="wide" class="ts-step-photo" /> : null; })()}</div>
 				</div>
 			))}
 		</div>

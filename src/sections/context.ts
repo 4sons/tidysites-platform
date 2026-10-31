@@ -13,6 +13,7 @@
  */
 import { getEmDashEntry, getMenu } from "emdash";
 import { isPortableText, portableTextToHtml } from "../lib/portable-text";
+import { paragraphsHtml } from "../lib/text";
 import { referenced, render, splitIncludes, hasTemplate, TemplateError, type Include, type Scope } from "../lib/template";
 import { sanitizeHtml } from "../lib/sanitize";
 import { addressLine, entries, entryUrl, formDialog, getBusiness, getLocation, hoursRows, mediaUrl, pic, resolveRoute, slugify, str, type Business, dateOf } from "./lib";
@@ -39,6 +40,8 @@ function withMediaUrls(data: Record<string, unknown>): Record<string, unknown> {
 		out[k] = isMedia(v) ? { ...v, url: mediaUrl(v) ?? "", alt: typeof v.alt === "string" ? v.alt : "", srcset: mediaSrcset(v) ?? "" } : v;
 		// Written content (rich text) prints as HTML through {{{ x.content_html }}}; the blocks themselves stay for loops.
 		if (isPortableText(v)) out[`${k}_html`] = portableTextToHtml(v);
+		// A plain text field with paragraphs prints as <p>s through {{{ x.summary_html }}}; the text itself stays for {{ x.summary }}.
+		else if (typeof v === "string" && v.includes("\n")) out[`${k}_html`] = paragraphsHtml(v);
 	}
 	// Dates print ready to read: {{ p.published_date }} and {{ p.updated_date }} ("Oct 30, 2026"); the raw values stay for sorting.
 	if (data.publishedAt) out.published_date = dateOf(data.publishedAt);
@@ -140,11 +143,26 @@ async function readPage(request: Request): Promise<Scope> {
 	};
 }
 
-/** The context a text needs, and no more. */
-export async function contextFor(request: Request, text: string): Promise<{ ctx: Scope; includes: Include[] }> {
+/** A row's own files, by the name the HTML uses: {{ media.hero.url }}, {{ media.hero.alt }}, {{ media.hero.type }}. */
+export function rowMedia(list: unknown): Scope {
+	const out: Scope = {};
+	if (!Array.isArray(list)) return out;
+	for (const item of list as Array<Record<string, unknown>>) {
+		const name = str(item?.name).trim();
+		if (!name) continue;
+		const file = item.file;
+		const url = mediaUrl(file) ?? "";
+		const f = (file && typeof file === "object" ? file : {}) as { mimeType?: unknown; alt?: unknown; width?: unknown; height?: unknown };
+		out[name] = { url, alt: str(item.alt) || str(f.alt), type: str(f.mimeType), width: typeof f.width === "number" ? f.width : null, height: typeof f.height === "number" ? f.height : null, srcset: mediaSrcset(file) ?? "" };
+	}
+	return out;
+}
+
+/** The context a text needs, and no more. `extra` is what the caller adds (a row's own media). */
+export async function contextFor(request: Request, text: string, extra: Scope = {}): Promise<{ ctx: Scope; includes: Include[] }> {
 	const { roots, includes } = referenced(text);
 	const b = await getBusiness(request);
-	const ctx: Scope = { business: businessScope(b) };
+	const ctx: Scope = { ...extra, business: businessScope(b) };
 	const url = new URL(request.url);
 	ctx.site = { title: b.title, url: url.origin, path: url.pathname, year: new Date().getFullYear() };
 	if (roots.has("page")) ctx.page = await currentPage(request);
@@ -220,14 +238,14 @@ async function includeHtml(inc: Include, b: Business, request: Request): Promise
  * `#form:` links in place. `segments` alternate markup with forms for the
  * Astro layer to render; `dialogs` are the forms the buttons open.
  */
-export async function renderCustomHtml(text: string, request: Request): Promise<Rendered> {
+export async function renderCustomHtml(text: string, request: Request, extra: Scope = {}): Promise<Rendered> {
 	const dialogs = new Map<string, string>();
 	let filled = text;
 	let includes: Include[] = [];
 	let error: string | null = null;
 	if (hasTemplate(text)) {
 		try {
-			const c = await contextFor(request, text);
+			const c = await contextFor(request, text, extra);
 			includes = c.includes;
 			filled = render(text, c.ctx);
 		} catch (e) {

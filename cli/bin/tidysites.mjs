@@ -369,7 +369,9 @@ async function push(ctx) {
 	else if (menus.length) await pullMenus(ctx);
 }
 
-const MEDIA_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', svg: 'image/svg+xml', ico: 'image/x-icon' };
+const MEDIA_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', svg: 'image/svg+xml', ico: 'image/x-icon', mp4: 'video/mp4', m4v: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', woff2: 'font/woff2', woff: 'font/woff', ttf: 'font/ttf', otf: 'font/otf', pdf: 'application/pdf' };
+/** Pictures travel up to 15 MB; a video (a row's media list) up to 40 MB. */
+const mediaCap = (type) => (type.startsWith('video/') ? 40 : 15);
 /** Every { "$media": { "file": ... } } in the document becomes { "$media": { "data", "type", "filename", "alt" } }, read from the folder. */
 function inlineMediaFiles(doc, dir) {
 	const walk = (v) => {
@@ -381,9 +383,10 @@ function inlineMediaFiles(doc, dir) {
 				if (!path.startsWith(resolve(dir))) fail(`$media.file ${m.file}: outside the folder`);
 				if (!existsSync(path)) fail(`$media.file ${m.file}: no such file`);
 				const bytes = readFileSync(path);
-				if (bytes.length > 15 * 1024 * 1024) fail(`$media.file ${m.file}: ${(bytes.length / 1048576).toFixed(1)} MB; pictures up to 15 MB`);
 				const ext = m.file.split('.').pop().toLowerCase();
-				return { $media: { data: bytes.toString('base64'), type: MEDIA_TYPES[ext] ?? 'application/octet-stream', filename: m.file.split('/').pop(), alt: typeof m.alt === 'string' ? m.alt : '' } };
+				const type = MEDIA_TYPES[ext] ?? 'application/octet-stream';
+				if (bytes.length > mediaCap(type) * 1024 * 1024) fail(`$media.file ${m.file}: ${(bytes.length / 1048576).toFixed(1)} MB; ${type.startsWith('video/') ? 'videos up to 40 MB' : 'pictures up to 15 MB'}`);
+				return { $media: { data: bytes.toString('base64'), type, filename: m.file.split('/').pop(), alt: typeof m.alt === 'string' ? m.alt : '' } };
 			}
 			return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
 		}

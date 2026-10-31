@@ -16,7 +16,7 @@ describe("tidyPlatform()", () => {
 		const integration = tidyPlatform({ strings: ["Who you'll see"] });
 		expect(integration.name).toBe("@tideworthy/tidysites-platform");
 		(integration.hooks["astro:config:setup"] as unknown as (o: { injectRoute: typeof injectRoute; addMiddleware: typeof addMiddleware; updateConfig: typeof updateConfig }) => void)({ injectRoute, addMiddleware, updateConfig });
-		expect(updateConfig).toHaveBeenCalledWith({ vite: { define: { __TIDY_THEME_STRINGS__: JSON.stringify(["Who you'll see"]) } } });
+		expect(updateConfig).toHaveBeenCalledWith({ vite: { define: { __TIDY_THEME_STRINGS__: JSON.stringify(["Who you'll see"]) }, plugins: [expect.objectContaining({ name: "tidysites:theme-css" })] } });
 		expect(addMiddleware).toHaveBeenCalledWith({ entrypoint: "@tideworthy/tidysites-platform/middleware", order: "pre" });
 		expect(injectRoute).toHaveBeenCalledTimes(PLATFORM_ROUTES.length);
 		const patterns = injectRoute.mock.calls.map((c) => (c[0] as { pattern: string }).pattern).sort();

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.30.0
+
+From the ninth port's logs (Snowillow Marketing, two builds).
+
+- Plain text fields print as paragraphs (`sections/Paras`, `lib/text`): a blank line is a paragraph break, a single newline a line break, the gap `--ts-para-gap`. Service summaries, steps, feature points, FAQ answers, policies and intro bodies; `{{{ x.field_html }}}` in a row prints the same. They rendered as `pre-line` text, so a paragraph gap was always one blank line.
+- Forms: each contact box takes its own label and hint (`name_label`, `name_placeholder`, …), the contact boxes can follow the questions (`contact_fields_position`), and `bot_check` offers "Turnstile, always visible" (the widget gets `ts-turnstile`).
+- FAQ: `open_first` opens the first question at rest.
+- Call to action band: the Business record's line stands in for the heading only when the section has no headline, text or buttons of its own.
+- Rows: a `media` list (name + file) read as `{{ media.<name>.url }}`, so a hero video or an illustration is the site's own file, not a hotlink. The `file` type takes video (mp4, webm), fonts and pdf.
+- Rows: a bare number, true, false or null on the right of `==`/`!=` is a value (`{{#if f.sort == 1}}`); it was read as a path and never matched.
+- Rows: inline SVG keeps masks, clip paths, gradients, filters, `<image>` and paint attributes (`fill-opacity`, `transform`); paint references must name an id in the same markup.
+- The theme's own class rules stay out of rows: the integration's Vite plugin guards every class rule of the theme's `src/styles/*.css` with `:where(:not(.ts-row *))`. A row's `.sr` vanished into the theme's screen-reader clip.
+
+## CLI 0.1.15
+
+- `$media.file` on a `file` field takes video (mp4, webm, m4v, mov; up to 40 MB), fonts (woff2, woff, ttf, otf) and pdf.
+- `fetch` lists the page's videos (`<video>` and `<source>` files) with the way to bring them over: a row's `media` list, never the old address.
+
 ## 0.29.2
 
 From the ninth port's log (Snowillow Marketing).

@@ -2,6 +2,7 @@
 /** Services or categories from the records, in one of five layouts. */
 import { bool, collectionUrl, entries, entryUrl, int, nodeOf, pic, refersTo, str, wording } from "../lib";
 import Photo from "../Photo.astro";
+import Paras from "../Paras.astro";
 import Head from "./_Head.astro";
 import Carousel from "./_Carousel.astro";
 const tx = await wording(Astro.request);
@@ -39,7 +40,7 @@ const allHref = await collectionUrl("services");
 			<a class="ts-card ts-carousel-item" href={s.href} data-tidy-record={source === "categories" ? "service_categories" : "services"} data-tidy-record-id={s.id} data-tidy-record-label={source === "categories" ? "Category details" : "Service details"}>
 				{(p.image || p.url) && <Photo image={p.image} url={p.url} alt={str(s.data.title)} ratio="wide" />}
 				<h3>{str(s.data.title)}</h3>
-				{str(s.data.summary) && <p>{str(s.data.summary)}</p>}
+				<Paras text={str(s.data.summary)} />
 			</a>
 		); })}</Carousel>
 	) : variant === "checklist" ? (
@@ -53,7 +54,7 @@ const allHref = await collectionUrl("services");
 					{variant === "image tiles" && (() => { const p = pic(s.data.featured_image); return <Photo image={p.image} url={p.url} alt={str(s.data.title)} ratio="wide" />; })()}
 					{variant === "icon cards" && str(s.data.icon) && <span class="ts-eyebrow" style="margin:0">{str(s.data.icon)}</span>}
 					<h3>{str(s.data.title)}</h3>
-					{(variant !== "image tiles" || showSummary) && str(s.data.summary) && <p>{str(s.data.summary)}</p>}
+					{(variant !== "image tiles" || showSummary) && <Paras text={str(s.data.summary)} />}
 					{str(s.data.price_from) && <p class="ts-muted" style="font-size:13px">From {str(s.data.price_from)}</p>}
 					{linkLabel && <span class="ts-card-link">{linkLabel}</span>}
 				</a>

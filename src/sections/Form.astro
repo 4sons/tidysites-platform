@@ -7,7 +7,7 @@
  * site's own page can place it: <Form name="Schedule a make up" />.
  */
 import Turnstile from "./Turnstile.astro";
-import { botCheckOf, signBotCheck } from "../lib/botcheck";
+import { botCheckOf, signBotCheck, turnstileAppearance } from "../lib/botcheck";
 import { getForm, list, lines, str, bool, type FormRecord, wording } from "./lib";
 const tx = await wording(Astro.request);
 interface Props {
@@ -28,6 +28,10 @@ const d = form?.data ?? {};
 const contact = str(d.contact_fields, emailOnly ? "email only" : "name, phone and email");
 const onlyEmail = contact === "email only";
 const askPhone = contact.includes("phone"), askEmail = contact.includes("email");
+// The contact boxes take the form's own labels and hints, and can follow the questions instead of leading them.
+const nameLabel = str(d.name_label) || tx("Name"), phoneLabel = str(d.phone_label) || tx("Phone"), emailLabel = str(d.email_label) || tx("Email");
+const nameHint = str(d.name_placeholder) || undefined, phoneHint = str(d.phone_placeholder) || undefined, emailHint = str(d.email_placeholder) || undefined;
+const contactAfter = str(d.contact_fields_position) === "after the questions";
 type Q = { label: string; kind: string; options: string; required: boolean; placeholder: string };
 const questions: Q[] = onlyEmail && !form
 	? []
@@ -46,14 +50,17 @@ const check = botCheckOf(d.bot_check);
 let sitekey: string | undefined, secret: string | undefined;
 try { const m = (await import("cloudflare:workers")) as unknown as { env?: Record<string, unknown> }; sitekey = typeof m.env?.TURNSTILE_SITEKEY === "string" ? m.env.TURNSTILE_SITEKEY : undefined; secret = typeof m.env?.TURNSTILE_SECRET === "string" ? m.env.TURNSTILE_SECRET : undefined; } catch { sitekey = undefined; secret = undefined; }
 const turnstile = check === "turnstile" && sitekey && secret ? sitekey : undefined;
+const appearance = turnstileAppearance(d.bot_check);
 const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turnstile" : "trap") : null;
 ---
 <form class={`ts-form ${cls}`} action="/api/lead" method="post" data-tidy-form={form?.slug ?? form?.id ?? "contact"} data-error={tx("Something went wrong. Please try again.")}>
 	<div class="ts-form-fields">
 		{intro && <p class="ts-form-intro">{intro}</p>}
-		{!onlyEmail && <label class={askPhone && askEmail ? "ts-full" : ""}>{tx("Name")}<input name="name" autocomplete="name" required /></label>}
-		{askPhone && <label>{tx("Phone")}<input name="phone" type="tel" autocomplete="tel" required={!askEmail} /></label>}
-		{askEmail && <label>{tx("Email")}<input name="email" type="email" autocomplete="email" required={!askPhone} /></label>}
+		{!contactAfter && <>
+			{!onlyEmail && <label class={askPhone && askEmail ? "ts-full" : ""}>{nameLabel}<input name="name" autocomplete="name" required placeholder={nameHint} /></label>}
+			{askPhone && <label>{phoneLabel}<input name="phone" type="tel" autocomplete="tel" required={!askEmail} placeholder={phoneHint} /></label>}
+			{askEmail && <label>{emailLabel}<input name="email" type="email" autocomplete="email" required={!askPhone} placeholder={emailHint} /></label>}
+		</>}
 		{questions.map((q, i) => {
 			const key = `q_${slugOf(q.label)}`;
 			const opts = lines(q.options);
@@ -65,12 +72,17 @@ const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turn
 			if (q.kind === "file upload") return <label class="ts-full">{q.label}<input name={key} type="file" required={q.required} accept=".pdf,.doc,.docx,.txt,.rtf,.jpg,.jpeg,.png,.gif,.webp,.heic" /></label>;
 			return <label class={i === questions.length - 1 && questions.length % 2 ? "ts-full" : ""}>{q.label}<input name={key} required={q.required} placeholder={q.placeholder || undefined} /></label>;
 		})}
+		{contactAfter && <>
+			{!onlyEmail && <label class={askPhone && askEmail ? "ts-full" : ""}>{nameLabel}<input name="name" autocomplete="name" required placeholder={nameHint} /></label>}
+			{askPhone && <label>{phoneLabel}<input name="phone" type="tel" autocomplete="tel" required={!askEmail} placeholder={phoneHint} /></label>}
+			{askEmail && <label>{emailLabel}<input name="email" type="email" autocomplete="email" required={!askPhone} placeholder={emailHint} /></label>}
+		</>}
 		{questions.map((q) => <input type="hidden" name={`label:q_${slugOf(q.label)}`} value={q.label} />)}
 		<input type="hidden" name="form" value={formName} />
 		{Object.entries(hidden).map(([k, v]) => <input type="hidden" name={k} value={v} />)}
 		<input class="ts-hp" type="text" name="website_hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
 		{botCheck && <input type="hidden" name="bot_check" value={botCheck} />}
-		{turnstile && <Turnstile sitekey={turnstile} />}
+		{turnstile && <Turnstile sitekey={turnstile} appearance={appearance} />}
 		<p class="ts-form-error" role="alert"></p>
 		<div class="ts-full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="ts-btn ts-btn-accent" type="submit">{submit}</button></div>
 		{consent && <p class="ts-consent">{consent}</p>}

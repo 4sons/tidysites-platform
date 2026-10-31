@@ -76,3 +76,14 @@ describe("conditions that compare two paths", () => {
 		expect(() => render(`{{#if a == }}x{{/if}}`, {})).toThrow(/Cannot read/);
 	});
 });
+
+describe("literals on the right of a condition", () => {
+	it("compares a bare number as a value, not a path", () => {
+		expect(render(`{{#each faqs as f}}<details{{#if f.sort == 1}} open{{/if}}>{{ f.title }}</details>{{/each}}`, { faqs: [{ sort: 1, title: "A" }, { sort: 2, title: "B" }] })).toBe(`<details open>A</details><details>B</details>`);
+		expect(render(`{{#if n != 2}}not two{{/if}}`, { n: 1 })).toBe(`not two`);
+		expect(render(`{{#if on == true}}yes{{/if}}{{#if off == false}}no{{/if}}`, { on: true, off: false })).toBe(`yesno`);
+	});
+	it("still reads a bare name as a path", () => {
+		expect(render(`{{#if a == b}}same{{/if}}`, { a: "x", b: "x" })).toBe(`same`);
+	});
+});

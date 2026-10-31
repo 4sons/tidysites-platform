@@ -990,6 +990,11 @@
 							"type": "boolean"
 						},
 						{
+							"slug": "open_first",
+							"label": "First question open",
+							"type": "boolean"
+						},
+						{
 							"slug": "items",
 							"label": "Extra questions",
 							"type": "repeater",
@@ -1486,7 +1491,8 @@
 							"validation": {
 								"options": [
 									"hidden field",
-									"Turnstile"
+									"Turnstile",
+									"Turnstile, always visible"
 								]
 							}
 						},
@@ -5543,6 +5549,48 @@
 					}
 				},
 				{
+					"slug": "contact_fields_position",
+					"label": "Where the contact boxes sit",
+					"type": "select",
+					"defaultValue": "before the questions",
+					"validation": {
+						"options": [
+							"before the questions",
+							"after the questions"
+						]
+					}
+				},
+				{
+					"slug": "name_label",
+					"label": "Name box label",
+					"type": "string"
+				},
+				{
+					"slug": "name_placeholder",
+					"label": "Hint inside the Name box",
+					"type": "string"
+				},
+				{
+					"slug": "phone_label",
+					"label": "Phone box label",
+					"type": "string"
+				},
+				{
+					"slug": "phone_placeholder",
+					"label": "Hint inside the Phone box",
+					"type": "string"
+				},
+				{
+					"slug": "email_label",
+					"label": "Email box label",
+					"type": "string"
+				},
+				{
+					"slug": "email_placeholder",
+					"label": "Hint inside the Email box",
+					"type": "string"
+				},
+				{
 					"slug": "questions",
 					"label": "Questions",
 					"type": "repeater",
@@ -5615,7 +5663,8 @@
 					"validation": {
 						"options": [
 							"hidden field",
-							"Turnstile"
+							"Turnstile",
+							"Turnstile, always visible"
 						]
 					}
 				}
@@ -5645,6 +5694,30 @@
 					"slug": "css",
 					"label": "CSS",
 					"type": "text"
+				},
+				{
+					"slug": "media",
+					"label": "Files the HTML uses (pictures, video)",
+					"type": "repeater",
+					"validation": {
+						"subFields": [
+							{
+								"slug": "name",
+								"label": "Name used in the HTML",
+								"type": "string"
+							},
+							{
+								"slug": "file",
+								"label": "File",
+								"type": "file"
+							},
+							{
+								"slug": "alt",
+								"label": "What it shows",
+								"type": "string"
+							}
+						]
+					}
 				},
 				{
 					"slug": "note",

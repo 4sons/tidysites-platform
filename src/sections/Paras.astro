@@ -1,0 +1,16 @@
+---
+/**
+ * A plain text field printed as paragraphs: a blank line starts a new one, a
+ * single newline breaks the line. One paragraph is a bare <p>; more are
+ * wrapped in `.ts-text`, whose paragraph gap is `--ts-para-gap`.
+ */
+import { paragraphs } from "../lib/text";
+interface Props { text: string; class?: string; style?: string }
+const { text, class: cls = "", style } = Astro.props;
+const paras = paragraphs(text);
+---
+{paras.length === 1 ? (
+	<p class={cls || undefined} style={style}>{paras[0]!.map((l, i) => <>{i > 0 && <br />}{l}</>)}</p>
+) : paras.length > 1 ? (
+	<div class={`ts-text ${cls}`.trim()} style={style}>{paras.map((p) => <p>{p.map((l, i) => <>{i > 0 && <br />}{l}</>)}</p>)}</div>
+) : null}

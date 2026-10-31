@@ -6,7 +6,7 @@
  * expressions. The allowlist is the whole contract; a tag not on it is gone
  * with its attributes, its children kept.
  */
-const TAGS = new Set(["a","abbr","address","article","aside","b","blockquote","br","button","caption","cite","code","col","colgroup","dd","del","details","dfn","div","dl","dt","em","figcaption","figure","footer","form","h1","h2","h3","h4","h5","h6","header","hr","i","iframe","img","input","ins","kbd","label","li","main","mark","nav","ol","option","p","picture","pre","q","s","section","select","small","source","span","strong","sub","summary","sup","table","tbody","td","textarea","tfoot","th","thead","time","tr","u","ul","video","audio","svg","path","g","circle","rect","line","polyline","polygon","use","defs","title","desc"]);
+const TAGS = new Set(["a","abbr","address","article","aside","b","blockquote","br","button","caption","cite","code","col","colgroup","dd","del","details","dfn","div","dl","dt","em","figcaption","figure","footer","form","h1","h2","h3","h4","h5","h6","header","hr","i","iframe","img","input","ins","kbd","label","li","main","mark","nav","ol","option","p","picture","pre","q","s","section","select","small","source","span","strong","sub","summary","sup","table","tbody","td","textarea","tfoot","th","thead","time","tr","u","ul","video","audio","svg","path","g","circle","ellipse","rect","line","polyline","polygon","use","defs","symbol","title","desc","text","tspan","image","mask","clippath","pattern","lineargradient","radialgradient","stop","filter","fegaussianblur","feoffset","fecolormatrix","feblend","feflood","fecomposite","femerge","femergenode","fedropshadow","femorphology"]);
 const DROP_WITH_CONTENT = new Set(["script","style","noscript","object","embed","applet","template","head","link","meta","base"]);
 const GLOBAL_ATTRS = new Set(["class","id","title","lang","dir","role","hidden","tabindex","style","aria-label","aria-labelledby","aria-describedby","aria-hidden","aria-expanded","aria-controls","aria-current","aria-live","data-tidy-dialog","data-tidy-dialog-close"]);
 const TAG_ATTRS: Record<string, string[]> = {
@@ -15,18 +15,25 @@ const TAG_ATTRS: Record<string, string[]> = {
 	iframe: ["src","width","height","allow","allowfullscreen","loading","title","referrerpolicy"], form: ["action","method","name"], input: ["type","name","value","placeholder","required","checked","disabled","min","max","step","pattern","autocomplete","inputmode"],
 	textarea: ["name","placeholder","required","rows","disabled"], select: ["name","required","disabled","multiple"], option: ["value","selected","disabled"], button: ["type","name","value","disabled"], label: ["for"],
 	td: ["colspan","rowspan"], th: ["colspan","rowspan","scope"], col: ["span"], colgroup: ["span"], time: ["datetime"], details: ["open"], ol: ["start","reversed","type"], li: ["value"], q: ["cite"], blockquote: ["cite"], del: ["datetime"], ins: ["datetime"],
-	svg: ["viewbox","width","height","fill","stroke","stroke-width","xmlns","preserveaspectratio"], path: ["d","fill","stroke","stroke-width","stroke-linecap","stroke-linejoin","fill-rule","clip-rule","opacity"], g: ["fill","stroke","transform","opacity"], circle: ["cx","cy","r","fill","stroke","stroke-width"], rect: ["x","y","width","height","rx","ry","fill","stroke"], line: ["x1","y1","x2","y2","stroke","stroke-width"], polyline: ["points","fill","stroke","stroke-width"], polygon: ["points","fill","stroke"], use: ["href"], picture: [],
+	svg: ["viewbox","width","height","xmlns","xmlns:xlink","preserveaspectratio","x","y"], path: ["d"], g: [], circle: ["cx","cy","r"], ellipse: ["cx","cy","rx","ry"], rect: ["x","y","width","height","rx","ry"], line: ["x1","y1","x2","y2"], polyline: ["points"], polygon: ["points"], use: ["href","xlink:href","x","y","width","height"], symbol: ["viewbox","preserveaspectratio"], picture: [],
+	text: ["x","y","dx","dy","text-anchor","font-size","font-family","font-weight","letter-spacing"], tspan: ["x","y","dx","dy"], image: ["href","xlink:href","x","y","width","height","preserveaspectratio"],
+	mask: ["maskunits","maskcontentunits","x","y","width","height"], clippath: ["clippathunits"], pattern: ["patternunits","patterncontentunits","patterntransform","x","y","width","height","viewbox"],
+	lineargradient: ["x1","y1","x2","y2","gradientunits","gradienttransform","spreadmethod","href","xlink:href"], radialgradient: ["cx","cy","r","fx","fy","fr","gradientunits","gradienttransform","spreadmethod","href","xlink:href"], stop: ["offset","stop-color","stop-opacity"],
+	filter: ["x","y","width","height","filterunits","primitiveunits"], fegaussianblur: ["in","stddeviation","result"], feoffset: ["in","dx","dy","result"], fecolormatrix: ["in","type","values","result"], feblend: ["in","in2","mode","result"], feflood: ["flood-color","flood-opacity","result"], fecomposite: ["in","in2","operator","k1","k2","k3","k4","result"], femerge: [], femergenode: ["in"], fedropshadow: ["dx","dy","stddeviation","flood-color","flood-opacity","result"], femorphology: ["in","operator","radius","result"],
 };
+/** Paint and placement attributes every drawing element may carry; none of them runs or reaches out (mask, clip-path and filter name an id in the same markup). */
+const SVG_TAGS = new Set(["svg","path","g","circle","ellipse","rect","line","polyline","polygon","use","symbol","text","tspan","image","mask","clippath","pattern","lineargradient","radialgradient","stop","filter","fegaussianblur","feoffset","fecolormatrix","feblend","feflood","fecomposite","femerge","femergenode","fedropshadow","femorphology"]);
+const SVG_PAINT = ["fill","fill-opacity","fill-rule","stroke","stroke-width","stroke-opacity","stroke-linecap","stroke-linejoin","stroke-miterlimit","stroke-dasharray","stroke-dashoffset","opacity","transform","transform-origin","clip-path","clip-rule","mask","filter","color","vector-effect","paint-order","shape-rendering","text-rendering","font-size","font-family","font-weight","text-anchor","dominant-baseline","visibility","display","overflow","style"];
 /** Frames may only show these hosts. */
 const FRAME_HOSTS = [/(^|\.)youtube(-nocookie)?\.com$/, /(^|\.)youtu\.be$/, /(^|\.)vimeo\.com$/, /(^|\.)google\.com$/, /(^|\.)calendly\.com$/, /(^|\.)openstreetmap\.org$/];
-const URL_ATTRS = new Set(["href","src","action","cite","poster"]);
+const URL_ATTRS = new Set(["href","xlink:href","src","action","cite","poster"]);
 
 function safeUrl(value: string, attr: string, tag: string): string | null {
 	const v = value.trim();
 	if (!v) return null;
 	if (/^(#|\/(?!\/)|\.\/|\.\.\/)/.test(v)) return v;
 	if (/^(mailto|tel|sms):/i.test(v)) return v;
-	if (/^data:image\/(png|jpe?g|gif|webp|svg\+xml);/i.test(v) && (attr === "src" || attr === "poster")) return tag === "img" || tag === "source" ? v : null;
+	if (/^data:image\/(png|jpe?g|gif|webp|svg\+xml);/i.test(v) && (attr === "src" || attr === "poster" || attr === "href" || attr === "xlink:href")) return tag === "img" || tag === "source" || tag === "image" ? v : null;
 	if (!/^https?:\/\//i.test(v)) return null;
 	if (tag === "iframe" && attr === "src") {
 		try { const host = new URL(v).hostname; if (!FRAME_HOSTS.some((re) => re.test(host))) return null; } catch { return null; }
@@ -51,7 +58,7 @@ export function sanitizeHtml(input: string): string {
 		if (!TAGS.has(tag)) return "";
 		if (closing) return `</${tag}>`;
 		const selfClose = /\/\s*$/.test(rawAttrs);
-		const allowed = new Set([...GLOBAL_ATTRS, ...(TAG_ATTRS[tag] ?? [])]);
+		const allowed = new Set([...GLOBAL_ATTRS, ...(TAG_ATTRS[tag] ?? []), ...(SVG_TAGS.has(tag) ? SVG_PAINT : [])]);
 		const out: string[] = [];
 		for (const m of rawAttrs.matchAll(/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g)) {
 			const name = m[1]!.toLowerCase();
@@ -63,6 +70,7 @@ export function sanitizeHtml(input: string): string {
 			if (URL_ATTRS.has(name)) { const u = safeUrl(value, name, tag); if (u === null) continue; value = u; }
 			if (name === "srcset" && /javascript:/i.test(value)) continue;
 			if (name === "style") { const st = safeStyle(value); if (st === null) continue; value = st; }
+			if ((name === "mask" || name === "clip-path" || name === "filter" || name === "fill" || name === "stroke") && /url\s*\(/i.test(value) && !/^\s*url\(\s*['"]?#[-\w]+['"]?\s*\)\s*$/i.test(value)) continue;
 			if (name === "target" && value === "_blank") out.push(`rel="noopener"`);
 			out.push(`${name}="${value.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"`);
 		}

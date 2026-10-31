@@ -32,5 +32,7 @@ export async function readBotCheck(secret: string, token: string | undefined, fo
 	return want === m[2] ? (m[1] as BotCheck) : null;
 }
 
-/** The form record's or section's setting as a check: "Turnstile" turns it on, anything else is the trap field alone. */
-export const botCheckOf = (setting: unknown): BotCheck => (String(setting ?? "").trim().toLowerCase() === "turnstile" ? "turnstile" : "trap");
+/** The form record's or section's setting as a check: a setting that starts with "Turnstile" turns it on, anything else is the trap field alone. */
+export const botCheckOf = (setting: unknown): BotCheck => (/^turnstile/i.test(String(setting ?? "").trim()) ? "turnstile" : "trap");
+/** Whether the Turnstile box shows at rest ("Turnstile, always visible") or only when a visitor has to act. */
+export const turnstileAppearance = (setting: unknown): "always" | "interaction-only" => (/visible|always/i.test(String(setting ?? "")) ? "always" : "interaction-only");

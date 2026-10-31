@@ -16,6 +16,7 @@
  */
 import type { AstroIntegration } from "astro";
 import { PLUGIN_ID, VERSION } from "./version";
+import { themeCssPlugin } from "./lib/theme-css";
 
 export { VERSION, PLUGIN_ID };
 
@@ -56,7 +57,8 @@ export function tidyPlatform(options: TidyPlatformOptions = {}): AstroIntegratio
 			"astro:config:setup": ({ injectRoute, addMiddleware, updateConfig }) => {
 				for (const route of PLATFORM_ROUTES) injectRoute({ pattern: route.pattern, entrypoint: route.entrypoint, prerender: false });
 				addMiddleware({ entrypoint: `${PACKAGE}/middleware`, order: "pre" });
-				updateConfig({ vite: { define: { __TIDY_THEME_STRINGS__: JSON.stringify([...(options.strings ?? [])]) } } });
+				// The theme's own class rules stay out of custom rows (lib/theme-css).
+				updateConfig({ vite: { define: { __TIDY_THEME_STRINGS__: JSON.stringify([...(options.strings ?? [])]) }, plugins: [themeCssPlugin() as never] } });
 			}
 		}
 	};

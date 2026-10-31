@@ -7,10 +7,10 @@
  * page put together, and a contact form in a dialog or at the foot of the
  * page would otherwise charge every visit for it up front.
  */
-interface Props { sitekey: string }
-const { sitekey } = Astro.props;
+interface Props { sitekey: string; /** "always" shows the box at rest, the way a captcha checkbox sits in a form; the default shows it only when a visitor has to act. */ appearance?: "interaction-only" | "always" }
+const { sitekey, appearance = "interaction-only" } = Astro.props;
 ---
-<div class="cf-turnstile ts-full" data-sitekey={sitekey} data-size="flexible" data-appearance="interaction-only"></div>
+<div class="cf-turnstile ts-turnstile ts-full" data-sitekey={sitekey} data-size="flexible" data-appearance={appearance}></div>
 <script is:inline>
 (function () {
 	if (window.__tidyTurnstile) return; window.__tidyTurnstile = true;
