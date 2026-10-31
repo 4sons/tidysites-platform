@@ -70,7 +70,11 @@ export async function buildDeps(): Promise<Deps> {
 						const slug = e.slug ?? e.id;
 						const existing = slug ? await content.findBySlug(collection, slug) : null;
 						const current = (existing?.data ?? {}) as Record<string, unknown>;
-						merged[collection].push({ ...e, data: existing ? { ...current, ...e.data } : e.data });
+						// A push clears a field by sending null; for a list the entry holds (sections, items) the cleared value is
+						// an empty list, which is what the store takes. Null there failed the write with a bare internal error.
+						const data: Record<string, unknown> = existing ? { ...current, ...e.data } : { ...e.data };
+						for (const [k, v] of Object.entries(data)) if (v === null && Array.isArray(current[k])) data[k] = [];
+						merged[collection].push({ ...e, data });
 					}
 				}
 				// The seed format's version is the string "1"; applySeed validates the
@@ -79,7 +83,14 @@ export async function buildDeps(): Promise<Deps> {
 				const doc = { version: "1", content: merged };
 				const v = validateSeed(doc);
 				if (!v.valid) throw new HttpError(400, "invalid content", v.errors);
-				const r = await applySeed(db, doc as unknown as Parameters<typeof applySeed>[1], { includeContent: true, onConflict: "update", ...storageOpt });
+				let r: Awaited<ReturnType<typeof applySeed>>;
+				try {
+					r = await applySeed(db, doc as unknown as Parameters<typeof applySeed>[1], { includeContent: true, onConflict: "update", ...storageOpt });
+				} catch (err) {
+					// The store's own words reach the pusher (which entry, which value), instead of "internal error".
+					if (err instanceof HttpError) throw err;
+					throw new HttpError(400, `the website could not store the content: ${err instanceof Error ? err.message : String(err)}`);
+				}
 				return { created: r.content?.created ?? 0, updated: r.content?.updated ?? 0, media: r.media?.created ?? 0 };
 			}
 		},

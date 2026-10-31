@@ -52,8 +52,9 @@ function checkScalar(type, value, at, errors) {
 		case 'image':
 		case 'media':
 		case 'file':
-			if (!isMedia(value)) errors.push(`${at}: an image is the stored value (from the pull or add_website_image) or { "$media": { "url": "https://...", "alt": "..." } }`);
-			else if (value.$media && (typeof value.$media.url !== 'string' || !/^https?:\/\//.test(value.$media.url))) errors.push(`${at}: $media.url must be an http(s) address`);
+			if (!isMedia(value)) errors.push(`${at}: an image is the stored value (from the pull or add_website_image) or { "$media": { "url": "https://..." | "file": "assets/x.png", "alt": "..." } }`);
+			else if (value.$media && typeof value.$media.file === 'string') { if (!/\.(png|jpe?g|gif|webp|avif|svg|ico)$/i.test(value.$media.file) || value.$media.file.startsWith('/') || value.$media.file.includes('..')) errors.push(`${at}: $media.file must be a picture file inside the folder (png, jpg, gif, webp, avif, svg, ico)`); }
+			else if (value.$media && (typeof value.$media.url !== 'string' || !/^https?:\/\//.test(value.$media.url))) errors.push(`${at}: $media.url must be an http(s) address (or $media.file for a picture in the folder)`);
 			else if (value.$media && typeof value.$media.alt !== 'string') errors.push(`${at}: $media.alt is required (what the image shows; "" for a decorative one)`);
 			return;
 		case 'json':

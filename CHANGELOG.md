@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.29.2
+
+From the ninth port's log (Snowillow Marketing).
+
+- A push that clears a list field (sections, items) stores an empty list; it failed the write with a bare internal error. A storage failure now answers 400 with the store's own words.
+
+## CLI 0.1.14
+
+- `$media` takes `file` beside `url`: a picture that exists only as a file in the folder (an illustration drawn from the old page's inline SVG, a rasterised icon) goes up with the push as its bytes.
+- `push` no longer clears a field whose value on the website is already an empty list or object.
+- `fetch` keeps embedded frames (a map, a report, a video) in the cleaned HTML as `<iframe src>` and lists them in the outline; they used to vanish, so a 900px band read as blank.
+
 ## 0.29.1
 
 From the ninth port's log (Snowillow Marketing).
