@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.15
+
+- Forms render again. 0.30.12 declared the form's ordered item list above the `questions` it reads, so every fresh render of a form threw "Cannot access 'questions' before initialization" and the page was cut off at the form; pages that still showed forms were cached renders. The block now sits below the questions.
+
 ## 0.30.14
 
 - The bootstrap's `content` option from 0.30.13 is gone: a theme's seed decides what a new site starts with, and Keel now seeds the content model and the settings only. One way, nothing to pass.
