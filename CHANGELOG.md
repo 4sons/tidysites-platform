@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.30.7
+
+From the Feral Fungi port (Shopify).
+
+- Posts and products carry `sections`: when set, the record's page is those sections and nothing else (the themes' record pages already render them), so a designed product or post page no longer needs a Page shadowing the record.
+- A pushed `post_date` lands on the entry found by its slug; a new entry's pushed id is its slug standing in as the seed key, so the date was written to nothing and the post printed the day it was created here.
+- Reviews carry a `product` reference, and the Reviews section's `product` (a slug) shows that product's reviews; the section's `service` filter now filters (it kept every review).
+
 ## 0.30.6
 
 From the Argent Garage Doors port (Webflow).

@@ -836,6 +836,11 @@
 							"type": "string"
 						},
 						{
+							"slug": "product",
+							"label": "Only this product (slug)",
+							"type": "string"
+						},
+						{
 							"slug": "show_aggregate",
 							"label": "Show rating and count",
 							"type": "boolean"
@@ -5405,6 +5410,11 @@
 					"type": "reference"
 				},
 				{
+					"slug": "product",
+					"label": "Product reviewed",
+					"type": "reference"
+				},
+				{
 					"slug": "service_area",
 					"label": "Service area",
 					"type": "reference"
@@ -6364,6 +6374,57 @@
 					"type": "portableText"
 				},
 				{
+					"slug": "sections",
+					"label": "Sections (when set, the page is these sections and nothing else)",
+					"type": "blocks",
+					"validation": {
+						"allowedTypes": [
+							"hero",
+							"intro",
+							"columns",
+							"saved",
+							"services",
+							"feature",
+							"steps",
+							"team",
+							"reviews",
+							"cases",
+							"faq",
+							"stats",
+							"badges",
+							"insurance",
+							"financing",
+							"plans",
+							"contact",
+							"form",
+							"location",
+							"cta",
+							"gallery",
+							"video",
+							"technologies",
+							"brands",
+							"offer",
+							"conditions",
+							"downloads",
+							"policies",
+							"posts",
+							"locations",
+							"related",
+							"custom",
+							"areas",
+							"products",
+							"case_studies",
+							"clients",
+							"signs",
+							"options",
+							"details",
+							"audiences",
+							"row"
+						],
+						"maxItems": 40
+					}
+				},
+				{
 					"slug": "meta_title",
 					"label": "Meta title",
 					"type": "string"
@@ -6817,6 +6878,57 @@
 					"slug": "content",
 					"label": "Content",
 					"type": "portableText"
+				},
+				{
+					"slug": "sections",
+					"label": "Sections (when set, the page is these sections and nothing else)",
+					"type": "blocks",
+					"validation": {
+						"allowedTypes": [
+							"hero",
+							"intro",
+							"columns",
+							"saved",
+							"services",
+							"feature",
+							"steps",
+							"team",
+							"reviews",
+							"cases",
+							"faq",
+							"stats",
+							"badges",
+							"insurance",
+							"financing",
+							"plans",
+							"contact",
+							"form",
+							"location",
+							"cta",
+							"gallery",
+							"video",
+							"technologies",
+							"brands",
+							"offer",
+							"conditions",
+							"downloads",
+							"policies",
+							"posts",
+							"locations",
+							"related",
+							"custom",
+							"areas",
+							"products",
+							"case_studies",
+							"clients",
+							"signs",
+							"options",
+							"details",
+							"audiences",
+							"row"
+						],
+						"maxItems": 40
+					}
 				},
 				{
 					"slug": "meta_title",

@@ -1,6 +1,6 @@
 ---
 /** Reviews from the records, with the business's rating and count beside them. */
-import { bool, entries, getBusiness, int, nodeOf, pic, str, mediaUrl, wording } from "../lib";
+import { bool, entries, getBusiness, int, nodeOf, pic, str, mediaUrl, wording, refersTo } from "../lib";
 import Head from "./_Head.astro";
 import Carousel from "./_Carousel.astro";
 import { reviewsWidgetHtml } from "../../lib/providers";
@@ -11,8 +11,10 @@ const variant = str(n.variant, "aggregate with quotes");
 const where: Record<string, string> = {};
 if (bool(n.featured_only)) where.featured = "1";
 let items = await entries("reviews", { limit: int(n.limit, 3), where });
-const svc = str(n.service), area = str(n.service_area);
-if (svc) items = items.filter((r) => String(r.data.service ?? "") === svc || true);
+// Only the reviews of one service or one product: the section names its slug, the review's reference holds its id.
+const svc = str(n.service), area = str(n.service_area), prod = str(n.product);
+if (svc) { const s = (await entries("services", { limit: 200 })).find((e) => e.slug === svc); items = s ? items.filter((r) => refersTo(r.data.service, s)) : items; }
+if (prod) { const p = (await entries("products", { limit: 500 })).find((e) => e.slug === prod); items = p ? items.filter((r) => refersTo(r.data.product, p)) : items; }
 if (variant === "video testimonials") items = items.filter((r) => str(r.data.video_url));
 const rating = b.rating ? b.rating.toFixed(1) : null;
 const widget = variant === "provider widget" ? reviewsWidgetHtml(b.reviewsWidget, b.reviewsWidgetId) : null;

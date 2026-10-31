@@ -125,7 +125,8 @@ export async function buildDeps(): Promise<Deps> {
 					for (const e of entries) {
 						const when = typeof e.data?.post_date === "string" ? new Date(e.data.post_date) : null;
 						if (!when || Number.isNaN(when.getTime())) continue;
-						const id = typeof e.id === "string" && e.id ? e.id : typeof e.slug === "string" ? (await content.findBySlug(collection, e.slug))?.id : null;
+						// By slug first: a pushed entry's id may be its slug standing in as the seed key, not a stored id.
+						const id = (typeof e.slug === "string" && e.slug ? (await content.findBySlug(collection, e.slug))?.id : null) ?? (typeof e.id === "string" && e.id ? e.id : null);
 						if (id) await content.update(collection, id, { publishedAt: when } as never).catch(() => undefined);
 					}
 				}
