@@ -1,5 +1,10 @@
 # Changelog
 
+## CLI 0.1.19
+
+- `push` really creates a menu the website lacks: the site tool's "not found" ended the command before the create could run (0.1.17 added the create behind an error that never reached it). A new menu's name is lowercase letters, digits and underscores; the push says so when it is not.
+- After a menu fails, the entries and menus that did go are refreshed in the snapshot before the failure is reported, so the next push is not refused as "changed on the website".
+
 ## 0.30.5
 
 - A bootstrap whose seed apply fails (the store's connection dropped mid-way) releases its lock, so the provisioning retry a minute later runs instead of answering "bootstrap in progress" for half an hour.

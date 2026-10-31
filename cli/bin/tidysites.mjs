@@ -133,11 +133,12 @@ function describeError(e) {
 	return msg;
 }
 
-async function tool(cfg, name, args) {
+async function tool(cfg, name, args, { throws = false } = {}) {
 	try {
 		return await callTool(cfg, name, args);
 	} catch (e) {
-		if (e instanceof ApiError) fail(describeError(e));
+		// A caller that can recover (a menu to create first) takes the error; every other call ends the command with it.
+		if (e instanceof ApiError && !throws) fail(describeError(e));
 		throw e;
 	}
 }
@@ -367,24 +368,27 @@ async function push(ctx) {
 		}
 		try {
 			try {
-				await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_set_items', arguments: { name, items } });
+				await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_set_items', arguments: { name, items } }, { throws: true });
 			} catch (e) {
 				// A menu the website does not have yet (a phone drawer, a footer column) is created from the file, then filled.
 				if (!/not.?found/i.test(e.message ?? '')) throw e;
-				await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_create', arguments: { name, label: m.label || name } });
-				await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_set_items', arguments: { name, items } });
+				if (!/^[a-z][a-z0-9_]*$/.test(name)) throw new Error(`a new menu's name is lowercase letters, digits and underscores (${name} has something else)`);
+				await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_create', arguments: { name, label: m.label || name } }, { throws: true });
+				await tool(ctx.cfg, 'call_website_site_tool', { site_id: ctx.cfg.site, tool: 'menu_set_items', arguments: { name, items } }, { throws: true });
 				say(`Menu ${name}: created.`);
 			}
 			say(`Menu ${name}: ${items.length} item${items.length === 1 ? '' : 's'} written.`);
 		} catch (e) {
-			menuProblems.push(`menus/${name}.json: ${e.message}`);
+			menuProblems.push(`menus/${name}.json: ${e instanceof ApiError ? describeError(e) : e.message}`);
 		}
 	}
+	// Refresh what went (the entries, and the menus that were written) before any menu failure is reported, so the snapshot
+	// knows the website's new versions and the next push is not refused as "changed on the website".
+	const written = menus.filter((n) => !menuProblems.some((p) => p.startsWith(`menus/${n}.json`)));
+	const pushed = new Set([...keys, ...written.map((m) => `menus/${m}`)]);
+	if (touched.length) await pull(ctx, touched, { overwrite: pushed, menus: written.length > 0 });
+	else if (written.length) await pullMenus(ctx);
 	if (menuProblems.length) fail(menuProblems.join('\n'));
-	// Refresh only what went, and take the website's version of exactly those entries; every other file stays as it is.
-	const pushed = new Set([...keys, ...menus.map((m) => `menus/${m}`)]);
-	if (touched.length) await pull(ctx, touched, { overwrite: pushed, menus: menus.length > 0 });
-	else if (menus.length) await pullMenus(ctx);
 }
 
 const MEDIA_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', svg: 'image/svg+xml', ico: 'image/x-icon', mp4: 'video/mp4', m4v: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', woff2: 'font/woff2', woff: 'font/woff', ttf: 'font/ttf', otf: 'font/otf', pdf: 'application/pdf' };
