@@ -15,12 +15,14 @@ export function json(body: unknown, status = 200, headers: Record<string, string
 	});
 }
 
-export function errorResponse(err: unknown): Response {
+export function errorResponse(err: unknown, opts: { speak?: boolean } = {}): Response {
 	if (err instanceof HttpError) {
 		return json({ ok: false, error: err.message, ...(err.details !== undefined ? { details: err.details } : {}) }, err.status);
 	}
 	console.error("[tidy-platform]", err);
-	return json({ ok: false, error: "internal error" }, 500);
+	// A platform route (a bearer on every call) speaks the thrown message, so a bootstrap that dies ten minutes in names the step; a public route hides it.
+	const detail = opts.speak ? (err instanceof Error ? err.message : typeof err === "string" ? err : "") : "";
+	return json({ ok: false, error: "internal error", ...(detail ? { detail: detail.slice(0, 600) } : {}) }, 500);
 }
 
 export async function readJson<T>(request: Request): Promise<T> {

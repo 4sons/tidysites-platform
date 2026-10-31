@@ -21,7 +21,7 @@ export function platformRoute(
 			const deps = await buildDeps();
 			return await handler(context, deps, env!);
 		} catch (err) {
-			return errorResponse(err);
+			return errorResponse(err, { speak: true });
 		}
 	};
 }
