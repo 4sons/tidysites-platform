@@ -63,7 +63,7 @@ shows in `status`.
 Styling: a row's `.css` file is scoped to that row (every rule is prefixed with the row's own selector), so it cannot style the rest of the page; rules for the whole page, the sections and the theme's classes go in `business/business.css`.
 
 Images: an image field, a hero's image or a Columns image slot takes
-`{ "$media": { "url": "https://...", "alt": "what it shows" } }` (or `{ "$media": { "file": "assets/x.png", "alt": "..." } }` for a picture that exists only as a file in the folder, say an illustration drawn from the old page's inline SVG; the push carries its bytes; a `file` field, such as a row's `media` list or the Business font files, takes a video (mp4, webm, up to 40 MB), a font (woff2) or a pdf the same way) and the
+`{ "$media": { "url": "https://...", "alt": "what it shows" } }` (or `{ "$media": { "file": "assets/x.png", "alt": "..." } }` for a picture that exists only as a file in the folder, say an illustration drawn from the old page's inline SVG; the push carries its bytes; a `file` field, such as a row's `media` list or the Business font files, takes a video (mp4, webm, up to 25 MB, the most one file of a published site may weigh), a font (woff2) or a pdf the same way) and the
 push fetches the file into the website's library; a file the library already
 holds (the same bytes) is reused, not added again. An image already in the
 library keeps the value the pull gave it.
