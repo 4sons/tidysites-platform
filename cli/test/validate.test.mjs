@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateAll } from '../lib/validate.mjs';
+import { validateAll, validateMenuNames } from '../lib/validate.mjs';
 
 const schema = {
 	collections: {
@@ -86,4 +86,10 @@ test('required fields and unknown collections', () => {
 	assert.ok(errors.some((e) => /services\/x\.json: data\.title is required/.test(e)));
 	assert.ok(errors.some((e) => /data\.page: "maybe" is not one of "on", "off"/.test(e)));
 	assert.ok(errors.some((e) => /no collection named "things"/.test(e)));
+});
+
+test('a new menu needs a name the website accepts; a menu the website has keeps its name', () => {
+	assert.deepEqual(validateMenuNames(['footer_links', 'footer-policies', 'primary'], ['primary']).length, 1);
+	assert.match(validateMenuNames(['footer-policies'], [])[0], /lowercase letters, digits and underscores/);
+	assert.deepEqual(validateMenuNames(['Weird-Name'], ['Weird-Name']), []);
 });

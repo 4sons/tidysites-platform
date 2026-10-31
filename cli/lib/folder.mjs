@@ -232,3 +232,35 @@ export function menuItems(tree) {
 	walk(tree, null);
 	return out;
 }
+
+/** How many bytes of inlined pictures and video one push carries at most; a heavier document goes in parts. */
+export const PUSH_PART_BYTES = 12 * 1024 * 1024;
+/** The inlined media weight of a document, in bytes of base64 text. */
+export function documentWeight(doc) {
+	let n = 0;
+	const walk = (v) => { if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === 'object') { if (v.$media && typeof v.$media.data === 'string') n += v.$media.data.length; else Object.values(v).forEach(walk); } };
+	walk(doc.content ?? {});
+	return n;
+}
+/** The document as a list of pushes, each under the weight cap (an entry heavier than the cap travels alone); settings, removals and the expectations ride with the last part. */
+export function splitDocument(doc) {
+	if (!doc.content || documentWeight(doc) <= PUSH_PART_BYTES) return [doc];
+	const parts = [];
+	let current = { content: {} }; let weight = 0;
+	for (const [collection, entries] of Object.entries(doc.content)) {
+		for (const e of entries) {
+			const w = documentWeight({ content: { x: [e] } });
+			if (weight > 0 && weight + w > PUSH_PART_BYTES) { parts.push(current); current = { content: {} }; weight = 0; }
+			(current.content[collection] ??= []).push(e); weight += w;
+		}
+	}
+	parts.push(current);
+	const last = parts[parts.length - 1];
+	for (const k of ['settings', 'remove', 'expect']) if (doc[k] !== undefined) last[k] = doc[k];
+	// Every part expects the same website state it was read against.
+	if (doc.expect) for (const p of parts) p.expect = Object.fromEntries(Object.entries(doc.expect).filter(([k]) => Object.entries(p.content).some(([c, es]) => es.some((e) => `${c}/${e.slug}` === k))));
+	return parts;
+}
+export function mergePushResults(a, b) {
+	return { ...a, ...b, content: { created: (a.content?.created ?? 0) + (b.content?.created ?? 0), updated: (a.content?.updated ?? 0) + (b.content?.updated ?? 0) }, images: (a.images ?? 0) + (b.images ?? 0), images_reused: (a.images_reused ?? 0) + (b.images_reused ?? 0), missing: [...(a.missing ?? []), ...(b.missing ?? [])] };
+}
