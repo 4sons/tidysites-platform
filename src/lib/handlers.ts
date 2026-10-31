@@ -139,7 +139,16 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 	}
 	steps.alreadyComplete = alreadyComplete;
 
-	if (!alreadyComplete) {
+	// A seed that fails (the store's connection dropped mid-way) must not leave this call's lock behind: the
+	// next attempt would answer 409 for half an hour. The lock goes with the failure, the error stands.
+	const releaseOnFailure = async <T>(run: () => Promise<T>): Promise<T> => {
+		try { return await run(); }
+		catch (err) {
+			if (lockId) { const l = (await store.getOption(BOOTSTRAP_LOCK).catch(() => null)) as { id?: string } | null; if (l?.id === lockId) await store.deleteOption(BOOTSTRAP_LOCK).catch(() => undefined); }
+			throw err;
+		}
+	};
+	if (!alreadyComplete) await releaseOnFailure(async () => {
 		const data = await seed.load();
 		data.settings = {
 			...(data.settings ?? {}),
@@ -156,7 +165,7 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 		steps.structure = await speaking(() => seed.applyStructure(structure));
 		const result = await speaking(() => seed.apply(data), "content");
 		steps.seed = { collections: result.collections, content: result.content };
-	}
+	});
 
 	let user = await store.findUserByEmail(input.adminEmail);
 	if (!user) {

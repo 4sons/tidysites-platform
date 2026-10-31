@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.5
+
+- A bootstrap whose seed apply fails (the store's connection dropped mid-way) releases its lock, so the provisioning retry a minute later runs instead of answering "bootstrap in progress" for half an hour.
+
 ## 0.30.4
 
 - A site that holds the row `media` field from 0.30.0 to 0.30.2 (a `file` inside the repeater, which the store no longer allows) is mended on its next content model apply: the stored sub-field becomes an image, then the current structure is applied over it. Without this, every such site refused every update ("uses unsupported field type file").

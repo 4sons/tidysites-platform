@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_REDIRECT, HANDOFF_TTL, applySchema, bootstrap, claimSession, fill, health, mintSession, rotateToken } from "../src/lib/handlers";
+import { BOOTSTRAP_LOCK, DEFAULT_REDIRECT, HANDOFF_TTL, applySchema, bootstrap, claimSession, fill, health, mintSession, rotateToken } from "../src/lib/handlers";
 import { ROLE_LEVEL } from "../src/lib/store";
 import { VERSION } from "../src/version";
 import { createDeps, createMemoryStore } from "./memory-store";
@@ -60,6 +60,14 @@ describe("bootstrap", () => {
 		const r = await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
 		expect(r.steps.userPromoted).toBe(true);
 		expect(store.state.users[0]!.role).toBe(ROLE_LEVEL.admin);
+	});
+
+	it("releases its lock when the seed apply fails, so the next attempt is not told to wait", async () => {
+		const deps = createDeps();
+		deps.seed.apply = async () => { throw new Error("D1_ERROR: Network connection lost."); };
+		await expect(bootstrap({ adminEmail: "p@a.test", title: "T" }, deps, ORIGIN)).rejects.toThrow(/could not apply the content model/);
+		expect(deps.store.state.options.get(BOOTSTRAP_LOCK)).toBeUndefined();
+		expect(deps.store.state.options.get("emdash:setup_complete")).not.toBe(true);
 	});
 
 	it("rejects bad input with 400 before touching anything", async () => {
