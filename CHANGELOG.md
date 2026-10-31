@@ -1,5 +1,9 @@
 # Changelog
 
+## CLI 0.1.21
+
+- A video travels up to 25 MB, the most one file of a published site may weigh; a 26 MB hero video went up to the preview and then failed the publish of the whole site. The message says to re-encode it.
+
 ## 0.30.7
 
 From the Feral Fungi port (Shopify).
