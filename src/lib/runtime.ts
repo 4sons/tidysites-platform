@@ -14,6 +14,24 @@ import type { Deps } from "./handlers";
 import { HttpError } from "./http";
 import { createEmdashStore } from "./store";
 
+/** Mend a stored repeater whose sub-field type the store no longer accepts, named by the error's path (validation.subFields[i].type): that sub-field becomes an image. True when something was mended. */
+export async function repairUnsupportedSubField(db: unknown, err: unknown): Promise<boolean> {
+	const msg = err instanceof Error ? err.message : String(err);
+	const m = /Field "([^"]+)" in collection "([^"]+)" uses unsupported field type "([^"]+)" at "validation\.subFields\[(\d+)\]\.type"/.exec(msg);
+	if (!m) return false;
+	const [, fieldSlug, collectionSlug, , index] = m;
+	const k = db as { selectFrom: (t: string) => any; updateTable: (t: string) => any };
+	const row = await k.selectFrom("_emdash_fields as field").innerJoin("_emdash_collections as collection", "collection.id", "field.collection_id").select(["field.id as id", "field.validation as validation"]).where("collection.slug", "=", collectionSlug).where("field.slug", "=", fieldSlug).executeTakeFirst();
+	if (!row?.id) return false;
+	let validation: { subFields?: Array<{ type?: string }> };
+	try { validation = typeof row.validation === "string" ? JSON.parse(row.validation) : row.validation ?? {}; } catch { return false; }
+	const sub = validation.subFields?.[Number(index)];
+	if (!sub) return false;
+	sub.type = "image";
+	await k.updateTable("_emdash_fields").set({ validation: JSON.stringify(validation) }).where("id", "=", row.id).execute();
+	return true;
+}
+
 export { workerEnv } from "./env";
 
 /**
@@ -52,7 +70,17 @@ export async function buildDeps(): Promise<Deps> {
 			// and amends compatible block versions. The caller has already stripped
 			// content, settings and menus from the document.
 			applyStructure: async (seed) => {
-				const r = (await applySeed(db, seed as unknown as Parameters<typeof applySeed>[1], { includeContent: false, onConflict: "update" })) as unknown as Record<string, unknown>;
+				const run = async () => (await applySeed(db, seed as unknown as Parameters<typeof applySeed>[1], { includeContent: false, onConflict: "update" })) as unknown as Record<string, unknown>;
+				let r: Record<string, unknown>;
+				try {
+					r = await run();
+				} catch (err) {
+					// A field the store created in an earlier release with a sub-field type it no longer allows (a `file` inside a
+					// repeater, templates 0.30.0 to 0.30.2) refuses every update until its stored shape is mended: the offending
+					// sub-field becomes an image in the stored definition, then the seed's definition is applied over it.
+					if (!(await repairUnsupportedSubField(db, err))) throw err;
+					r = await run();
+				}
 				const pick = (k: string) => (r[k] !== undefined ? { [k]: r[k] } : {});
 				return { ...pick("blockTypes"), ...pick("collections"), ...pick("fields"), ...pick("relations") };
 			},

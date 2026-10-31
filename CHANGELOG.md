@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.4
+
+- A site that holds the row `media` field from 0.30.0 to 0.30.2 (a `file` inside the repeater, which the store no longer allows) is mended on its next content model apply: the stored sub-field becomes an image, then the current structure is applied over it. Without this, every such site refused every update ("uses unsupported field type file").
+
 ## 0.30.3
 
 - A row's `media` list holds pictures (`image` sub-fields; SVG included) and a row's video is its own `video` file field, read as `{{ video.url }}`. The store the themes run allows no `file` inside a repeater, so 0.30.0 to 0.30.2 failed every content model update and every new site's bootstrap with a bare "internal error" once the store reached 1.3.
