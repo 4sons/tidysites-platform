@@ -340,7 +340,7 @@ Applies the template seed's structure to a site that is already set up: block ty
 
 ### `GET /_tidy/pages`
 
-Every address the site renders (`{ ok, pages: [{ path, kind, collection?, id?, slug?, title }] }`): the home page, the pages, each listing that is on, the blog and its facets, and every record whose page is on, at the site's own URL patterns.
+Every address the site renders (`{ ok, pages: [{ path, kind, collection?, id?, slug?, title, noindex?, updated? }] }`; `updated` is when the record last changed, a listing's its newest record's, for the sitemap's lastmod): the home page, the pages, each listing that is on, the blog and its facets, and every record whose page is on, at the site's own URL patterns.
 
 ### `POST /_tidy/maintenance?cron=…`
 

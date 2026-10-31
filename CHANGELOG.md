@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Each page in `/_tidy/pages` carries `updated` (when its record last changed; a listing carries its newest record's), so the published sitemap writes `lastmod`.
+
+## CLI unreleased
+
+- `init` waits for a website that is still being set up (`website_unreachable` on the first pull: tries again every 30 seconds for ten minutes, saying so) instead of failing.
+
 ## 0.30.0
 
 From the ninth port's logs (Snowillow Marketing, two builds).

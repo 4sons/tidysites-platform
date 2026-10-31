@@ -529,7 +529,9 @@ export async function resolveRoute(path: string): Promise<(Route & { entry?: Awa
 	return null;
 }
 
-export interface SitePage { path: string; kind: "home" | "page" | "index" | "entry" | "blog"; collection?: string; id?: string; slug?: string; title: string; /** The record keeps the page out of search engines: the sitemap leaves it out. */ noindex?: boolean }
+export interface SitePage { path: string; kind: "home" | "page" | "index" | "entry" | "blog"; collection?: string; id?: string; slug?: string; title: string; /** The record keeps the page out of search engines: the sitemap leaves it out. */ noindex?: boolean; /** When the record last changed (ISO), for the sitemap's lastmod; listings carry their newest record's. */ updated?: string }
+/** When an entry last changed, as ISO text; empty when the store did not say. */
+const updatedOf = (e: Entry): string => { const v = e.data.updatedAt ?? e.data.publishedAt; return v instanceof Date ? v.toISOString() : typeof v === "string" && v ? new Date(v).toISOString() : ""; };
 /** Every address the site renders: the home page, the pages, each listing that is on, the blog and its facets, and every record whose page is on. For the publish, the sitemap and the pages tool. */
 export async function sitePages(): Promise<SitePage[]> {
 	const [patterns, frame] = await Promise.all([sitePatterns(), siteFrame()]);
@@ -540,8 +542,10 @@ export async function sitePages(): Promise<SitePage[]> {
 	for (const t of PAGE_TYPES) lists.set(t.collection, await entries(t.collection, { limit: 1000 }));
 	for (const t of PAGE_TYPES) {
 		const pattern = patterns[t.collection] ?? t.pattern;
-		if (t.index && indexLive(t, frame, (lists.get(t.collection) ?? []).some((e) => hasPage(t, e.data)))) { const base = indexPath(pattern); if (base) add({ path: base, kind: "index", collection: t.collection, title: t.index.label }); }
-		if (t.collection === "posts" && blogLive(frame, (lists.get("posts") ?? []).length > 0)) { const base = indexPath(pattern); if (base) add({ path: base, kind: "blog", collection: "posts", title: "Blog" }); }
+		// A listing changed when its newest record did.
+		const newest = (lists.get(t.collection) ?? []).map(updatedOf).filter(Boolean).sort().pop();
+		if (t.index && indexLive(t, frame, (lists.get(t.collection) ?? []).some((e) => hasPage(t, e.data)))) { const base = indexPath(pattern); if (base) add({ path: base, kind: "index", collection: t.collection, title: t.index.label, ...(newest ? { updated: newest } : {}) }); }
+		if (t.collection === "posts" && blogLive(frame, (lists.get("posts") ?? []).length > 0)) { const base = indexPath(pattern); if (base) add({ path: base, kind: "blog", collection: "posts", title: "Blog", ...(newest ? { updated: newest } : {}) }); }
 	}
 	for (const t of PAGE_TYPES) {
 		const pattern = patterns[t.collection] ?? t.pattern;
@@ -549,10 +553,10 @@ export async function sitePages(): Promise<SitePage[]> {
 		const bySlug = new Map(list.map((e) => [e.slug ?? e.id, e] as const));
 		for (const e of list) {
 			const slug = e.slug ?? e.id;
-			if (t.collection === "pages" && slug === "home") { if (bool(e.data.noindex)) out[0]!.noindex = true; continue; }
+			if (t.collection === "pages" && slug === "home") { if (bool(e.data.noindex)) out[0]!.noindex = true; const u = updatedOf(e); if (u) out[0]!.updated = u; continue; }
 			if (!hasPage(t, e.data)) continue;
 			const chain = t.collection === "pages" ? [...(await pageParents(e.data, async (x) => bySlug.get(x) ?? null)).map((x) => x.slug), slug].join("/") : slug;
-			add({ path: entryPath(pattern, chain), kind: t.collection === "pages" ? "page" : "entry", collection: t.collection, id: refId(e), slug, title: field(e, "title"), ...(bool(e.data.noindex) ? { noindex: true } : {}) });
+			add({ path: entryPath(pattern, chain), kind: t.collection === "pages" ? "page" : "entry", collection: t.collection, id: refId(e), slug, title: field(e, "title"), ...(bool(e.data.noindex) ? { noindex: true } : {}), ...(updatedOf(e) ? { updated: updatedOf(e) } : {}) });
 		}
 	}
 	const base = indexPath(patterns.posts ?? "/blog/{slug}");
