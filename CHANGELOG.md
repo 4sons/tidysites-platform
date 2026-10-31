@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.13
+
+- The first run takes `content: "none"`: the content model and the site settings only, no demo entries and no demo menus, for a site about to be built from a client's own material (a port). The default stays the theme's sample content.
+
 ## 0.30.12
 
 - The form's contact boxes render from the template again, in one ordered list with the questions. 0.30.11 built them in a function in the component's frontmatter, which Astro cannot parse, so every theme build on 0.30.11 failed. Nothing changes in the markup.

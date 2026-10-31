@@ -34,6 +34,19 @@ describe("bootstrap", () => {
 		expect(applied).toMatchObject({ settings: { title: "T", tagline: "G" } });
 	});
 
+	it('content "none": applies the structure and the settings, no entries and no menus', async () => {
+		let applied: Record<string, unknown> | undefined;
+		const deps = createDeps();
+		deps.seed.load = async () => ({ version: 1, settings: { title: "Seed Title" }, collections: [{ slug: "pages" }], menus: [{ slug: "header", items: [] }], content: { pages: [{ slug: "home" }], business: [{ slug: "business" }] } });
+		deps.seed.apply = async (seed) => {
+			applied = seed;
+			return {};
+		};
+		await bootstrap({ adminEmail: "p@a.test", title: "T", content: "none" }, deps, ORIGIN);
+		expect(applied).toMatchObject({ settings: { title: "T" }, collections: [{ slug: "pages" }], content: {}, menus: [] });
+		await expect(bootstrap({ adminEmail: "p@a.test", content: "some" }, createDeps(), ORIGIN)).rejects.toMatchObject({ status: 400 });
+	});
+
 	it("uses the request origin as site_url when none is given, and does not overwrite an existing one", async () => {
 		const deps = createDeps();
 		await bootstrap({ adminEmail: "p@a.test" }, deps, ORIGIN);
