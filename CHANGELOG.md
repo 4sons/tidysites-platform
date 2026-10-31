@@ -8,6 +8,7 @@ From the Radiant Roots Lighting port (GoDaddy).
 - The contact boxes come in the order the `contact_fields` setting names them ("name, email and phone").
 - Forms: `label_style` "inside the box" keeps the label for screen readers and puts the hint (or the label) inside the box.
 - The cookie card takes a `cookie_heading`, and `cookie_decline` "hidden" leaves out the Decline button.
+- The `_ago` values added in 0.30.9 are gone: the live site is a snapshot, so a relative time stamped at publish reads wrong the next day. `_date` stays.
 
 ## 0.30.10
 

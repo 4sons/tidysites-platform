@@ -189,7 +189,7 @@ A row's markup can read the site's records, so a custom header or footer is as l
 {{#each services limit=6}} … {{else}} nothing yet {{/each}}                     inside a loop: this, @index, @number, @first, @last, and the item's own fields
 {{#if page.summary}} … {{else}} … {{/if}}   {{#unless x}} … {{/unless}}   {{#if page.collection == "services"}} … {{/if}}   {{#if f.sort == 1}} … {{/if}}   (a bare number, true, false or null is a value; a bare name is a path)
 {{ media.hero.url }}  {{ media.hero.alt }}  {{ video.url }}     the row's own pictures, from its `media` list (name + picture), and its `video` file; <video src="{{ video.url }}" autoplay muted loop playsinline>
-{{ o.ends_date }}  {{ r.date_ago }}  {{ r.initials }}     every date field has _date ("Nov 30, 2026") and _ago ("3 days ago"); an item's initials from its name
+{{ o.ends_date }}  {{ r.initials }}     every date field has _date ("Nov 30, 2026"); an item's initials from its name (no relative times: the live site is a snapshot)
 {{> menu "primary"}} {{> menu "footer" depth=1}} {{> menu "primary" collapsible=true}}  {{> logo}}  {{> phone}}  {{> email}}  {{> address}}  {{> hours}}  {{> social}}  {{> year}}  {{> button "Label" "/url" style=outline}}  {{> form "Name"}}
 ```
 

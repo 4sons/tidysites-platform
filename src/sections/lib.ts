@@ -669,16 +669,6 @@ export async function pageHead(request: Request, input: PageHeadInput): Promise<
 }
 
 /** A stored date (a Date, an ISO string or a timestamp) as "Oct 30, 2026"; empty for anything else. */
-/** How long ago, in plain words: "3 days ago", "2 hours ago", "just now"; empty when the value is not a date. */
-export function ago(v: unknown, now: Date = new Date()): string {
-	const d = v instanceof Date ? v : typeof v === "string" || typeof v === "number" ? new Date(v) : null;
-	if (!d || Number.isNaN(d.getTime())) return "";
-	const s = Math.round((now.getTime() - d.getTime()) / 1000);
-	const future = s < 0; const n = Math.abs(s);
-	const unit = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
-	const text = n < 45 ? "just now" : n < 3600 ? unit(Math.round(n / 60), "minute") : n < 86400 ? unit(Math.round(n / 3600), "hour") : n < 2592000 ? unit(Math.round(n / 86400), "day") : n < 31536000 ? unit(Math.round(n / 2592000), "month") : unit(Math.round(n / 31536000), "year");
-	return text === "just now" ? text : future ? `in ${text}` : `${text} ago`;
-}
 export function dateOf(v: unknown, locale = "en-US"): string {
 	const d = v instanceof Date ? v : typeof v === "string" || typeof v === "number" ? new Date(v) : null;
 	return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }) : "";
