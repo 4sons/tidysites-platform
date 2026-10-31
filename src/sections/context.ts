@@ -42,8 +42,8 @@ function withMediaUrls(data: Record<string, unknown>): Record<string, unknown> {
 		if (isPortableText(v)) out[`${k}_html`] = portableTextToHtml(v);
 		// A plain text field with paragraphs prints as <p>s through {{{ x.summary_html }}}; the text itself stays for {{ x.summary }}.
 		else if (typeof v === "string" && v.trim() && !/^(id|slug|status|_type|_key)$/.test(k)) out[`${k}_html`] = paragraphsHtml(v);
-		// A date prints ready to read through {{ x.ends_date }} ("Nov 30, 2026") and {{ x.ends_ago }} ("3 days ago"); the raw value stays for sorting.
-		if (v instanceof Date || (typeof v === "string" && /^\d{4}-\d{2}-\d{2}(T|$)/.test(v))) { out[`${k}_date`] = dateOf(v); out[`${k}_ago`] = ago(v); }
+		// A date prints ready to read through {{ x.ends_date }} ("Nov 30, 2026"); the raw value stays for sorting. (No "ago": the live site is a snapshot, and a relative time stamped at publish is wrong the next day.)
+		if (v instanceof Date || (typeof v === "string" && /^\d{4}-\d{2}-\d{2}(T|$)/.test(v))) out[`${k}_date`] = dateOf(v);
 	}
 	// The initials of the record's name ("Jane Doe" → "JD"), for an avatar with no photo.
 	const name = str(data.display_name) || str(data.title) || str(data.name);

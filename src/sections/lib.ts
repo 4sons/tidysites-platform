@@ -123,7 +123,7 @@ export interface Business {
 	callTracking: string; callTrackingId: string; heatmaps: string; heatmapsId: string; tiktokPixelId: string; linkedinInsightId: string; adobeFontsKit: string;
 	/** Uploaded font files (urls), the cookie banner, and the blog's page size, from the frame record. */
 	displayFontFile: string; bodyFontFile: string;
-	cookieBanner: boolean; cookieText: string; cookiePolicyUrl: string; cookieAcceptLabel: string; cookieDeclineLabel: string; blogPageSize: number;
+	cookieBanner: boolean; cookieText: string; cookiePolicyUrl: string; cookieAcceptLabel: string; cookieDeclineLabel: string; cookieHeading: string; cookieDecline: boolean; blogPageSize: number;
 	footerServicesLabel: string; footerServices: boolean; footerMenuLabel: string; siteLanguage: string;
 	/** The pop-up the frame opens on its own: what, when, how often. */
 	/** A custom row that stands in for the site's header or footer everywhere; a page may say otherwise. */
@@ -205,7 +205,7 @@ async function readBusiness(): Promise<Business> {
 		instagramWidget: str(ig.instagram_widget), instagramWidgetId: str(ig.instagram_widget_id), accessibilityWidget: str(ig.accessibility_widget), accessibilityWidgetId: str(ig.accessibility_widget_id),
 		callTracking: str(ig.call_tracking), callTrackingId: str(ig.call_tracking_id), heatmaps: str(ig.heatmaps), heatmapsId: str(ig.heatmaps_id), tiktokPixelId: str(ig.tiktok_pixel_id), linkedinInsightId: str(ig.linkedin_insight_id), adobeFontsKit: str(ig.adobe_fonts_kit),
 		displayFontFile: mediaUrl(fr.display_font_file) ?? "", bodyFontFile: mediaUrl(fr.body_font_file) ?? "",
-		cookieBanner: fr.cookie_banner === "on", cookieText: str(fr.cookie_text), cookiePolicyUrl: str(fr.cookie_policy_url), cookieAcceptLabel: str(fr.cookie_accept_label), cookieDeclineLabel: str(fr.cookie_decline_label), blogPageSize: int(fr.blog_page_size, 12),
+		cookieBanner: fr.cookie_banner === "on", cookieText: str(fr.cookie_text), cookiePolicyUrl: str(fr.cookie_policy_url), cookieAcceptLabel: str(fr.cookie_accept_label), cookieDeclineLabel: str(fr.cookie_decline_label), cookieHeading: str(fr.cookie_heading), cookieDecline: str(fr.cookie_decline) !== "hidden", blogPageSize: int(fr.blog_page_size, 12),
 		footerServicesLabel: str(fr.footer_services_label), footerServices: fr.footer_services !== "off", footerMenuLabel: str(fr.footer_menu_label), siteLanguage: str(fr.site_language) || "en",
 		headerRow: str(fr.header_row), footerRow: str(fr.footer_row),
 		popupShows: pickOne(fr.popup_shows, ["nothing", "an offer", "a form"], "nothing"), popupTitle: str(fr.popup_title), popupOffer: str(fr.popup_offer), popupForm: str(fr.popup_form), popupTrigger: pickOne(fr.popup_trigger, ["on arrival", "after ten seconds", "after thirty seconds", "after scrolling halfway", "on leaving"], "after ten seconds"), popupEvery: pickOne(fr.popup_every, ["once a visit", "once a day", "every time"], "once a visit"),

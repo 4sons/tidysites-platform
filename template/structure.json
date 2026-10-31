@@ -3711,6 +3711,11 @@
 					}
 				},
 				{
+					"slug": "cookie_heading",
+					"label": "Cookie card heading",
+					"type": "string"
+				},
+				{
 					"slug": "cookie_text",
 					"label": "Cookie consent text",
 					"type": "text"
@@ -3729,6 +3734,18 @@
 					"slug": "cookie_decline_label",
 					"label": "Decline button",
 					"type": "string"
+				},
+				{
+					"slug": "cookie_decline",
+					"label": "Decline button",
+					"type": "select",
+					"defaultValue": "shown",
+					"validation": {
+						"options": [
+							"shown",
+							"hidden"
+						]
+					}
 				},
 				{
 					"slug": "blog_page_size",
@@ -5612,6 +5629,18 @@
 						"options": [
 							"name, and a phone or an email",
 							"every contact box"
+						]
+					}
+				},
+				{
+					"slug": "label_style",
+					"label": "Where a box's label sits",
+					"type": "select",
+					"defaultValue": "above the box",
+					"validation": {
+						"options": [
+							"above the box",
+							"inside the box"
 						]
 					}
 				},
