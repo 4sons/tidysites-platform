@@ -110,10 +110,16 @@ export function leadFrom(body: Record<string, string>, page: string | null, now 
 		fields[label] = value.slice(0, 5000);
 	}
 	for (const f of files) fields[f.label] = f.name;
+	// A form that asks everything as questions (contact_fields "none") still yields a person: the answers whose labels read as a name, an email or a phone stand in for the contact boxes.
+	const answer = (re: RegExp) => Object.entries(fields).find(([label]) => re.test(label))?.[1] ?? "";
+	const first = answer(/^(first|given)\s*name$/i), last = answer(/^(last|family)\s*name|^surname$/i);
+	const nameFromAnswers = (body.name ?? "").trim() || answer(/^(full\s*)?(your\s*)?name$/i) || [first, last].filter(Boolean).join(" ");
+	const emailFromAnswers = (body.email ?? "").trim() || answer(/^(your\s*)?e-?mail(\s*address)?$/i);
+	const phoneFromAnswers = (body.phone ?? "").trim() || answer(/^(your\s*)?(phone|telephone|mobile|cell)(\s*number)?$/i);
 	return {
-		name: (body.name ?? "").trim().slice(0, 300),
-		email: (body.email ?? "").trim().slice(0, 320) || null,
-		phone: (body.phone ?? "").trim().slice(0, 50) || null,
+		name: nameFromAnswers.trim().slice(0, 300),
+		email: emailFromAnswers.trim().slice(0, 320) || null,
+		phone: phoneFromAnswers.trim().slice(0, 50) || null,
 		form: (body.form ?? "").trim().slice(0, 100) || null,
 		fields,
 		files,

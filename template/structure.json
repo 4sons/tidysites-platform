@@ -5544,7 +5544,8 @@
 							"name and email",
 							"name and phone",
 							"name only",
-							"email only"
+							"email only",
+							"none (the questions only)"
 						]
 					}
 				},

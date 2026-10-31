@@ -27,7 +27,9 @@ const form: FormRecord | null = name ? await getForm(name) : null;
 const d = form?.data ?? {};
 const contact = str(d.contact_fields, emailOnly ? "email only" : "name, phone and email");
 const onlyEmail = contact === "email only";
-const askPhone = contact.includes("phone"), askEmail = contact.includes("email");
+// "none": the form asks its questions and nothing else, so a form whose boxes come in the old site's own order (first name, last name, country, ...) is written as questions.
+const noContact = contact.startsWith("none");
+const askPhone = !noContact && contact.includes("phone"), askEmail = !noContact && contact.includes("email");
 // The contact boxes take the form's own labels and hints, and can follow the questions instead of leading them.
 const nameLabel = str(d.name_label) || tx("Name"), phoneLabel = str(d.phone_label) || tx("Phone"), emailLabel = str(d.email_label) || tx("Email");
 const nameHint = str(d.name_placeholder) || undefined, phoneHint = str(d.phone_placeholder) || undefined, emailHint = str(d.email_placeholder) || undefined;
@@ -57,7 +59,7 @@ const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turn
 	<div class="ts-form-fields">
 		{intro && <p class="ts-form-intro">{intro}</p>}
 		{!contactAfter && <>
-			{!onlyEmail && <label class={askPhone && askEmail ? "ts-full" : ""}>{nameLabel}<input name="name" autocomplete="name" required placeholder={nameHint} /></label>}
+			{!onlyEmail && !noContact && <label class={askPhone && askEmail ? "ts-full" : ""}>{nameLabel}<input name="name" autocomplete="name" required placeholder={nameHint} /></label>}
 			{askPhone && <label>{phoneLabel}<input name="phone" type="tel" autocomplete="tel" required={!askEmail} placeholder={phoneHint} /></label>}
 			{askEmail && <label>{emailLabel}<input name="email" type="email" autocomplete="email" required={!askPhone} placeholder={emailHint} /></label>}
 		</>}
@@ -73,7 +75,7 @@ const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turn
 			return <label class={i === questions.length - 1 && questions.length % 2 ? "ts-full" : ""}>{q.label}<input name={key} required={q.required} placeholder={q.placeholder || undefined} /></label>;
 		})}
 		{contactAfter && <>
-			{!onlyEmail && <label class={askPhone && askEmail ? "ts-full" : ""}>{nameLabel}<input name="name" autocomplete="name" required placeholder={nameHint} /></label>}
+			{!onlyEmail && !noContact && <label class={askPhone && askEmail ? "ts-full" : ""}>{nameLabel}<input name="name" autocomplete="name" required placeholder={nameHint} /></label>}
 			{askPhone && <label>{phoneLabel}<input name="phone" type="tel" autocomplete="tel" required={!askEmail} placeholder={phoneHint} /></label>}
 			{askEmail && <label>{emailLabel}<input name="email" type="email" autocomplete="email" required={!askPhone} placeholder={emailHint} /></label>}
 		</>}

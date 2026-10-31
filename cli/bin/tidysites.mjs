@@ -87,11 +87,15 @@ function writeFiles(dir, files) {
 function readLocal(dir, only = null) {
 	const local = {};
 	const problems = [];
+	// Only the website's own collections are entries; a folder of the person's own (notes, assets, source) is left alone.
+	const schema = readJson(join(dir, META, 'schema.json'));
+	const known = schema ? new Set((schema.collections?.items ?? schema.collections ?? []).map((c) => c.slug).filter(Boolean)) : null;
 	for (const name of readdirSync(dir)) {
 		if (name.startsWith('.') || name === 'node_modules') continue;
 		const colDir = join(dir, name);
 		if (!statSync(colDir).isDirectory()) continue;
 		if (!/^[a-z][a-z0-9_]*$/.test(name) || name === 'menus') continue;
+		if (known && known.size && !known.has(name)) continue;
 		if (only && !only.includes(name)) continue;
 		const sidecarExts = Object.keys(SIDECARS[name] ?? SIDECARS.default);
 		for (const file of readdirSync(colDir)) {

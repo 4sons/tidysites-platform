@@ -2,10 +2,13 @@
 
 ## Unreleased
 
+- Forms: `contact_fields` offers "none (the questions only)", so a form whose boxes come in the old site's own order (first name, last name, country, ...) is written as questions in that order.
 - Each page in `/_tidy/pages` carries `updated` (when its record last changed; a listing carries its newest record's), so the published sitemap writes `lastmod`.
 
 ## CLI unreleased
 
+- `validate`, `push` and `status` read only the website's own collections; a folder of the person's own (notes, assets, source) in the site folder is left alone. A `notes/` folder failed validation as a collection.
+- `validate` no longer crashes on `{ "$media": { "file": ... } }` (a scope slip in 0.1.15).
 - `init` waits for a website that is still being set up (`website_unreachable` on the first pull: tries again every 30 seconds for ten minutes, saying so) instead of failing.
 
 ## 0.30.0
