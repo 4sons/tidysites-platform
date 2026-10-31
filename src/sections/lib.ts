@@ -298,14 +298,22 @@ export function googleFontHrefs(b: Business): string[] {
 	const display = b.displayFontFile ? "" : b.fontDisplay.trim();
 	const body = b.bodyFontFile ? "" : b.fontBody.trim();
 	const out: string[] = [];
-	if (display) out.push(fam(display, "ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,700"));
-	if (body && body.toLowerCase() !== display.toLowerCase()) out.push(fam(body, "ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700"));
-	// More families the site's CSS names (a button font, a form font): "Lato" or "Lato:400,700"; the named weights, or regular and bold.
+	// More families the site's CSS names ("Lato" or "Lato:400,700"): the named weights, or regular and bold. Named on a
+	// brand family, the weights widen that family's own request (a 900 on the body font) instead of a second link.
+	const extra = new Map<string, string[]>();
 	for (const line of b.extraFonts ?? []) {
 		const [name, weights] = line.split(":");
 		const w = (weights ?? "400,700").split(/[,;\s]+/).map((x) => x.trim()).filter((x) => /^[1-9]00$/.test(x));
-		if (name?.trim() && ![display, body].some((f) => f.toLowerCase() === name.trim().toLowerCase())) out.push(fam(name, `wght@${(w.length ? w : ["400", "700"]).join(";")}`));
+		if (name?.trim()) extra.set(name.trim().toLowerCase(), w.length ? w : ["400", "700"]);
 	}
+	const axes = (name: string, base: string[]) => {
+		const more = extra.get(name.toLowerCase()) ?? [];
+		const weights = [...new Set([...base, ...more])].sort();
+		return `ital,wght@${weights.map((x) => `0,${x}`).join(";")};1,400;1,700`;
+	};
+	if (display) out.push(fam(display, axes(display, ["300", "400", "500", "600", "700", "800"])));
+	if (body && body.toLowerCase() !== display.toLowerCase()) out.push(fam(body, axes(body, ["300", "400", "500", "600", "700"])));
+	for (const [name, w] of extra) if (![display, body].some((f) => f.toLowerCase() === name)) out.push(fam(name, `wght@${w.join(";")}`));
 	return out;
 }
 /** The first of the Google Fonts stylesheets, kept for themes that printed one link. */
@@ -661,6 +669,16 @@ export async function pageHead(request: Request, input: PageHeadInput): Promise<
 }
 
 /** A stored date (a Date, an ISO string or a timestamp) as "Oct 30, 2026"; empty for anything else. */
+/** How long ago, in plain words: "3 days ago", "2 hours ago", "just now"; empty when the value is not a date. */
+export function ago(v: unknown, now: Date = new Date()): string {
+	const d = v instanceof Date ? v : typeof v === "string" || typeof v === "number" ? new Date(v) : null;
+	if (!d || Number.isNaN(d.getTime())) return "";
+	const s = Math.round((now.getTime() - d.getTime()) / 1000);
+	const future = s < 0; const n = Math.abs(s);
+	const unit = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
+	const text = n < 45 ? "just now" : n < 3600 ? unit(Math.round(n / 60), "minute") : n < 86400 ? unit(Math.round(n / 3600), "hour") : n < 2592000 ? unit(Math.round(n / 86400), "day") : n < 31536000 ? unit(Math.round(n / 2592000), "month") : unit(Math.round(n / 31536000), "year");
+	return text === "just now" ? text : future ? `in ${text}` : `${text} ago`;
+}
 export function dateOf(v: unknown, locale = "en-US"): string {
 	const d = v instanceof Date ? v : typeof v === "string" || typeof v === "number" ? new Date(v) : null;
 	return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }) : "";
