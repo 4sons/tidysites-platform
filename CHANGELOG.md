@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.29.0
+
+From the eighth port's log (Springbank Landscapes).
+
+- Google Fonts are requested one family per stylesheet, weights 300 to 800. One request for both families failed whole when either was not a Google family (Proxima Nova beside Bebas Neue), and then neither font loaded; light body copy (300) now loads too.
+- `business.logo_dark` reads like `business.logo` in custom HTML (`.url`, `.alt`, `.srcset`).
+- The frame record names each collection's address (`blog_path`, `services_path`, `areas_path`, …) ahead of EmDash's collection setting, so a port keeps `/news` or `/locations` through the CLI or the MCP.
+- `blog_index` on the frame record switches the blog listing on or off; left alone it is on while the site has a post. Off or empty, the listing and its facets are a 404 and out of the sitemap.
+- Columns HTML slots get the resized variants, a `sizes` hint for the slot's share of the row and lazy loading below the first screen; a row's pictures are hinted at the full width.
+- A full-width row has no section padding; a header or footer row with its own `<header>`/`<footer>` is wrapped in a `<div>`; the menu marks the folder of the current page `ts-menu-ancestor`.
+- The room for the phone call bar (72px under the page) is only kept when the bar is on the page.
+
+## CLI 0.1.13
+
+- `fetch` names an Adobe Fonts kit and the families it serves, and says each needs a close Google Fonts stand-in named in the report.
+
 ## 0.28.2
 
 From the sixth port's log (Hanwell Plumbing).

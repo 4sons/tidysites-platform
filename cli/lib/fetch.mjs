@@ -105,6 +105,9 @@ export function outline(html, base) {
 		out.fonts.push(...fams);
 	}
 	out.fonts = [...new Set(out.fonts)];
+	// Adobe Fonts (Typekit) kits belong to the old site or its builder, so a port cannot load them; the families are named from the kit's CSS by the fetch command.
+	out.adobe_kits = [...new Set([...html.matchAll(/use\.typekit\.net\/([a-z0-9]+)\.css/gi)].map((m) => m[1].toLowerCase()))];
+	out.adobe_families = [];
 	return out;
 }
 
@@ -162,6 +165,10 @@ export function outlineText(o) {
 	if (o.phones.length) lines.push('', `Phones: ${o.phones.join(', ')}`);
 	if (o.emails.length) lines.push(`Emails: ${o.emails.join(', ')}`);
 	if (o.fonts.length) lines.push(`Google fonts: ${o.fonts.join(', ')}`);
+	if (o.adobe_kits?.length) {
+		lines.push(`Adobe Fonts kit: ${o.adobe_kits.join(', ')} (the old site's own kit; this site cannot load it)${o.adobe_families?.length ? ` serving ${o.adobe_families.join(', ')}` : ''}.`);
+		lines.push('  Each family from it needs a Google Fonts stand-in on the Business record that matches its shape and weights as closely as possible, and the report must name the original and the stand-in. A font is never left unset.');
+	}
 	if (o.css) {
 		const vars = Object.entries(o.css.variables ?? {});
 		if (vars.length) { lines.push('', 'Stylesheet variables (the site\'s own names; trust these over the counts below):'); for (const [k, v] of vars.slice(0, 40)) lines.push(`  --${k}: ${v}`); }

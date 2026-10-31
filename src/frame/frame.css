@@ -59,7 +59,7 @@
 	.ts-callbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--ts-surface) 92%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--ts-line)}
 	.ts-callbar .ts-btn{justify-content:center}
 	.ts-callbar:has(> :only-child){grid-template-columns:1fr}
-	body{padding-bottom:72px}
+	body:has(.ts-callbar){padding-bottom:72px}
 }
 .ts-dialog-embed{max-width:min(960px,calc(100vw - 32px))}
 .ts-booking-embed{width:100%;height:min(720px,calc(100vh - 160px));border:0;border-radius:calc(var(--ts-radius) * .6)}

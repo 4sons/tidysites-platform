@@ -80,6 +80,7 @@ function businessScope(b: Business): Scope {
 		founded_year: b.foundedYear, years_line: b.yearsLine, rating: b.rating, review_count: b.reviewCount, rating_source: b.ratingSource, reviews_url: b.reviewsUrl,
 		booking_url: b.bookingUrl || "/contact", booking_label: b.bookingLabel, portal_url: b.portalUrl, portal_label: b.portalLabel, cta_label: b.ctaLabel,
 		logo: b.logo ? { url: b.logo.src, alt: b.logo.alt ?? b.title, width: b.logo.width, height: b.logo.height, srcset: mediaSrcset(b.raw.logo) ?? "" } : null,
+		logo_dark: b.logoDark ? { url: b.logoDark.src, alt: b.logoDark.alt ?? b.title, width: b.logoDark.width, height: b.logoDark.height, srcset: mediaSrcset(b.raw.logo_dark) ?? "" } : null,
 		social: b.social.map((s) => ({ network: s.network, url: s.url, label: s.network.charAt(0).toUpperCase() + s.network.slice(1) })),
 		license_line: b.licenseLine, insured_line: b.insuredLine, warranty_line: b.warrantyLine, service_area_line: b.serviceAreaLine, same_day_line: b.sameDayLine, emergency_line: b.emergencyLine
 	};
@@ -154,13 +155,18 @@ export async function contextFor(request: Request, text: string): Promise<{ ctx:
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 type MenuItem = { label: string; url: string; target?: string | null; children?: MenuItem[] };
 
+const atItem = (i: MenuItem, current: string): boolean => (i.url === "/" ? current === "/" : current === i.url || current.startsWith(`${i.url}/`));
+const underItem = (items: MenuItem[], current: string): boolean => items.some((i) => atItem(i, current) || underItem(i.children ?? [], current));
+
 function menuHtml(items: MenuItem[], current: string, depth: number, level = 1): string {
 	if (!items.length) return "";
 	const li = items.map((i) => {
 		const kids = i.children ?? [];
-		const here = i.url === "/" ? current === "/" : current === i.url || current.startsWith(`${i.url}/`);
+		const here = atItem(i, current);
+		// The folder a current page sits in is marked as well (ts-menu-ancestor), the way most menus colour the open section.
+		const above = !here && underItem(kids, current);
 		const sub = kids.length && level < depth ? menuHtml(kids, current, depth, level + 1) : "";
-		return `<li class="ts-menu-item${kids.length ? " ts-menu-has-children" : ""}${here ? " ts-menu-current" : ""}"><a class="ts-menu-link" href="${esc(i.url)}"${i.target ? ` target="${esc(i.target)}"` : ""}${here ? ` aria-current="page"` : ""}>${esc(i.label)}</a>${sub}</li>`;
+		return `<li class="ts-menu-item${kids.length ? " ts-menu-has-children" : ""}${here ? " ts-menu-current" : ""}${above ? " ts-menu-ancestor" : ""}"><a class="ts-menu-link" href="${esc(i.url)}"${i.target ? ` target="${esc(i.target)}"` : ""}${here ? ` aria-current="page"` : ""}>${esc(i.label)}</a>${sub}</li>`;
 	});
 	return `<ul class="${level === 1 ? "ts-menu" : "ts-menu-sub"}">${li.join("")}</ul>`;
 }

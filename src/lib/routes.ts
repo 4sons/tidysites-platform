@@ -22,23 +22,47 @@ export interface PageType {
 	page: { field: string; kind: "select" | "boolean" } | null;
 	/** The listing page at the pattern's prefix: the frame field that switches it and the section that renders it. Null when there is none, or when it is always on (the blog). */
 	index: { field: string; section: string; label: string } | null;
+	/** The frame field that names where the collection lives (`/news` for the blog, `/locations` for areas); null for pages. */
+	address: string | null;
 }
 
 export const PAGE_TYPES: readonly PageType[] = [
-	{ collection: "pages", pattern: "/{slug}", page: null, index: null },
-	{ collection: "services", pattern: "/services/{slug}", page: { field: "page", kind: "select" }, index: { field: "services_index", section: "services", label: "Services" } },
-	{ collection: "service_categories", pattern: "/services/category/{slug}", page: null, index: null },
-	{ collection: "service_areas", pattern: "/service-areas/{slug}", page: { field: "page", kind: "select" }, index: { field: "areas_index", section: "areas", label: "Service areas" } },
-	{ collection: "audiences", pattern: "/for/{slug}", page: { field: "page", kind: "select" }, index: { field: "audiences_index", section: "audiences", label: "Who we serve" } },
-	{ collection: "people", pattern: "/team/{slug}", page: { field: "has_profile", kind: "boolean" }, index: { field: "team_index", section: "team", label: "Team" } },
-	{ collection: "conditions", pattern: "/conditions/{slug}", page: { field: "page", kind: "select" }, index: { field: "conditions_index", section: "conditions", label: "Conditions" } },
-	{ collection: "products", pattern: "/products/{slug}", page: { field: "page", kind: "select" }, index: { field: "products_index", section: "products", label: "Products" } },
-	{ collection: "technologies", pattern: "/technology/{slug}", page: { field: "has_page", kind: "boolean" }, index: { field: "technologies_index", section: "technologies", label: "Technology" } },
-	{ collection: "case_studies", pattern: "/case-studies/{slug}", page: { field: "page", kind: "select" }, index: { field: "case_studies_index", section: "case_studies", label: "Work" } },
-	{ collection: "posts", pattern: "/blog/{slug}", page: null, index: null }
+	{ collection: "pages", pattern: "/{slug}", page: null, index: null, address: null },
+	{ collection: "services", pattern: "/services/{slug}", page: { field: "page", kind: "select" }, index: { field: "services_index", section: "services", label: "Services" }, address: "services_path" },
+	{ collection: "service_categories", pattern: "/services/category/{slug}", page: null, index: null, address: "service_categories_path" },
+	{ collection: "service_areas", pattern: "/service-areas/{slug}", page: { field: "page", kind: "select" }, index: { field: "areas_index", section: "areas", label: "Service areas" }, address: "areas_path" },
+	{ collection: "audiences", pattern: "/for/{slug}", page: { field: "page", kind: "select" }, index: { field: "audiences_index", section: "audiences", label: "Who we serve" }, address: "audiences_path" },
+	{ collection: "people", pattern: "/team/{slug}", page: { field: "has_profile", kind: "boolean" }, index: { field: "team_index", section: "team", label: "Team" }, address: "team_path" },
+	{ collection: "conditions", pattern: "/conditions/{slug}", page: { field: "page", kind: "select" }, index: { field: "conditions_index", section: "conditions", label: "Conditions" }, address: "conditions_path" },
+	{ collection: "products", pattern: "/products/{slug}", page: { field: "page", kind: "select" }, index: { field: "products_index", section: "products", label: "Products" }, address: "products_path" },
+	{ collection: "technologies", pattern: "/technology/{slug}", page: { field: "has_page", kind: "boolean" }, index: { field: "technologies_index", section: "technologies", label: "Technology" }, address: "technologies_path" },
+	{ collection: "case_studies", pattern: "/case-studies/{slug}", page: { field: "page", kind: "select" }, index: { field: "case_studies_index", section: "case_studies", label: "Work" }, address: "case_studies_path" },
+	{ collection: "posts", pattern: "/blog/{slug}", page: null, index: null, address: "blog_path" }
 ];
 
 export const pageType = (collection: string): PageType | undefined => PAGE_TYPES.find((t) => t.collection === collection);
+
+/**
+ * The pattern the frame record asks for, when its address field names one:
+ * `/news` becomes `/news/{slug}`, so a port keeps the old site's addresses
+ * without touching EmDash's collection setting. Empty or unclean: null.
+ */
+export function addressPattern(type: PageType, frame: Record<string, unknown> | null | undefined): string | null {
+	if (!type.address) return null;
+	const raw = frame?.[type.address];
+	if (typeof raw !== "string") return null;
+	const p = normalizePath(raw);
+	if (p === "/" || !/^\/[a-z0-9][a-z0-9/_-]*$/i.test(p) || p.includes("{")) return null;
+	return `${p}/{slug}`;
+}
+
+/** Whether the blog's listing exists: switched on or off by the frame record's `blog_index`, or left alone with posts to list. */
+export function blogLive(frame: Record<string, unknown> | null | undefined, hasPosts: boolean): boolean {
+	const v = frame?.blog_index;
+	if (v === "off") return false;
+	if (v === "on") return true;
+	return hasPosts;
+}
 
 /** The addresses a path can be, in the order the themes try them. */
 export type Route =
@@ -161,7 +185,7 @@ export function routeCandidates(path: string, patterns: Record<string, string>, 
 		if (t.index && indexPath(pattern) === p && indexOn(t, frame)) out.push({ kind: "index", collection: t.collection });
 	}
 	const postsBase = indexPath(patterns.posts ?? "/blog/{slug}");
-	if (postsBase) { const b = blogRoute(postsBase, p); if (b) out.push(b); }
+	if (postsBase && frame?.blog_index !== "off") { const b = blogRoute(postsBase, p); if (b) out.push(b); }
 	for (const t of PAGE_TYPES) {
 		if (t.collection === "pages") continue;
 		const slug = matchPattern(patterns[t.collection] ?? t.pattern, p);

@@ -195,6 +195,7 @@
 .ts-row .ts-row-wrap{max-width:var(--ts-max,var(--brand-max,1180px));margin:0 auto;padding:0 var(--ts-gutter,clamp(16px,4vw,40px))}
 .ts-row-section{padding:var(--ts-space,var(--brand-space,clamp(48px,7vw,96px))) 0}
 .ts-row-full .ts-row-wrap{max-width:none;padding:0}
+.ts-row-full.ts-row-section{padding:0}
 
 /* Columns (sections/columns): slots across per row, a tone or a photo behind, and the hooks the site's own CSS targets. */
 .ts.ts-accent{background:var(--ts-primary);color:#fff}

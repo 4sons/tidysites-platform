@@ -10,7 +10,7 @@
 import { getRow, str } from "./lib";
 import { scopeCss } from "../lib/sanitize";
 import { renderCustomHtml } from "./context";
-import { responsiveImgs } from "../lib/images";
+import { SIZES, responsiveImgs } from "../lib/images";
 import Form from "./Form.astro";
 import Dialog from "../frame/Dialog.astro";
 import "./defaults.css";
@@ -27,9 +27,12 @@ const lazy = (h: string) => (belowFold ? h.replace(/<img\b(?![^>]*\bloading=)([^
 // The first picture of the first section is usually the largest thing on the first screen; ask for it first.
 let priorityLeft = as === "section" && index === 0;
 const priority = (h: string) => (priorityLeft ? h.replace(/<img\b(?![^>]*\bfetchpriority=)([^>]*)>/i, (m, attrs: string) => { priorityLeft = false; return `<img fetchpriority="high"${attrs}>`; }) : h);
-const pictures = (h: string) => priority(lazy(responsiveImgs(h)));
+// A row spans the page, so its pictures are hinted at the full width unless the markup says otherwise (sizes="…").
+const pictures = (h: string) => priority(lazy(responsiveImgs(h, SIZES.full)));
 const scoped = css ? scopeCss(css, `.ts-row[data-row="${key}"]`) : "";
-const Tag = as === "header" ? "header" : as === "footer" ? "footer" : "div";
+// Markup that brings its own <header> or <footer> is wrapped in a div, so the page has one of each.
+const ownLandmark = as !== "section" && new RegExp(`<${as}\\b`, "i").test(html);
+const Tag = ownLandmark ? "div" : as === "header" ? "header" : as === "footer" ? "footer" : "div";
 const hasContent = rendered.segments.some((s) => ("html" in s ? s.html.trim() !== "" : true));
 // One dialog per form per page, however many rows and buttons open it.
 const seen = ((Astro.locals as unknown as { tidyFormDialogs?: Set<string> }).tidyFormDialogs ??= new Set<string>());

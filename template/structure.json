@@ -3812,6 +3812,67 @@
 					}
 				},
 				{
+					"slug": "blog_index",
+					"label": "Blog listing page",
+					"type": "select",
+					"validation": {
+						"options": [
+							"on",
+							"off"
+						]
+					}
+				},
+				{
+					"slug": "blog_path",
+					"label": "Blog address (/blog)",
+					"type": "string"
+				},
+				{
+					"slug": "services_path",
+					"label": "Services address (/services)",
+					"type": "string"
+				},
+				{
+					"slug": "service_categories_path",
+					"label": "Service categories address (/services/category)",
+					"type": "string"
+				},
+				{
+					"slug": "areas_path",
+					"label": "Service areas address (/service-areas)",
+					"type": "string"
+				},
+				{
+					"slug": "audiences_path",
+					"label": "Who we serve address (/for)",
+					"type": "string"
+				},
+				{
+					"slug": "team_path",
+					"label": "Team address (/team)",
+					"type": "string"
+				},
+				{
+					"slug": "conditions_path",
+					"label": "Conditions address (/conditions)",
+					"type": "string"
+				},
+				{
+					"slug": "products_path",
+					"label": "Products address (/products)",
+					"type": "string"
+				},
+				{
+					"slug": "technologies_path",
+					"label": "Technology address (/technology)",
+					"type": "string"
+				},
+				{
+					"slug": "case_studies_path",
+					"label": "Case studies address (/case-studies)",
+					"type": "string"
+				},
+				{
 					"slug": "site_schema",
 					"label": "Site structured data (JSON-LD), replaces the generated business entry",
 					"type": "text"
