@@ -12,13 +12,16 @@ const extra = list<Record<string, unknown>>(n.items).filter((q) => str(q.questio
 const grouped = bool(n.grouped) && !group;
 // The first question starts open when the section asks (the way many accordions rest).
 const openFirst = bool(n.open_first);
+// "intro beside": the heading and text on the left, the questions on the right; `numbered` prefixes 01., 02., ...
+const beside = variant === "intro beside";
+const numbered = bool(n.numbered);
 let opened = false;
 const openNow = () => { if (!openFirst || opened) return undefined; opened = true; return true; };
 const groups = grouped ? [...new Set(items.map((q) => str(q.data.group)))].map((g) => ({ title: g, items: items.filter((q) => str(q.data.group) === g) })) : [{ title: "", items }];
 ---
 {(items.length > 0 || extra.length > 0) && (
-<section class="ts ts-band" id="faq"><div class="ts-wrap">
-	<Head n={n} />
+<section class={`ts ts-band${numbered ? " ts-faq-numbered" : ""}${beside ? " ts-faq-beside" : ""}`} id="faq"><div class={beside ? "ts-wrap ts-split" : "ts-wrap"} style={beside ? "align-items:start" : undefined}>
+	{beside ? <div><Head n={n} /></div> : <Head n={n} />}
 	{variant === "tabs" && (groups.length > 1 || items.length > 0) ? (
 		<Tabs items={groups.length > 1 ? groups.map((g) => g.title || "General") : [...items.map((q) => str(q.data.title)), ...extra.map((q) => str(q.question))]} class="ts-faq-tabs">
 			{groups.length > 1

@@ -30,7 +30,7 @@ const when = (r: { data: Record<string, unknown> }) => { const d = str(r.data.da
 		<Carousel cols={3} label="Reviews">{items.map((r) => { const ph = pic(r.data.photo); return (
 			<article class="ts-card ts-review ts-carousel-item" data-tidy-record="reviews" data-tidy-record-id={r.id} data-tidy-record-label="Review">
 				<span class="ts-stars" aria-label={`${stars(r.data.rating).length} stars`}>{stars(r.data.rating)}</span>
-				<blockquote>{str(r.data.quote)}</blockquote>
+				{str(r.data.headline) && <p class="ts-review-head">{str(r.data.headline)}</p>}<blockquote>{str(r.data.quote)}</blockquote>
 				<div class="ts-who">{(ph.image || ph.url) && <span class="ts-avatar"><img src={mediaUrl(ph) ?? ""} alt="" /></span>}<div><b>{who(r)}</b><span>{[bool(n.show_source, true) ? str(r.data.source) : "", when(r)].filter(Boolean).join(" · ")}</span></div></div>
 			</article>
 		); })}</Carousel>
@@ -47,7 +47,7 @@ const when = (r: { data: Record<string, unknown> }) => { const d = str(r.data.da
 			{items.map((r) => { const ph = pic(r.data.photo); return (
 				<article class="ts-card ts-review" data-tidy-record="reviews" data-tidy-record-id={r.id} data-tidy-record-label="Review">
 					<span class="ts-stars" aria-label={`${stars(r.data.rating).length} stars`}>{stars(r.data.rating)}</span>
-					<blockquote>{str(r.data.quote)}</blockquote>
+					{str(r.data.headline) && <p class="ts-review-head">{str(r.data.headline)}</p>}<blockquote>{str(r.data.quote)}</blockquote>
 					<div class="ts-who">{(ph.image || ph.url) && <span class="ts-avatar"><img src={mediaUrl(ph) ?? ""} alt="" /></span>}<div><b>{who(r)}</b><span>{[bool(n.show_source, true) ? str(r.data.source) : "", when(r)].filter(Boolean).join(" · ")}</span></div></div>
 				</article>
 			); })}

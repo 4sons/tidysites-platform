@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.30.6
+
+From the Argent Garage Doors port (Webflow).
+
+- Row CSS keeps every `url()` that is the site's own, a web address or an inline picture, quoted or bare, parentheses inside or not; a quoted `data:` picture was emptied (the check backtracked past the quote), and an inline SVG with parentheses was cut.
+- Business: `extra_fonts` names more Google families the site's CSS uses (one per line, `Lato` or `Lato:400,700`); they load with the two brand fonts. An `@import` in the site's CSS was the only way.
+- Forms: `contact_required` makes every contact box required ("every contact box"); the default stays name plus a phone or an email.
+- FAQ: layout `intro beside` puts the heading and text beside the questions; `numbered` prefixes 01., 02., ...
+- The favicon link's type follows the file (webp, jpeg, svg, ico, png); a .webp favicon was tagged png.
+- A row's `media` list names its accepted types on the list itself, so an SVG in it is taken (the store checks the list, not its picture sub-field).
+- Reviews carry a `headline` (a review platform's title line), shown over the quote.
+
 ## CLI 0.1.20
 
 - A push heavy with folder pictures and video goes in parts of up to 12 MB each (an entry heavier than that travels alone), so the website takes each part well inside its time; one 53 MB push timed out part way and the command crashed reading an empty answer. An unreadable answer now says so and pulls what the website took.

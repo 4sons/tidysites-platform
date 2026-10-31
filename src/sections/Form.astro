@@ -35,6 +35,7 @@ const nameLabel = str(d.name_label) || tx("Name"), phoneLabel = str(d.phone_labe
 const nameHint = str(d.name_placeholder) || undefined, phoneHint = str(d.phone_placeholder) || undefined, emailHint = str(d.email_placeholder) || undefined;
 const contactAfter = str(d.contact_fields_position) === "after the questions";
 const markRequired = bool(d.mark_required);
+const allRequired = str(d.contact_required).startsWith("every");
 const req = (required: boolean, cls = "") => `${cls} ${markRequired && required ? "ts-required" : ""}`.trim() || undefined;
 type Q = { label: string; kind: string; options: string; required: boolean; placeholder: string };
 const questions: Q[] = onlyEmail && !form
@@ -62,8 +63,8 @@ const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turn
 		{intro && <p class="ts-form-intro">{intro}</p>}
 		{!contactAfter && <>
 			{!onlyEmail && !noContact && <label class={req(true, askPhone && askEmail ? "ts-full" : "")}>{nameLabel}<input name="name" autocomplete="name" required placeholder={nameHint} /></label>}
-			{askPhone && <label class={req(!askEmail)}>{phoneLabel}<input name="phone" type="tel" autocomplete="tel" required={!askEmail} placeholder={phoneHint} /></label>}
-			{askEmail && <label class={req(!askPhone)}>{emailLabel}<input name="email" type="email" autocomplete="email" required={!askPhone} placeholder={emailHint} /></label>}
+			{askPhone && <label class={req(allRequired || !askEmail)}>{phoneLabel}<input name="phone" type="tel" autocomplete="tel" required={allRequired || !askEmail} placeholder={phoneHint} /></label>}
+			{askEmail && <label class={req(allRequired || !askPhone)}>{emailLabel}<input name="email" type="email" autocomplete="email" required={allRequired || !askPhone} placeholder={emailHint} /></label>}
 		</>}
 		{questions.map((q, i) => {
 			const key = `q_${slugOf(q.label)}`;
@@ -78,8 +79,8 @@ const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turn
 		})}
 		{contactAfter && <>
 			{!onlyEmail && !noContact && <label class={req(true, askPhone && askEmail ? "ts-full" : "")}>{nameLabel}<input name="name" autocomplete="name" required placeholder={nameHint} /></label>}
-			{askPhone && <label class={req(!askEmail)}>{phoneLabel}<input name="phone" type="tel" autocomplete="tel" required={!askEmail} placeholder={phoneHint} /></label>}
-			{askEmail && <label class={req(!askPhone)}>{emailLabel}<input name="email" type="email" autocomplete="email" required={!askPhone} placeholder={emailHint} /></label>}
+			{askPhone && <label class={req(allRequired || !askEmail)}>{phoneLabel}<input name="phone" type="tel" autocomplete="tel" required={allRequired || !askEmail} placeholder={phoneHint} /></label>}
+			{askEmail && <label class={req(allRequired || !askPhone)}>{emailLabel}<input name="email" type="email" autocomplete="email" required={allRequired || !askPhone} placeholder={emailHint} /></label>}
 		</>}
 		{questions.map((q) => <input type="hidden" name={`label:q_${slugOf(q.label)}`} value={q.label} />)}
 		<input type="hidden" name="form" value={formName} />
