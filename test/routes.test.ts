@@ -112,7 +112,8 @@ describe("addresses on the frame record", () => {
 		expect(addressPattern(posts, { blog_path: "news/" })).toBe("/news/{slug}");
 		expect(addressPattern(posts, { blog_path: "/insights/articles" })).toBe("/insights/articles/{slug}");
 		expect(addressPattern(posts, { blog_path: "" })).toBeNull();
-		expect(addressPattern(posts, { blog_path: "/" })).toBeNull();
+		// "/" puts the records at the root, behind the pages at the same address.
+		expect(addressPattern(posts, { blog_path: "/" })).toBe("/{slug}");
 		expect(addressPattern(posts, { blog_path: "/{slug}" })).toBeNull();
 		expect(addressPattern(posts, { blog_path: "/news?x=1" })).toBe("/news/{slug}");
 		expect(addressPattern(posts, {})).toBeNull();

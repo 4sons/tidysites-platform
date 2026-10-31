@@ -1,9 +1,22 @@
 # Changelog
 
-## Unreleased
+## 0.30.1
+
+From the tenth round's logs (Texas Sprinkler Pros on Duda, Griffin Painting on Squarespace).
 
 - Forms: `contact_fields` offers "none (the questions only)", so a form whose boxes come in the old site's own order (first name, last name, country, ...) is written as questions in that order.
+- Posts carry `published_at` (a date of their own, shown and sorted by); the fill writes it over the store's publish stamp, so an old blog keeps its dates.
+- A listing address of `/` on the frame record (`services_path: "/"`) puts the records at the root, behind the pages at the same address.
+- Google Fonts links carry italic 400 and 700 beside the weights; an italic heading fell back to a faux italic.
+- A row's CSS reaches the row's own wrapper: a selector starting with `.ts-row`, `.ts-row-header`, `&` or `:scope` scopes to the wrapper instead of inside it.
+- Every text field of a record has its `_html` (`{{{ s.summary_html }}}`), one paragraph or many; it existed only for text with a blank line.
+- A full-row Columns slot's measure sits on its paragraphs, not the slot, so a full-row heading spans.
+- Forms: `mark_required` puts a * after required labels (`ts-required`); a one-choice question's hint is the first option's label.
 - Each page in `/_tidy/pages` carries `updated` (when its record last changed; a listing carries its newest record's), so the published sitemap writes `lastmod`.
+
+## CLI 0.1.17
+
+- `push` creates a menu the website lacks from its file (`menu_create`, then the items) and finishes the other menus before reporting a failed one; a new menu stopped the push before the primary menu was written.
 
 ## CLI 0.1.16
 

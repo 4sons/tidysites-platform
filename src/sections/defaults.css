@@ -218,7 +218,10 @@
 .ts .ts-col h2{margin-bottom:14px}
 .ts .ts-col h3{margin-bottom:8px}
 .ts .ts-col .ts-prose{max-width:none}
-.ts .ts-col-full .ts-prose{max-width:66ch}
+.ts .ts-col-full .ts-prose{max-width:none}
+.ts .ts-col-full .ts-prose :is(p,ul,ol,blockquote){max-width:66ch}
+.ts.ts-center .ts-col-full .ts-prose :is(p,ul,ol,blockquote){margin-left:auto;margin-right:auto}
+:is(.ts,.ts-frame,.ts-row) .ts-form label.ts-required::after{content:" *";color:var(--ts-accent,currentColor)}
 .ts.ts-center .ts-col-full .ts-prose{margin-left:auto;margin-right:auto}
 .ts .ts-prose h2,.ts .ts-prose h3,.ts .ts-prose h4{color:var(--ts-ink);margin:20px 0 8px}
 .ts .ts-prose :is(h2,h3,h4):first-child{margin-top:0}

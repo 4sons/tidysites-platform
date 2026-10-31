@@ -50,9 +50,11 @@ export const pageType = (collection: string): PageType | undefined => PAGE_TYPES
 export function addressPattern(type: PageType, frame: Record<string, unknown> | null | undefined): string | null {
 	if (!type.address) return null;
 	const raw = frame?.[type.address];
-	if (typeof raw !== "string") return null;
+	if (typeof raw !== "string" || !raw.trim()) return null;
 	const p = normalizePath(raw);
-	if (p === "/" || !/^\/[a-z0-9][a-z0-9/_-]*$/i.test(p) || p.includes("{")) return null;
+	// "/" puts the records at the root (/water-heaters), after the pages at the same address.
+	if (p === "/") return "/{slug}";
+	if (!/^\/[a-z0-9][a-z0-9/_-]*$/i.test(p) || p.includes("{")) return null;
 	return `${p}/{slug}`;
 }
 
