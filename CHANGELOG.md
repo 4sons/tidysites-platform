@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.30.9
+
+From the Daigle Plumbing port (WordPress, Elementor).
+
+- Rows read dates ready to use: every date field has `_date` ("Nov 30, 2026") and `_ago` ("3 days ago"); an offer's end and a review's date printed as ISO text.
+- Items carry `initials` ("Jane Doe" → "JD") for an avatar with no photo.
+- The menu drop-in marks the current page when the link carries a trailing slash (/about-us/), and `{{> menu "primary" collapsible=true}}` folds items with children into `<details>` (open where the current page sits), so a phone drawer folds its submenus without script (`ts-menu-fold`, `ts-menu-fold-toggle`).
+- `extra_fonts` naming a brand family widens that family's own weights (`Roboto:900` adds 900 to the body font) instead of a second link that the brand request shadowed.
+
 ## 0.30.8
 
 - A platform route's 500 answer (bootstrap, schema, fill: a bearer on every call) carries the thrown message as `detail`; a bootstrap that died ten minutes in answered a bare "internal error". Public routes still hide it.

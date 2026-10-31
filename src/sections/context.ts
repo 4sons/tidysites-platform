@@ -16,7 +16,7 @@ import { isPortableText, portableTextToHtml } from "../lib/portable-text";
 import { paragraphsHtml } from "../lib/text";
 import { referenced, render, splitIncludes, hasTemplate, TemplateError, type Include, type Scope } from "../lib/template";
 import { sanitizeHtml } from "../lib/sanitize";
-import { addressLine, entries, entryUrl, formDialog, getBusiness, getLocation, hoursRows, mediaUrl, pic, resolveRoute, slugify, str, type Business, dateOf } from "./lib";
+import { addressLine, entries, entryUrl, formDialog, getBusiness, getLocation, hoursRows, mediaUrl, pic, resolveRoute, slugify, str, type Business, dateOf, ago } from "./lib";
 import { pageType } from "../lib/routes";
 import { LOGO_SIZES, mediaSrcset, srcsetForSrc } from "../lib/images";
 
@@ -42,7 +42,12 @@ function withMediaUrls(data: Record<string, unknown>): Record<string, unknown> {
 		if (isPortableText(v)) out[`${k}_html`] = portableTextToHtml(v);
 		// A plain text field with paragraphs prints as <p>s through {{{ x.summary_html }}}; the text itself stays for {{ x.summary }}.
 		else if (typeof v === "string" && v.trim() && !/^(id|slug|status|_type|_key)$/.test(k)) out[`${k}_html`] = paragraphsHtml(v);
+		// A date prints ready to read through {{ x.ends_date }} ("Nov 30, 2026") and {{ x.ends_ago }} ("3 days ago"); the raw value stays for sorting.
+		if (v instanceof Date || (typeof v === "string" && /^\d{4}-\d{2}-\d{2}(T|$)/.test(v))) { out[`${k}_date`] = dateOf(v); out[`${k}_ago`] = ago(v); }
 	}
+	// The initials of the record's name ("Jane Doe" → "JD"), for an avatar with no photo.
+	const name = str(data.display_name) || str(data.title) || str(data.name);
+	if (name) out.initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 	// Dates print ready to read: {{ p.published_date }} and {{ p.updated_date }} ("Oct 30, 2026"); the raw values stay for sorting.
 	if (data.post_date || data.publishedAt) out.published_date = dateOf(data.post_date || data.publishedAt);
 	if (data.updatedAt) out.updated_date = dateOf(data.updatedAt);
@@ -181,18 +186,23 @@ export async function contextFor(request: Request, text: string, extra: Scope = 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 type MenuItem = { label: string; url: string; target?: string | null; children?: MenuItem[] };
 
-const atItem = (i: MenuItem, current: string): boolean => (i.url === "/" ? current === "/" : current === i.url || current.startsWith(`${i.url}/`));
+// A menu link written with a trailing slash (/about-us/) is the same page as /about-us.
+const trim = (u: string) => (u.length > 1 ? u.replace(/\/+$/, "") : u);
+const atItem = (i: MenuItem, current: string): boolean => { const u = trim(i.url); return u === "/" ? current === "/" : current === u || current.startsWith(`${u}/`); };
 const underItem = (items: MenuItem[], current: string): boolean => items.some((i) => atItem(i, current) || underItem(i.children ?? [], current));
 
-function menuHtml(items: MenuItem[], current: string, depth: number, level = 1): string {
+export function menuHtml(items: MenuItem[], current: string, depth: number, level = 1, collapsible = false): string {
 	if (!items.length) return "";
 	const li = items.map((i) => {
 		const kids = i.children ?? [];
 		const here = atItem(i, current);
 		// The folder a current page sits in is marked as well (ts-menu-ancestor), the way most menus colour the open section.
 		const above = !here && underItem(kids, current);
-		const sub = kids.length && level < depth ? menuHtml(kids, current, depth, level + 1) : "";
-		return `<li class="ts-menu-item${kids.length ? " ts-menu-has-children" : ""}${here ? " ts-menu-current" : ""}${above ? " ts-menu-ancestor" : ""}"><a class="ts-menu-link" href="${esc(i.url)}"${i.target ? ` target="${esc(i.target)}"` : ""}${here ? ` aria-current="page"` : ""}>${esc(i.label)}</a>${sub}</li>`;
+		const sub = kids.length && level < depth ? menuHtml(kids, current, depth, level + 1, collapsible) : "";
+		const link = `<a class="ts-menu-link" href="${esc(i.url)}"${i.target ? ` target="${esc(i.target)}"` : ""}${here ? ` aria-current="page"` : ""}>${esc(i.label)}</a>`;
+		// Collapsible: an item with children is a <details> whose summary holds the link and a toggle, so a phone drawer folds its submenus without script; the open section starts open.
+		const body = collapsible && sub ? `<details class="ts-menu-fold"${here || above ? " open" : ""}><summary class="ts-menu-fold-head">${link}<span class="ts-menu-fold-toggle" aria-hidden="true"></span></summary>${sub}</details>` : `${link}${sub}`;
+		return `<li class="ts-menu-item${kids.length ? " ts-menu-has-children" : ""}${here ? " ts-menu-current" : ""}${above ? " ts-menu-ancestor" : ""}">${body}</li>`;
 	});
 	return `<ul class="${level === 1 ? "ts-menu" : "ts-menu-sub"}">${li.join("")}</ul>`;
 }
@@ -204,7 +214,8 @@ async function includeHtml(inc: Include, b: Business, request: Request): Promise
 		case "menu": {
 			const menu = (await getMenu(arg(0, "primary")).catch(() => null)) as { items?: MenuItem[] } | null;
 			const depth = Math.max(1, Math.min(3, Number(inc.named.depth ?? 3) || 3));
-			return menuHtml(menu?.items ?? [], new URL(request.url).pathname.replace(/\/+$/, "") || "/", depth);
+			const collapsible = inc.named.collapsible === "true" || inc.named.collapsible === "1";
+			return menuHtml(menu?.items ?? [], new URL(request.url).pathname.replace(/\/+$/, "") || "/", depth, 1, collapsible);
 		}
 		case "logo": {
 			const logoSrcset = b.logo ? (mediaSrcset(b.raw.logo) ?? srcsetForSrc(b.logo.src)) : null;
