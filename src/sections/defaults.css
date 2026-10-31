@@ -70,7 +70,8 @@
 .ts summary::-webkit-details-marker{display:none}
 .ts summary::after{content:"+";color:var(--ts-primary);font-weight:400}
 .ts details[open] summary::after{content:"–"}
-.ts details .ts-a{padding:0 0 16px;color:var(--ts-ink-2);max-width:64ch;white-space:pre-line}
+.ts details .ts-a{padding:0 0 16px;color:var(--ts-ink-2);max-width:64ch}
+:is(.ts,.ts-frame,.ts-row) .ts-text p+p,.ts details .ts-a p+p{margin-top:var(--ts-para-gap,.75em)}
 :is(.ts,.ts-frame,.ts-row) .ts-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 :is(.ts,.ts-frame,.ts-row) .ts-form label{display:grid;gap:6px;font-size:13px;font-weight:600;color:var(--ts-ink-2)}
 :is(.ts,.ts-frame,.ts-row) .ts-form input,:is(.ts,.ts-frame,.ts-row) .ts-form select,:is(.ts,.ts-frame,.ts-row) .ts-form textarea{font:inherit;font-size:15px;padding:12px 13px;border:1.5px solid var(--ts-line);border-radius:calc(var(--ts-radius) * .7);background:var(--ts-surface);color:var(--ts-ink);width:100%}

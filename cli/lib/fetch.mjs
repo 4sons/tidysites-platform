@@ -53,7 +53,7 @@ function abs(base, href) {
 
 /** What the page is made of, in order. */
 export function outline(html, base) {
-	const out = { url: base, title: null, description: null, headings: [], nav: [], images: [], phones: [], emails: [], stylesheets: [], fonts: [], colors: [] };
+	const out = { url: base, title: null, description: null, headings: [], nav: [], images: [], videos: [], phones: [], emails: [], stylesheets: [], fonts: [], colors: [] };
 	const t = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
 	if (t) out.title = text(t[1]);
 	const d = html.match(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i) || html.match(/<meta[^>]+content=["']([^"']*)["'][^>]*name=["']description["']/i);
@@ -94,6 +94,11 @@ export function outline(html, base) {
 		const width = tag.match(/\swidth=["']?(\d+)/i)?.[1];
 		const height = tag.match(/\sheight=["']?(\d+)/i)?.[1];
 		out.images.push({ src: abs(base, src), alt, ...(width ? { width: Number(width) } : {}), ...(height ? { height: Number(height) } : {}) });
+	}
+	// A video on the page (a hero background, a <source> inside a <video>): a file to bring over, never to play from the old address.
+	for (const m of html.matchAll(/<(?:video|source)\b[^>]*\ssrc=["']([^"']+\.(?:mp4|webm|m4v|mov)(?:\?[^"']*)?)["'][^>]*>/gi)) {
+		const src = abs(base, m[1]);
+		if (!out.videos.some((v) => v.src === src)) out.videos.push({ src, poster: m[0].match(/\sposter=["']([^"']+)["']/i)?.[1] ? abs(base, m[0].match(/\sposter=["']([^"']+)["']/i)[1]) : null });
 	}
 	const body = text(html.replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, ''));
 	out.phones = [...new Set([...body.matchAll(/(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/g)].map((m) => m[0].trim()))].slice(0, 10);
@@ -164,6 +169,10 @@ export function outlineText(o) {
 	if (o.images.length) {
 		lines.push('', `Images (${o.images.length}):`);
 		for (const i of o.images.slice(0, 60)) lines.push(`  ${i.src}${i.width ? ` (${i.width}x${i.height ?? '?'})` : ''}${i.alt ? `  alt: ${i.alt}` : ''}`);
+	}
+	if (o.videos?.length) {
+		lines.push('', `Videos (${o.videos.length}): download each (curl -L -o assets/<name>.mp4 <src>), list it in the row's "media" with a name, and write <video src="{{ media.<name>.url }}" autoplay muted loop playsinline>; a video is never played from the old site's address`);
+		for (const v of o.videos) lines.push(`  ${v.src}${v.poster ? `  poster: ${v.poster}` : ''}`);
 	}
 	if (o.frames?.length) {
 		lines.push('', `Embedded frames (${o.frames.length}): a band of the page each; rebuild as the frame section or a row's <iframe>`);

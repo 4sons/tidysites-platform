@@ -53,7 +53,10 @@ function checkScalar(type, value, at, errors) {
 		case 'media':
 		case 'file':
 			if (!isMedia(value)) errors.push(`${at}: an image is the stored value (from the pull or add_website_image) or { "$media": { "url": "https://..." | "file": "assets/x.png", "alt": "..." } }`);
-			else if (value.$media && typeof value.$media.file === 'string') { if (!/\.(png|jpe?g|gif|webp|avif|svg|ico)$/i.test(value.$media.file) || value.$media.file.startsWith('/') || value.$media.file.includes('..')) errors.push(`${at}: $media.file must be a picture file inside the folder (png, jpg, gif, webp, avif, svg, ico)`); }
+			else if (value.$media && typeof value.$media.file === 'string') {
+				const ok = field.type === 'file' ? /\.(png|jpe?g|gif|webp|avif|svg|ico|mp4|webm|m4v|mov|woff2?|ttf|otf|pdf)$/i : /\.(png|jpe?g|gif|webp|avif|svg|ico)$/i;
+				if (!ok.test(value.$media.file) || value.$media.file.startsWith('/') || value.$media.file.includes('..')) errors.push(`${at}: $media.file must be a file inside the folder (${field.type === 'file' ? 'a picture, a video (mp4, webm), a font (woff2) or a pdf' : 'a picture: png, jpg, gif, webp, avif, svg, ico'})`);
+			}
 			else if (value.$media && (typeof value.$media.url !== 'string' || !/^https?:\/\//.test(value.$media.url))) errors.push(`${at}: $media.url must be an http(s) address (or $media.file for a picture in the folder)`);
 			else if (value.$media && typeof value.$media.alt !== 'string') errors.push(`${at}: $media.alt is required (what the image shows; "" for a decorative one)`);
 			return;

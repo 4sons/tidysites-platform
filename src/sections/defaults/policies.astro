@@ -2,6 +2,7 @@
 /** Policy text blocks as cards. Items written in the section; the policy records when the section has none. */
 import { entries, list, nodeOf, str, type Entry } from "../lib";
 import Head from "./_Head.astro";
+import Paras from "../Paras.astro";
 const n = nodeOf(Astro.props);
 const own = list<Record<string, unknown>>(n.items).filter((i) => str(i.title) || str(i.body));
 let items: Entry[] = own.length ? own.map((data, i) => ({ id: "", slug: `item-${i}`, data })) : await entries("policies", { limit: 20 });
@@ -11,6 +12,6 @@ const rec = (p: Entry) => (p.id ? { "data-tidy-record": "policies", "data-tidy-r
 {items.length > 0 && (
 <section class="ts ts-band" id="policies"><div class="ts-wrap">
 	<Head n={n} />
-	<div class="ts-grid" style="--cols:3">{items.map((p) => <div class="ts-card" {...rec(p)}><h3>{str(p.data.title)}</h3><p style="white-space:pre-line">{str(p.data.body)}</p></div>)}</div>
+	<div class="ts-grid" style="--cols:3">{items.map((p) => <div class="ts-card" {...rec(p)}><h3>{str(p.data.title)}</h3><Paras text={str(p.data.body)} /></div>)}</div>
 </div></section>
 )}

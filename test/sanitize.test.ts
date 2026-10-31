@@ -38,3 +38,22 @@ describe("scopeCss", () => {
 		expect(scopeCss(`@keyframes spin{to{transform:rotate(1turn)}}.a{animation:spin 1s}`, `.r`)).toBe(`@keyframes spin{to{transform:rotate(1turn)}}.r .a{animation:spin 1s}`);
 	});
 });
+
+describe("sanitizeHtml and inline SVG", () => {
+	it("keeps masks, clip paths, gradients and paint attributes that name the markup's own ids", () => {
+		const svg = `<svg viewBox="0 0 10 10" fill="none"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"></stop></linearGradient><mask id="m"><rect width="10" height="10" fill="#fff"></rect></mask><clipPath id="c"><circle cx="5" cy="5" r="5"></circle></clipPath></defs><g mask="url(#m)" clip-path="url(#c)"><path d="M0 0h10" fill="url(#g)" fill-opacity="0" stroke-opacity="0.5" transform="rotate(10)"></path><image href="data:image/png;base64,AAAA" width="10" height="10"></image></g></svg>`;
+		const out = sanitizeHtml(svg);
+		expect(out).toContain(`<mask id="m">`);
+		expect(out).toContain(`<clipPath id="c">`.toLowerCase());
+		expect(out).toContain(`mask="url(#m)"`);
+		expect(out).toContain(`clip-path="url(#c)"`);
+		expect(out).toContain(`fill="url(#g)"`);
+		expect(out).toContain(`fill-opacity="0"`);
+		expect(out).toContain(`stop-opacity="0.5"`);
+		expect(out).toContain(`<image href="data:image/png;base64,AAAA"`);
+	});
+	it("drops a paint reference that reaches out and an image from an unknown scheme", () => {
+		const out = sanitizeHtml(`<svg><path d="M0 0" fill="url(https://evil.test/a.svg#x)" mask="url(//evil.test/m)"></path><image href="javascript:alert(1)"></image></svg>`);
+		expect(out).toBe(`<svg><path d="M0 0"></path><image></image></svg>`);
+	});
+});
