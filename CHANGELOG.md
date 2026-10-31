@@ -1,11 +1,12 @@
 # Changelog
 
-## CLI unreleased
+## CLI 0.1.18
 
 - `push` resolves `$ref:<slug>` (or `$ref:<collection>/<slug>`): an entry the folder knows the website's id for becomes that id, and a new entry in the same push is keyed by its slug so the website resolves the reference as it creates it. A post's author written as `$ref:jane-doe` was stored as that text.
 
-## Unreleased template
+## 0.30.2
 
+- The post date field is `post_date`: 0.30.1 named it `published_at`, a name the store reserves for its own column (EmDash 1.3), so every site on 0.30.1 refused its content model ("invalid seed") and a new site could not bootstrap. The package's own EmDash is now the version the themes run, and a test validates the template's structure as a seed.
 - A row's `media` file and the Business font files name what they take (`allowedMimeTypes`: pictures incl. SVG, video, fonts, pdf); the store's default for a file field refused an SVG.
 
 ## 0.30.1
@@ -13,7 +14,7 @@
 From the tenth round's logs (Texas Sprinkler Pros on Duda, Griffin Painting on Squarespace).
 
 - Forms: `contact_fields` offers "none (the questions only)", so a form whose boxes come in the old site's own order (first name, last name, country, ...) is written as questions in that order.
-- Posts carry `published_at` (a date of their own, shown and sorted by); the fill writes it over the store's publish stamp, so an old blog keeps its dates.
+- Posts carry `post_date` (a date of their own, shown and sorted by); the fill writes it over the store's publish stamp, so an old blog keeps its dates.
 - A listing address of `/` on the frame record (`services_path: "/"`) puts the records at the root, behind the pages at the same address.
 - Google Fonts links carry italic 400 and 700 beside the weights; an italic heading fell back to a faux italic.
 - A row's CSS reaches the row's own wrapper: a selector starting with `.ts-row`, `.ts-row-header`, `&` or `:scope` scopes to the wrapper instead of inside it.

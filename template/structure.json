@@ -6774,7 +6774,7 @@
 					"type": "integer"
 				},
 				{
-					"slug": "published_at",
+					"slug": "post_date",
 					"label": "Publish date (the date shown and sorted by; empty means when it was published here)",
 					"type": "datetime"
 				},

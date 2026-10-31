@@ -44,7 +44,7 @@ function withMediaUrls(data: Record<string, unknown>): Record<string, unknown> {
 		else if (typeof v === "string" && v.trim() && !/^(id|slug|status|_type|_key)$/.test(k)) out[`${k}_html`] = paragraphsHtml(v);
 	}
 	// Dates print ready to read: {{ p.published_date }} and {{ p.updated_date }} ("Oct 30, 2026"); the raw values stay for sorting.
-	if (data.published_at || data.publishedAt) out.published_date = dateOf(data.published_at || data.publishedAt);
+	if (data.post_date || data.publishedAt) out.published_date = dateOf(data.post_date || data.publishedAt);
 	if (data.updatedAt) out.updated_date = dateOf(data.updatedAt);
 	return out;
 }

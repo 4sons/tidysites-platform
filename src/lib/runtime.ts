@@ -91,11 +91,11 @@ export async function buildDeps(): Promise<Deps> {
 					if (err instanceof HttpError) throw err;
 					throw new HttpError(400, `the website could not store the content: ${err instanceof Error ? err.message : String(err)}`);
 				}
-				// applySeed stamps every published entry with now; a pushed `published_at` (a post's real date) is written over it.
+				// applySeed stamps every published entry with now; a pushed `post_date` (a post's real date) is written over it.
 				const docContent = (doc as { content?: Record<string, Array<{ id?: unknown; slug?: unknown; data?: Record<string, unknown> }>> }).content ?? {};
 				for (const [collection, entries] of Object.entries(docContent)) {
 					for (const e of entries) {
-						const when = typeof e.data?.published_at === "string" ? new Date(e.data.published_at) : null;
+						const when = typeof e.data?.post_date === "string" ? new Date(e.data.post_date) : null;
 						if (!when || Number.isNaN(when.getTime())) continue;
 						const id = typeof e.id === "string" && e.id ? e.id : typeof e.slug === "string" ? (await content.findBySlug(collection, e.slug))?.id : null;
 						if (id) await content.update(collection, id, { publishedAt: when } as never).catch(() => undefined);
