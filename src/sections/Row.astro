@@ -28,8 +28,15 @@ const lazy = (h: string) => (belowFold ? h.replace(/<img\b(?![^>]*\bloading=)([^
 // The first picture of the first section is usually the largest thing on the first screen; ask for it first.
 let priorityLeft = as === "section" && index === 0;
 const priority = (h: string) => (priorityLeft ? h.replace(/<img\b(?![^>]*\bfetchpriority=)([^>]*)>/i, (m, attrs: string) => { priorityLeft = false; return `<img fetchpriority="high"${attrs}>`; }) : h);
+// A video below the first screen downloads only when it comes near: its address moves to data-tidy-src and the frame's
+// script restores it (and starts an autoplay) within a screen of view. Two 15 MB videos used to download on every visit.
+const lazyVideo = (h: string) => (belowFold ? h.replace(/<video\b([^>]*)>([\s\S]*?)<\/video>/gi, (whole, attrs: string, inner: string) => {
+	if (/data-tidy-src=|preload="auto"/i.test(attrs)) return whole;
+	const a = attrs.replace(/\ssrc="([^"]*)"/i, ' data-tidy-src="$1"').replace(/\spreload="[^"]*"/i, "") + ' preload="none"';
+	return `<video${a}>${inner.replace(/<source\b([^>]*)\ssrc="([^"]*)"/gi, '<source$1 data-tidy-src="$2"')}</video>`;
+}) : h);
 // A row spans the page, so its pictures are hinted at the full width unless the markup says otherwise (sizes="…").
-const pictures = (h: string) => priority(lazy(responsiveImgs(h, SIZES.full)));
+const pictures = (h: string) => lazyVideo(priority(lazy(responsiveImgs(h, SIZES.full))));
 const scoped = css ? scopeCss(css, `.ts-row[data-row="${key}"]`) : "";
 // Markup that brings its own <header> or <footer> is wrapped in a div, so the page has one of each.
 const ownLandmark = as !== "section" && new RegExp(`<${as}\\b`, "i").test(html);
@@ -51,3 +58,17 @@ for (const d of dialogs) seen.add(d.id);
 	</Tag>
 )}
 {dialogs.map((d) => <Dialog id={d.id} title={d.name} class="ts-form-dialog"><Form name={d.name} hidden={{ section: "row" }} /></Dialog>)}
+<script is:inline>
+(function(){
+	if (window.__tidyLazyVideo) return; window.__tidyLazyVideo = true;
+	function wake(v) { for (const s of v.querySelectorAll("source[data-tidy-src]")) { s.src = s.getAttribute("data-tidy-src"); s.removeAttribute("data-tidy-src"); } if (v.hasAttribute("data-tidy-src")) { v.src = v.getAttribute("data-tidy-src"); v.removeAttribute("data-tidy-src"); } v.preload = "auto"; v.load(); if (v.autoplay) { var p = v.play(); if (p && p.catch) p.catch(function(){}); } }
+	function start() {
+		var vids = document.querySelectorAll("video[data-tidy-src], video:has(source[data-tidy-src])");
+		if (!vids.length) return;
+		if (!("IntersectionObserver" in window)) { vids.forEach(wake); return; }
+		var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { wake(e.target); io.unobserve(e.target); } }); }, { rootMargin: "600px" });
+		vids.forEach(function (v) { io.observe(v); });
+	}
+	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
