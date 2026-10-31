@@ -144,7 +144,7 @@ export function pushDocument(local, snapshot, { keys, removeKeys = [], settings 
 		// A field taken out of the file is cleared on the site: the site keeps what a push does not name,
 		// so the names the snapshot had and the file no longer has go as null.
 		const data = { ...e.data };
-		if (was?.data) for (const k of Object.keys(was.data)) if (!(k in data) && was.data[k] !== null && was.data[k] !== '') data[k] = null;
+		if (was?.data) for (const k of Object.keys(was.data)) if (!(k in data) && !emptyValue(was.data[k])) data[k] = null;
 		(content[collection] ??= []).push({ id: e.id, slug, status: e.status, data });
 		if (was?.updated_at) expect[key] = was.updated_at;
 	}
@@ -162,6 +162,9 @@ export function pushDocument(local, snapshot, { keys, removeKeys = [], settings 
 	if (Object.keys(expect).length) doc.expect = expect;
 	return doc;
 }
+
+/** Nothing to clear: null, an empty string, an empty list or an empty object (the website refuses null for a list it stores as []). */
+const emptyValue = (v) => v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0) || (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0);
 
 export function splitKey(key) {
 	const i = key.indexOf('/');

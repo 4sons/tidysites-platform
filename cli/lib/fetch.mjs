@@ -32,7 +32,9 @@ const text = (s) => decode(s.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim
 export function cleanHtml(html) {
 	return html
 		.replace(/<!--[\s\S]*?-->/g, '')
-		.replace(/<(script|style|noscript|template|iframe)\b[\s\S]*?<\/\1>/gi, '')
+		.replace(/<(script|style|noscript|template)\b[\s\S]*?<\/\1>/gi, '')
+		// A frame is a band of the page (a map, a report, a video): keep where it sits and what it shows, drop the rest of the tag.
+		.replace(/<iframe\b([^>]*)>[\s\S]*?<\/iframe>/gi, (m, attrs) => { const src = attrs.match(/\s(?:data-src|src)=["']([^"']+)["']/i)?.[1] ?? ''; const title = attrs.match(/\stitle=["']([^"']*)["']/i)?.[1] ?? ''; return `<iframe src="${src}"${title ? ` title="${title}"` : ''}></iframe>`; })
 		.replace(/<svg\b[\s\S]*?<\/svg>/gi, '<svg></svg>')
 		.replace(/\son[a-z]+="[^"]*"/gi, '')
 		.replace(/\sstyle="[^"]*"/gi, '')
@@ -107,6 +109,7 @@ export function outline(html, base) {
 	out.fonts = [...new Set(out.fonts)];
 	// Adobe Fonts (Typekit) kits belong to the old site or its builder, so a port cannot load them; the families are named from the kit's CSS by the fetch command.
 	out.adobe_kits = [...new Set([...html.matchAll(/use\.typekit\.net\/([a-z0-9]+)\.css/gi)].map((m) => m[1].toLowerCase()))];
+	out.frames = [...html.matchAll(/<iframe\b([^>]*)>/gi)].map((m) => ({ src: abs(base, m[1].match(/\s(?:data-src|src)=["']([^"']+)["']/i)?.[1] ?? ''), title: decode(m[1].match(/\stitle=["']([^"']*)["']/i)?.[1] ?? '') })).filter((f) => f.src && !/^about:/.test(f.src)).slice(0, 20);
 	out.adobe_families = [];
 	return out;
 }
@@ -161,6 +164,10 @@ export function outlineText(o) {
 	if (o.images.length) {
 		lines.push('', `Images (${o.images.length}):`);
 		for (const i of o.images.slice(0, 60)) lines.push(`  ${i.src}${i.width ? ` (${i.width}x${i.height ?? '?'})` : ''}${i.alt ? `  alt: ${i.alt}` : ''}`);
+	}
+	if (o.frames?.length) {
+		lines.push('', `Embedded frames (${o.frames.length}): a band of the page each; rebuild as the frame section or a row's <iframe>`);
+		for (const f of o.frames) lines.push(`  ${f.src}${f.title ? `  title: ${f.title}` : ''}`);
 	}
 	if (o.phones.length) lines.push('', `Phones: ${o.phones.join(', ')}`);
 	if (o.emails.length) lines.push(`Emails: ${o.emails.join(', ')}`);

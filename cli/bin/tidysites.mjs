@@ -322,6 +322,9 @@ async function push(ctx) {
 	}
 	const doc = pushDocument(s.local, s.snap, { keys, removeKeys });
 	if (flags.force) doc.force = true;
+	// A picture that exists only as a file here (an illustration drawn from the old page's inline SVG, a rasterised
+	// icon) goes up with the push as its bytes; the website stores it in the library like a fetched one.
+	inlineMediaFiles(doc, ctx.dir);
 	if (flags.dry) {
 		say(`Would push ${keys.length} entr${keys.length === 1 ? 'y' : 'ies'}${removeKeys.length ? `, remove ${removeKeys.length}` : ''}${menus.length ? `, rewrite menu${menus.length === 1 ? '' : 's'} ${menus.join(', ')}` : ''}:`);
 		printStatus(s);
@@ -364,6 +367,29 @@ async function push(ctx) {
 	const pushed = new Set([...keys, ...menus.map((m) => `menus/${m}`)]);
 	if (touched.length) await pull(ctx, touched, { overwrite: pushed, menus: menus.length > 0 });
 	else if (menus.length) await pullMenus(ctx);
+}
+
+const MEDIA_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', svg: 'image/svg+xml', ico: 'image/x-icon' };
+/** Every { "$media": { "file": ... } } in the document becomes { "$media": { "data", "type", "filename", "alt" } }, read from the folder. */
+function inlineMediaFiles(doc, dir) {
+	const walk = (v) => {
+		if (Array.isArray(v)) return v.map(walk);
+		if (v && typeof v === 'object') {
+			const m = v.$media;
+			if (m && typeof m === 'object' && typeof m.file === 'string') {
+				const path = resolve(dir, m.file);
+				if (!path.startsWith(resolve(dir))) fail(`$media.file ${m.file}: outside the folder`);
+				if (!existsSync(path)) fail(`$media.file ${m.file}: no such file`);
+				const bytes = readFileSync(path);
+				if (bytes.length > 15 * 1024 * 1024) fail(`$media.file ${m.file}: ${(bytes.length / 1048576).toFixed(1)} MB; pictures up to 15 MB`);
+				const ext = m.file.split('.').pop().toLowerCase();
+				return { $media: { data: bytes.toString('base64'), type: MEDIA_TYPES[ext] ?? 'application/octet-stream', filename: m.file.split('/').pop(), alt: typeof m.alt === 'string' ? m.alt : '' } };
+			}
+			return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+		}
+		return v;
+	};
+	if (doc.content) doc.content = walk(doc.content);
 }
 
 async function shot(ctx, target = positional[0] ?? '/', opts = {}) {
@@ -633,7 +659,7 @@ async function publish(ctx) {
 
 function help() {
 	say(readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(2, 20).map((l) => l.replace(/^ \* ?/, '')).join('\n'));
-	say(`\nFiles:\n  <collection>/<slug>.json      { "id", "slug", "status", "updated_at", "data": {...} }; a new entry is a new file with "data"\n  <collection>/<slug>.css       data.custom_css as a file (rows: data.css); rows/<slug>.html is data.html\n  menus/<name>.json             a menu as a tree: { label, items: [{ label, url, children: [...] }] }\n  ${META}/                   config, key, the last pull, the content model, screenshots\n\nA field taken out of a file is cleared on the website at the next push; a file you changed here is never overwritten by a pull.\nImages: an image field or a Columns image slot takes { "$media": { "url": "https://...", "alt": "..." } }; the push fetches it into the library.\nReferences: a record names another by its id, or "$ref:<slug-or-id>" for one in the same push.`);
+	say(`\nFiles:\n  <collection>/<slug>.json      { "id", "slug", "status", "updated_at", "data": {...} }; a new entry is a new file with "data"\n  <collection>/<slug>.css       data.custom_css as a file (rows: data.css); rows/<slug>.html is data.html\n  menus/<name>.json             a menu as a tree: { label, items: [{ label, url, children: [...] }] }\n  ${META}/                   config, key, the last pull, the content model, screenshots\n\nA field taken out of a file is cleared on the website at the next push; a file you changed here is never overwritten by a pull.\nImages: an image field or a Columns image slot takes { "$media": { "url": "https://...", "alt": "..." } } (the push fetches it into the library) or { "$media": { "file": "assets/x.png", "alt": "..." } } for a picture that exists only as a file in this folder (the push carries its bytes).\nReferences: a record names another by its id, or "$ref:<slug-or-id>" for one in the same push.`);
 }
 
 async function main() {
