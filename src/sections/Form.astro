@@ -39,11 +39,11 @@ const contactAfter = str(d.contact_fields_position) === "after the questions";
 const contactOrder = (["name", "phone", "email"] as const).map((k) => ({ k, at: contact.indexOf(k) })).filter((x) => x.at >= 0 || (x.k === "name" && !onlyEmail && !noContact)).sort((a, b) => (a.at < 0 ? -1 : b.at < 0 ? 1 : a.at - b.at)).map((x) => x.k);
 // "inside the box": the label stays for screen readers and the hint (or the label) sits inside the box, the way many old forms read.
 const labelsInside = str(d.label_style) === "inside the box";
-const contactBox = (k: "name" | "phone" | "email") => {
-	if (k === "name") return !onlyEmail && !noContact ? <label class={req(true, `${askPhone && askEmail ? "ts-full" : ""} ${labelsInside ? "ts-label-inside" : ""}`.trim())}><span>{nameLabel}</span><input name="name" autocomplete="name" required placeholder={labelsInside ? nameHint || nameLabel : nameHint} /></label> : null;
-	if (k === "phone") return askPhone ? <label class={req(allRequired || !askEmail, labelsInside ? "ts-label-inside" : "")}><span>{phoneLabel}</span><input name="phone" type="tel" autocomplete="tel" required={allRequired || !askEmail} placeholder={labelsInside ? phoneHint || phoneLabel : phoneHint} /></label> : null;
-	return askEmail ? <label class={req(allRequired || !askPhone, labelsInside ? "ts-label-inside" : "")}><span>{emailLabel}</span><input name="email" type="email" autocomplete="email" required={allRequired || !askPhone} placeholder={labelsInside ? emailHint || emailLabel : emailHint} /></label> : null;
-};
+// The boxes and the questions render from one ordered list; the contact boxes lead unless the form puts them after the questions.
+type Item = { k: "name" | "phone" | "email" } | { q: (typeof questions)[number]; i: number };
+const contactItems: Item[] = contactOrder.map((k) => ({ k }));
+const questionItems: Item[] = questions.map((q, i) => ({ q, i }));
+const items: Item[] = contactAfter ? [...questionItems, ...contactItems] : [...contactItems, ...questionItems];
 const markRequired = bool(d.mark_required);
 const allRequired = str(d.contact_required).startsWith("every");
 const req = (required: boolean, cls = "") => `${cls} ${markRequired && required ? "ts-required" : ""}`.trim() || undefined;
@@ -71,8 +71,11 @@ const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turn
 <form class={`ts-form ${cls}`} action="/api/lead" method="post" data-tidy-form={form?.slug ?? form?.id ?? "contact"} data-error={tx("Something went wrong. Please try again.")}>
 	<div class="ts-form-fields">
 		{intro && <p class="ts-form-intro">{intro}</p>}
-		{!contactAfter && contactOrder.map((k) => contactBox(k))}
-		{questions.map((q, i) => {
+		{items.map((item) => {
+			if ("k" in item && item.k === "name") return !onlyEmail && !noContact ? <label class={req(true, `${askPhone && askEmail ? "ts-full" : ""} ${labelsInside ? "ts-label-inside" : ""}`.trim())}><span>{nameLabel}</span><input name="name" autocomplete="name" required placeholder={labelsInside ? nameHint || nameLabel : nameHint} /></label> : null;
+			if ("k" in item && item.k === "phone") return askPhone ? <label class={req(allRequired || !askEmail, labelsInside ? "ts-label-inside" : "")}><span>{phoneLabel}</span><input name="phone" type="tel" autocomplete="tel" required={allRequired || !askEmail} placeholder={labelsInside ? phoneHint || phoneLabel : phoneHint} /></label> : null;
+			if ("k" in item) return askEmail ? <label class={req(allRequired || !askPhone, labelsInside ? "ts-label-inside" : "")}><span>{emailLabel}</span><input name="email" type="email" autocomplete="email" required={allRequired || !askPhone} placeholder={labelsInside ? emailHint || emailLabel : emailHint} /></label> : null;
+			const q = item.q;
 			const key = `q_${slugOf(q.label)}`;
 			const opts = lines(q.options);
 			if (q.kind === "long answer") return <label class={req(q.required, "ts-full")}>{q.label}<textarea name={key} required={q.required} placeholder={q.placeholder || undefined}></textarea></label>;
@@ -81,9 +84,8 @@ const botCheck = secret ? await signBotCheck(secret, formName, turnstile ? "turn
 			if (q.kind === "date") return <label class={req(q.required)}>{q.label}<input name={key} type="date" required={q.required} /></label>;
 			if (q.kind === "number") return <label class={req(q.required)}>{q.label}<input name={key} type="number" inputmode="numeric" required={q.required} placeholder={q.placeholder || undefined} /></label>;
 			if (q.kind === "file upload") return <label class={req(q.required, "ts-full")}>{q.label}<input name={key} type="file" required={q.required} accept=".pdf,.doc,.docx,.txt,.rtf,.jpg,.jpeg,.png,.gif,.webp,.heic" /></label>;
-			return <label class={req(q.required, i === questions.length - 1 && questions.length % 2 ? "ts-full" : "")}>{q.label}<input name={key} required={q.required} placeholder={q.placeholder || undefined} /></label>;
+			return <label class={req(q.required, item.i === questions.length - 1 && questions.length % 2 ? "ts-full" : "")}>{q.label}<input name={key} required={q.required} placeholder={q.placeholder || undefined} /></label>;
 		})}
-		{contactAfter && contactOrder.map((k) => contactBox(k))}
 		{questions.map((q) => <input type="hidden" name={`label:q_${slugOf(q.label)}`} value={q.label} />)}
 		<input type="hidden" name="form" value={formName} />
 		{Object.entries(hidden).map(([k, v]) => <input type="hidden" name={k} value={v} />)}
