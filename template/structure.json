@@ -3660,12 +3660,28 @@
 				{
 					"slug": "display_font_file",
 					"label": "Display font file (woff2), when the font is not on Google or Adobe",
-					"type": "file"
+					"type": "file",
+					"validation": {
+						"allowedMimeTypes": [
+							"font/",
+							"application/font-woff",
+							"application/x-font-woff",
+							"application/octet-stream"
+						]
+					}
 				},
 				{
 					"slug": "body_font_file",
 					"label": "Body font file (woff2)",
-					"type": "file"
+					"type": "file",
+					"validation": {
+						"allowedMimeTypes": [
+							"font/",
+							"application/font-woff",
+							"application/x-font-woff",
+							"application/octet-stream"
+						]
+					}
 				},
 				{
 					"slug": "cookie_banner",
@@ -5715,7 +5731,18 @@
 							{
 								"slug": "file",
 								"label": "File",
-								"type": "file"
+								"type": "file",
+								"validation": {
+									"allowedMimeTypes": [
+										"image/",
+										"video/",
+										"font/",
+										"application/pdf",
+										"application/font-woff",
+										"application/x-font-woff",
+										"application/octet-stream"
+									]
+								}
 							},
 							{
 								"slug": "alt",

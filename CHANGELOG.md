@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- A row's `media` file and the Business font files name what they take (`allowedMimeTypes`: pictures incl. SVG, video, fonts, pdf); the store's default for a file field refused an SVG.
+
 ## 0.30.1
 
 From the tenth round's logs (Texas Sprinkler Pros on Duda, Griffin Painting on Squarespace).
