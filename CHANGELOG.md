@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## CLI unreleased
+
+- `push` resolves `$ref:<slug>` (or `$ref:<collection>/<slug>`): an entry the folder knows the website's id for becomes that id, and a new entry in the same push is keyed by its slug so the website resolves the reference as it creates it. A post's author written as `$ref:jane-doe` was stored as that text.
+
+## Unreleased template
 
 - A row's `media` file and the Business font files name what they take (`allowedMimeTypes`: pictures incl. SVG, video, fonts, pdf); the store's default for a file field refused an SVG.
 

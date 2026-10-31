@@ -99,3 +99,16 @@ test('a menu round-trips between the site\'s flat list and the file\'s tree', ()
 	]);
 	assert.throws(() => menuItems([{ url: '/x' }]), /needs a label/);
 });
+
+test('a $ref to a known entry becomes its id; one to a new entry in the same push keeps the slug as its seed key', () => {
+	const local = {
+		'people/jane-doe': { id: '01JANE', slug: 'jane-doe', status: 'published', data: { title: 'Jane Doe' } },
+		'posts/hello': { slug: 'hello', status: 'published', data: { title: 'Hello', author: '$ref:jane-doe', related: ['$ref:posts/second'] } },
+		'posts/second': { slug: 'second', status: 'published', data: { title: 'Second' } }
+	};
+	const doc = pushDocument(local, { entries: {} }, { keys: ['posts/hello', 'posts/second'] });
+	const hello = doc.content.posts.find((e) => e.slug === 'hello');
+	assert.equal(hello.data.author, '01JANE');
+	assert.deepEqual(hello.data.related, ['$ref:second']);
+	assert.equal(doc.content.posts.find((e) => e.slug === 'second').id, 'second');
+});
