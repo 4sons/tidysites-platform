@@ -69,6 +69,8 @@ function tokenName(value: unknown): string {
 
 export interface BootstrapInput {
 	adminEmail?: unknown;
+	/** What the first run fills the site with: "sample" (the theme's demo content, the default) or "none" (the content model and the site settings only, for a site about to be built from a client's own material). */
+	content?: unknown;
 	adminName?: unknown;
 	title?: unknown;
 	tagline?: unknown;
@@ -110,6 +112,7 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 	if (input.tagline !== undefined && (typeof input.tagline !== "string" || input.tagline.length > 500)) throw new HttpError(400, "tagline must be a string of at most 500 characters");
 	if (input.siteUrl !== undefined && !isHttpUrl(input.siteUrl)) throw new HttpError(400, "siteUrl must be an http(s) URL");
 	if (input.adminName !== undefined && (typeof input.adminName !== "string" || input.adminName.length > 200)) throw new HttpError(400, "adminName must be a string of at most 200 characters");
+	if (input.content !== undefined && input.content !== "sample" && input.content !== "none") throw new HttpError(400, 'content must be "sample" or "none"');
 	const name = tokenName(input.tokenName);
 	const { store, seed, tokens } = deps;
 	const steps: Record<string, unknown> = {};
@@ -156,6 +159,11 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 			...(typeof input.title === "string" ? { title: input.title } : {}),
 			...(typeof input.tagline === "string" ? { tagline: input.tagline } : {})
 		};
+		if (input.content === "none") {
+			// The structure, the settings and nothing else: no demo entries, no demo menus.
+			data.content = {};
+			data.menus = [];
+		}
 		const v = seed.validate(data);
 		if (!v.valid) throw new HttpError(500, "invalid seed", v.errors);
 		// The structure first, as an update: a site may have been set up once
