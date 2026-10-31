@@ -143,14 +143,22 @@ async function readPage(request: Request): Promise<Scope> {
 	};
 }
 
-/** A row's own files, by the name the HTML uses: {{ media.hero.url }}, {{ media.hero.alt }}, {{ media.hero.type }}. */
+/** A stored file as custom HTML reads it: {{ video.url }}, {{ video.type }}. */
+export function fileScope(file: unknown): Scope | null {
+	const url = mediaUrl(file);
+	if (!url) return null;
+	const f = (file && typeof file === "object" ? file : {}) as { mimeType?: unknown; alt?: unknown };
+	return { url, type: str(f.mimeType), alt: str(f.alt) };
+}
+
+/** A row's own pictures, by the name the HTML uses: {{ media.hero.url }}, {{ media.hero.alt }}, {{ media.hero.srcset }}. */
 export function rowMedia(list: unknown): Scope {
 	const out: Scope = {};
 	if (!Array.isArray(list)) return out;
 	for (const item of list as Array<Record<string, unknown>>) {
 		const name = str(item?.name).trim();
 		if (!name) continue;
-		const file = item.file;
+		const file = item.image ?? item.file;
 		const url = mediaUrl(file) ?? "";
 		const f = (file && typeof file === "object" ? file : {}) as { mimeType?: unknown; alt?: unknown; width?: unknown; height?: unknown };
 		out[name] = { url, alt: str(item.alt) || str(f.alt), type: str(f.mimeType), width: typeof f.width === "number" ? f.width : null, height: typeof f.height === "number" ? f.height : null, srcset: mediaSrcset(file) ?? "" };

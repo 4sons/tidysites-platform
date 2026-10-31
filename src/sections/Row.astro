@@ -9,7 +9,7 @@
  */
 import { getRow, str } from "./lib";
 import { scopeCss } from "../lib/sanitize";
-import { renderCustomHtml, rowMedia } from "./context";
+import { renderCustomHtml, rowMedia, fileScope } from "./context";
 import { SIZES, responsiveImgs } from "../lib/images";
 import Form from "./Form.astro";
 import Dialog from "../frame/Dialog.astro";
@@ -20,8 +20,8 @@ const row = name ? await getRow(name) : null;
 const html = row ? str(row.data.html) : (inlineHtml ?? "");
 const css = row ? str(row.data.css) : (inlineCss ?? "");
 const key = (blockKey || row?.slug || row?.id || "inline").replace(/[^A-Za-z0-9_-]/g, "");
-// The row's own files (a hero video, an illustration) are read as {{ media.<name>.url }}.
-const rendered = await renderCustomHtml(html, Astro.request, { media: rowMedia(row?.data.media) });
+// The row's own pictures are read as {{ media.<name>.url }}, its video as {{ video.url }}.
+const rendered = await renderCustomHtml(html, Astro.request, { media: rowMedia(row?.data.media), video: fileScope(row?.data.video) });
 // A picture below the first screen loads when it is needed, unless the markup says otherwise.
 const belowFold = as === "footer" || (as === "section" && index > 0);
 const lazy = (h: string) => (belowFold ? h.replace(/<img\b(?![^>]*\bloading=)([^>]*)>/gi, '<img loading="lazy" decoding="async"$1>') : h);

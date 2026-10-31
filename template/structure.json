@@ -5719,7 +5719,7 @@
 				},
 				{
 					"slug": "media",
-					"label": "Files the HTML uses (pictures, video)",
+					"label": "Pictures the HTML uses",
 					"type": "repeater",
 					"validation": {
 						"subFields": [
@@ -5729,18 +5729,12 @@
 								"type": "string"
 							},
 							{
-								"slug": "file",
-								"label": "File",
-								"type": "file",
+								"slug": "image",
+								"label": "Picture",
+								"type": "image",
 								"validation": {
 									"allowedMimeTypes": [
-										"image/",
-										"video/",
-										"font/",
-										"application/pdf",
-										"application/font-woff",
-										"application/x-font-woff",
-										"application/octet-stream"
+										"image/"
 									]
 								}
 							},
@@ -5749,6 +5743,16 @@
 								"label": "What it shows",
 								"type": "string"
 							}
+						]
+					}
+				},
+				{
+					"slug": "video",
+					"label": "Video the HTML plays (mp4 or webm)",
+					"type": "file",
+					"validation": {
+						"allowedMimeTypes": [
+							"video/"
 						]
 					}
 				},
