@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.14
+
+- The bootstrap's `content` option from 0.30.13 is gone: a theme's seed decides what a new site starts with, and Keel now seeds the content model and the settings only. One way, nothing to pass.
+
 ## 0.30.13
 
 - The first run takes `content: "none"`: the content model and the site settings only, no demo entries and no demo menus, for a site about to be built from a client's own material (a port). The default stays the theme's sample content.
