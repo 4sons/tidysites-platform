@@ -22,3 +22,11 @@ describe("markdownToHtml", () => {
 		expect(markdownToHtml("  \n ")).toBe("");
 	});
 });
+
+describe("inlineMarkdown", () => {
+	it("prints links, bold and italics in one line, escaped", async () => {
+		const { inlineMarkdown } = await import("../src/lib/markdown");
+		expect(inlineMarkdown("By sending you agree to our [Privacy Policy](/privacy) & **Terms**.")).toBe(`By sending you agree to our <a href="/privacy">Privacy Policy</a> &amp; <strong>Terms</strong>.`);
+		expect(inlineMarkdown("See [this](https://x.test/a) <b>")).toBe(`See <a href="https://x.test/a" target="_blank" rel="noopener">this</a> &lt;b&gt;`);
+	});
+});

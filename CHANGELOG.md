@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.30.11
+
+From the Radiant Roots Lighting port (GoDaddy).
+
+- A form's consent note is `ts-form-consent`; it shared `ts-consent` with the cookie bar, so a theme's fixed-bar rules floated it to the corner of the screen. The note takes links, bold and italics (`[Privacy Policy](/privacy)`).
+- The contact boxes come in the order the `contact_fields` setting names them ("name, email and phone").
+- Forms: `label_style` "inside the box" keeps the label for screen readers and puts the hint (or the label) inside the box.
+- The cookie card takes a `cookie_heading`, and `cookie_decline` "hidden" leaves out the Decline button.
+
 ## 0.30.10
 
 - A video in a row below the first screen downloads only when it comes within a screen of view (`data-tidy-src`, restored by the frame's script; an autoplay starts then); two 15 MB videos used to download on every visit of a ported homepage. A video in the first section, or one marked `preload="auto"`, is left as written.
