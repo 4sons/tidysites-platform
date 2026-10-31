@@ -26,8 +26,8 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { callTool, ApiError } from '../lib/api.mjs';
-import { diffEntries, entryToFiles, filesToEntry, FILE_NAME, menuItems, menuTree, pushDocument, sameEntry, snapshotOf, SIDECARS } from '../lib/folder.mjs';
-import { validateAll, indexSchema } from '../lib/validate.mjs';
+import { diffEntries, entryToFiles, filesToEntry, FILE_NAME, menuItems, menuTree, pushDocument, sameEntry, snapshotOf, SIDECARS, splitDocument, documentWeight, mergePushResults } from '../lib/folder.mjs';
+import { validateAll, indexSchema, validateMenuNames } from '../lib/validate.mjs';
 import { cleanHtml, cssSummary, fetchPage, outline, outlineText } from '../lib/fetch.mjs';
 
 const META = '.tidysites';
@@ -297,7 +297,7 @@ function validate({ dir }, local = null) {
 	const schema = readJson(join(dir, META, 'schema.json'));
 	if (!schema) fail('No content model here yet. Run `tidysites pull`.');
 	const read = local ? { local, problems: [] } : readLocal(dir);
-	const errors = [...read.problems, ...validateAll(read.local, schema)];
+	const errors = [...read.problems, ...validateAll(read.local, schema), ...validateMenuNames(Object.keys(readLocalMenus(dir)), Object.keys(readJson(join(dir, META, 'snapshot.json'))?.menus ?? {}))];
 	// The website keeps a section's type with its key: a key that changes type is refused with a bare "internal error", so say it here.
 	const snap = readJson(join(dir, META, 'snapshot.json'));
 	for (const [key, entry] of Object.entries(read.local)) {
@@ -341,7 +341,14 @@ async function push(ctx) {
 	if (keys.length || removeKeys.length) {
 		let r;
 		try {
-			({ json: r } = await callTool(ctx.cfg, 'push_website', { site_id: ctx.cfg.site, ...doc }));
+			// A push heavy with folder pictures goes in parts: the website takes each part well inside its time, where one request of tens of megabytes timed out part way.
+			const parts = splitDocument(doc);
+			if (parts.length > 1) say(`${parts.length} parts: the folder's pictures and videos weigh ${(documentWeight(doc) / 1048576).toFixed(0)} MB.`);
+			for (const [i, part] of parts.entries()) {
+				const { json } = await callTool(ctx.cfg, 'push_website', { site_id: ctx.cfg.site, ...part });
+				if (!json || typeof json !== 'object' || !json.content) throw new ApiError(`The website did not answer the push${parts.length > 1 ? ` (part ${i + 1} of ${parts.length})` : ''} in time or in a readable way`, { status: 504 });
+				r = r ? mergePushResults(r, json) : json;
+			}
 		} catch (e) {
 			if (!(e instanceof ApiError)) throw e;
 			say(describeError(e));

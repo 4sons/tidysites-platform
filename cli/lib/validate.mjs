@@ -188,6 +188,11 @@ export function validateEntry(collection, entry, model, file = `${collection}/${
 }
 
 /** Every entry (by "collection/slug") checked; the errors in file order. */
+/** A menu the website lacks is created at push time under its file name: lowercase letters, digits and underscores. */
+export function validateMenuNames(menuNames, knownNames = []) {
+	return menuNames.filter((n) => !knownNames.includes(n) && !/^[a-z][a-z0-9_]*$/.test(n)).map((n) => `menus/${n}.json: a new menu's name is lowercase letters, digits and underscores (rename the file)`);
+}
+
 export function validateAll(local, schema) {
 	const model = indexSchema(schema);
 	const errors = [];

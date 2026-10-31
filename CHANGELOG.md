@@ -1,5 +1,10 @@
 # Changelog
 
+## CLI 0.1.20
+
+- A push heavy with folder pictures and video goes in parts of up to 12 MB each (an entry heavier than that travels alone), so the website takes each part well inside its time; one 53 MB push timed out part way and the command crashed reading an empty answer. An unreadable answer now says so and pulls what the website took.
+- `validate` names a new menu file whose name the website would refuse (lowercase letters, digits and underscores).
+
 ## CLI 0.1.19
 
 - `push` really creates a menu the website lacks: the site tool's "not found" ended the command before the create could run (0.1.17 added the create behind an error that never reached it). A new menu's name is lowercase letters, digits and underscores; the push says so when it is not.

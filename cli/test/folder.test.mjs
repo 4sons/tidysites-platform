@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { diffEntries, docToFiles, entryToFiles, filesToEntry, menuItems, menuTree, pushDocument, snapshotOf } from '../lib/folder.mjs';
+import { diffEntries, docToFiles, entryToFiles, filesToEntry, menuItems, menuTree, pushDocument, snapshotOf, splitDocument, documentWeight, PUSH_PART_BYTES } from '../lib/folder.mjs';
 
 const page = { id: '01A', slug: 'home', status: 'published', updated_at: '2026-10-30T10:00:00Z', data: { title: 'Home', sections: [{ _type: 'hero', _key: 'h', headline: 'Hi' }], custom_css: '.x{color:red}' } };
 const row = { id: '01B', slug: 'footer', status: 'published', updated_at: '2026-10-30T10:00:00Z', data: { title: 'Footer', html: '<footer>f</footer>', css: '.ts-row{}' } };
@@ -111,4 +111,23 @@ test('a $ref to a known entry becomes its id; one to a new entry in the same pus
 	assert.equal(hello.data.author, '01JANE');
 	assert.deepEqual(hello.data.related, ['$ref:second']);
 	assert.equal(doc.content.posts.find((e) => e.slug === 'second').id, 'second');
+});
+
+test('a heavy push goes in parts under the cap, each with its own expectations; removals ride last', () => {
+	const big = 'A'.repeat(Math.floor(PUSH_PART_BYTES * 0.6));
+	const doc = { content: { rows: [
+		{ slug: 'a', data: { media: [{ image: { $media: { data: big, type: 'image/png', filename: 'a.png', alt: '' } } }] } },
+		{ slug: 'b', data: { media: [{ image: { $media: { data: big, type: 'image/png', filename: 'b.png', alt: '' } } }] } },
+		{ slug: 'c', data: { title: 'light' } }
+	] }, remove: { rows: ['z'] }, expect: { 'rows/a': 't1', 'rows/b': 't2' } };
+	assert.ok(documentWeight(doc) > PUSH_PART_BYTES);
+	const parts = splitDocument(doc);
+	assert.equal(parts.length, 2);
+	assert.deepEqual(parts[0].content.rows.map((e) => e.slug), ['a']);
+	assert.deepEqual(parts[1].content.rows.map((e) => e.slug), ['b', 'c']);
+	assert.deepEqual(parts[0].expect, { 'rows/a': 't1' });
+	assert.deepEqual(parts[1].expect, { 'rows/b': 't2' });
+	assert.equal(parts[0].remove, undefined);
+	assert.deepEqual(parts[1].remove, { rows: ['z'] });
+	assert.equal(splitDocument({ content: { rows: [{ slug: 'c', data: {} }] } }).length, 1);
 });
