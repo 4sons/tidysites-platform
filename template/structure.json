@@ -5363,6 +5363,11 @@
 					"type": "string"
 				},
 				{
+					"slug": "headline",
+					"label": "Headline over the quote (a review platform's title line)",
+					"type": "string"
+				},
+				{
 					"slug": "quote",
 					"label": "Quote",
 					"type": "text",
@@ -5766,6 +5771,9 @@
 								"label": "What it shows",
 								"type": "string"
 							}
+						],
+						"allowedMimeTypes": [
+							"image/"
 						]
 					}
 				},

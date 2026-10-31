@@ -9,6 +9,8 @@ From the Argent Garage Doors port (Webflow).
 - Forms: `contact_required` makes every contact box required ("every contact box"); the default stays name plus a phone or an email.
 - FAQ: layout `intro beside` puts the heading and text beside the questions; `numbered` prefixes 01., 02., ...
 - The favicon link's type follows the file (webp, jpeg, svg, ico, png); a .webp favicon was tagged png.
+- A row's `media` list names its accepted types on the list itself, so an SVG in it is taken (the store checks the list, not its picture sub-field).
+- Reviews carry a `headline` (a review platform's title line), shown over the quote.
 
 ## CLI 0.1.19
 

@@ -71,6 +71,7 @@
 .ts summary::after{content:"+";color:var(--ts-primary);font-weight:400}
 .ts details[open] summary::after{content:"–"}
 .ts details .ts-a{padding:0 0 16px;color:var(--ts-ink-2);max-width:64ch}
+.ts .ts-review .ts-review-head{font-weight:700;margin:10px 0 4px}
 .ts.ts-faq-numbered details{counter-increment:ts-faq}
 .ts.ts-faq-numbered summary::before{content:counter(ts-faq,decimal-leading-zero) ".";margin-right:12px;color:var(--ts-primary);font-weight:700}
 .ts.ts-faq-beside .ts-head{margin-bottom:0}
