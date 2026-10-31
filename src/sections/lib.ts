@@ -107,7 +107,7 @@ export interface Business {
 	languages: string; newPatientsLine: string; neighbourhoods: string; serviceAreaLine: string; sameDayLine: string; emergencyLine: string;
 	insuranceLine: string; governmentPrograms: string; hsaFsaLine: string; licenseLine: string; insuredLine: string; warrantyLine: string; accessibilityLine: string; parkingLine: string; directionsLine: string;
 	social: Array<{ network: string; url: string }>;
-	brandPrimary: string; brandAccent: string; fontDisplay: string; fontBody: string;
+	brandPrimary: string; brandAccent: string; fontDisplay: string; fontBody: string; /** More Google families the site's CSS uses (one per line, a family name with optional :weights). */ extraFonts: string[];
 	/** Surface tokens, empty when the site leaves them to the theme. */
 	brandGround: string; brandSurface: string; brandInk: string;
 	brandRadius: BrandRadius; brandDensity: BrandScale; brandTypeScale: BrandScale; brandWidth: BrandWidth;
@@ -195,7 +195,7 @@ async function readBusiness(): Promise<Business> {
 		languages: s("languages"), newPatientsLine: s("new_patients_line"), neighbourhoods: s("neighbourhoods"), serviceAreaLine: s("service_area_line"), sameDayLine: s("same_day_line", "same_day_note"), emergencyLine: s("emergency_line"),
 		insuranceLine: s("insurance_line"), governmentPrograms: s("government_programs"), hsaFsaLine: s("hsa_fsa_line"), licenseLine: s("license_line"), insuredLine: s("insured_line"), warrantyLine: s("warranty_line"), accessibilityLine: s("accessibility_line"), parkingLine: s("parking_line"), directionsLine: s("directions_line"),
 		social: NETWORKS.map((n) => ({ network: n, url: s(n) })).filter((x) => x.url),
-		brandPrimary: primary, brandAccent: accent, fontDisplay: s("font_display") || "Bricolage Grotesque", fontBody: s("font_body") || "Public Sans",
+		brandPrimary: primary, brandAccent: accent, fontDisplay: s("font_display") || "Bricolage Grotesque", fontBody: s("font_body") || "Public Sans", extraFonts: s("extra_fonts").split(/\n/).map((l) => l.trim()).filter(Boolean),
 		brandGround: hex(d.brand_ground), brandSurface: hex(d.brand_surface), brandInk: hex(d.brand_ink),
 		brandRadius: pickOne(d.brand_radius, ["sharp", "soft", "rounded", "pill"], ""), brandDensity: pickOne(d.brand_density, ["compact", "regular", "airy"], ""), brandTypeScale: pickOne(d.brand_type_scale, ["compact", "regular", "large"], ""), brandWidth: pickOne(d.brand_width, ["narrow", "regular", "wide"], ""),
 		bookingOpens: s("booking_opens") === "a form on this site" ? "form" : s("booking_opens") === "the booking embed" ? "embed" : "link", bookingForm: s("booking_form"), portalLabel: s("portal_label") || "Log in", headerPhone: bool(d.header_phone, true),
@@ -300,6 +300,12 @@ export function googleFontHrefs(b: Business): string[] {
 	const out: string[] = [];
 	if (display) out.push(fam(display, "ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,700"));
 	if (body && body.toLowerCase() !== display.toLowerCase()) out.push(fam(body, "ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700"));
+	// More families the site's CSS names (a button font, a form font): "Lato" or "Lato:400,700"; the named weights, or regular and bold.
+	for (const line of b.extraFonts ?? []) {
+		const [name, weights] = line.split(":");
+		const w = (weights ?? "400,700").split(/[,;\s]+/).map((x) => x.trim()).filter((x) => /^[1-9]00$/.test(x));
+		if (name?.trim() && ![display, body].some((f) => f.toLowerCase() === name.trim().toLowerCase())) out.push(fam(name, `wght@${(w.length ? w : ["400", "700"]).join(";")}`));
+	}
 	return out;
 }
 /** The first of the Google Fonts stylesheets, kept for themes that printed one link. */

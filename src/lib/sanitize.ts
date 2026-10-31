@@ -41,10 +41,19 @@ function safeUrl(value: string, attr: string, tag: string): string | null {
 	return v;
 }
 
+/** An address CSS may fetch: the site's own, a web address, or an inline picture. */
+const safeCssUrl = (u: string) => /^(https?:\/\/|\/|data:image\/)/i.test(u.trim());
+/** Every url(...) in the text, quoted or bare (a quoted inline SVG may hold parentheses), handed to `keep` to decide. */
+function mapUrls(css: string, keep: (u: string) => boolean): string {
+	return css.replace(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^'")]*))\s*\)/gi, (whole, dq: string | undefined, sq: string | undefined, bare: string | undefined) => (keep(dq ?? sq ?? bare ?? "") ? whole : "url()"));
+}
+
 function safeStyle(value: string): string | null {
 	const v = value.replace(/[\r\n]/g, " ");
-	if (/expression\s*\(|javascript:|behavior\s*:|@import|url\s*\(\s*['"]?\s*(?!https?:|\/|data:image)/i.test(v)) return null;
-	return v;
+	if (/expression\s*\(|javascript:|behavior\s*:|@import/i.test(v)) return null;
+	let reachedOut = false;
+	const out = mapUrls(v, (u) => { const ok = safeCssUrl(u); if (!ok) reachedOut = true; return ok; });
+	return reachedOut ? null : out;
 }
 
 /** The markup with everything that could run or reach out removed. */
@@ -83,7 +92,7 @@ export function scopeCss(input: string, scope: string): string {
 	let css = (input ?? "").replace(/\/\*[\s\S]*?\*\//g, "");
 	css = css.replace(/@import[^;]*;?/gi, "").replace(/@charset[^;]*;?/gi, "").replace(/@namespace[^;]*;?/gi, "");
 	css = css.replace(/expression\s*\([^)]*\)/gi, "").replace(/behavior\s*:[^;}]*/gi, "");
-	css = css.replace(/url\s*\(\s*(['"]?)(?!https?:|\/|data:image)[^)]*\)/gi, "url()");
+	css = mapUrls(css, safeCssUrl);
 	return scopeRules(css, scope);
 }
 function scopeRules(css: string, scope: string): string {
