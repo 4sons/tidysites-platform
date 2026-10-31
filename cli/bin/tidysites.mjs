@@ -569,6 +569,8 @@ async function fetchCmd(ctx) {
 				const css = await r.text();
 				cssTexts.push(css);
 				writeFileSync(join(outDir, `${base}-${cssTexts.length}.css`), css);
+				// The kit's CSS names the families it serves, which the page's HTML does not.
+				if (/use\.typekit\.net/i.test(href)) o.adobe_families = [...new Set([...o.adobe_families ?? [], ...[...css.matchAll(/font-family\s*:\s*["']([^"';]+)["']/gi)].map((m) => m[1])])];
 			}
 		} catch {
 			/* a stylesheet that will not download is not the port's problem */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PAGE_TYPES, blogRoute, compilePattern, entryPath, hasPage, indexOn, indexPath, matchPattern, normalizePath, pageType, routeCandidates } from "../src/lib/routes";
+import { PAGE_TYPES, addressPattern, blogLive, blogRoute, compilePattern, entryPath, hasPage, indexOn, indexPath, matchPattern, normalizePath, pageType, routeCandidates } from "../src/lib/routes";
 import { collections } from "../src/template/index";
 
 describe("routes", () => {
@@ -93,5 +93,37 @@ describe("indexLive", () => {
 		expect(indexLive(t, {}, false)).toBe(false);
 		expect(indexLive(t, {}, true)).toBe(true);
 		expect(indexLive(t, null, true)).toBe(true);
+	});
+});
+
+describe("addresses on the frame record", () => {
+	it("names a frame field for every collection but pages, and the template declares each field", () => {
+		const frame = collections.find((x) => x.slug === "frame")!;
+		for (const t of PAGE_TYPES) {
+			if (t.collection === "pages") { expect(t.address).toBeNull(); continue; }
+			expect(t.address, t.collection).toBeTruthy();
+			expect(frame.fields.some((f) => f.slug === t.address), `frame.${t.address}`).toBe(true);
+		}
+		expect(frame.fields.some((f) => f.slug === "blog_index")).toBe(true);
+	});
+	it("turns a clean address into the pattern, and ignores an empty or unclean one", () => {
+		const posts = typeOf("posts")!;
+		expect(addressPattern(posts, { blog_path: "/news" })).toBe("/news/{slug}");
+		expect(addressPattern(posts, { blog_path: "news/" })).toBe("/news/{slug}");
+		expect(addressPattern(posts, { blog_path: "/insights/articles" })).toBe("/insights/articles/{slug}");
+		expect(addressPattern(posts, { blog_path: "" })).toBeNull();
+		expect(addressPattern(posts, { blog_path: "/" })).toBeNull();
+		expect(addressPattern(posts, { blog_path: "/{slug}" })).toBeNull();
+		expect(addressPattern(posts, { blog_path: "/news?x=1" })).toBe("/news/{slug}");
+		expect(addressPattern(posts, {})).toBeNull();
+		expect(addressPattern(typeOf("pages")!, { pages_path: "/p" })).toBeNull();
+	});
+	it("routes the blog only while its switch allows", () => {
+		expect(blogLive({ blog_index: "on" }, false)).toBe(true);
+		expect(blogLive({ blog_index: "off" }, true)).toBe(false);
+		expect(blogLive({}, false)).toBe(false);
+		expect(blogLive({}, true)).toBe(true);
+		expect(routeCandidates("/blog", {}, { blog_index: "off" }).some((c) => c.kind === "blog")).toBe(false);
+		expect(routeCandidates("/blog", {}, {}).some((c) => c.kind === "blog")).toBe(true);
 	});
 });

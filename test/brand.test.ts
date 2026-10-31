@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandStyle, brandTokens, type Business } from "../src/sections/lib";
+import { brandStyle, brandTokens, fontLinks, googleFontHrefs, type Business } from "../src/sections/lib";
 
 const base = {
 	brandPrimary: "#1e5a46", brandAccent: "#e8b23a", fontDisplay: "Gabarito", fontBody: "Instrument Sans",
@@ -24,5 +24,20 @@ describe("brand tokens", () => {
 	});
 	it("renders as one inline style", () => {
 		expect(brandStyle(base)).toMatch(/^--brand-primary:#1e5a46;--brand-primary-ink:#ffffff;/);
+	});
+});
+
+describe("font stylesheets", () => {
+	it("asks Google for one stylesheet per family, light to extra bold, so a family Google lacks fails alone", () => {
+		const links = googleFontHrefs({ ...base, displayFontFile: "", bodyFontFile: "", adobeFontsKit: "" } as Business);
+		expect(links).toEqual([
+			"https://fonts.googleapis.com/css2?family=Gabarito:wght@300;400;500;600;700;800&display=swap",
+			"https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600;700&display=swap"
+		]);
+		expect(fontLinks({ ...base, displayFontFile: "", bodyFontFile: "", adobeFontsKit: "" } as Business)).toEqual(links);
+	});
+	it("requests a family once when both tokens name it, and not at all when an uploaded file stands in for it", () => {
+		expect(googleFontHrefs({ ...base, fontBody: "gabarito", displayFontFile: "", bodyFontFile: "", adobeFontsKit: "" } as Business)).toHaveLength(1);
+		expect(googleFontHrefs({ ...base, displayFontFile: "https://x/d.woff2", bodyFontFile: "", adobeFontsKit: "" } as Business)).toEqual(["https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600;700&display=swap"]);
 	});
 });

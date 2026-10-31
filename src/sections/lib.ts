@@ -1,7 +1,7 @@
 /** Helpers every section component shares: reading a stored block, images, lists, and the business record. */
 import { getCollectionInfo, getEmDashCollection, getEmDashEntry, getSiteSettings } from "emdash";
 import { adobeKitId } from "../lib/providers";
-import { MAX_PAGE_DEPTH, PAGE_TYPES, entryPath, hasPage, indexLive, indexOn, indexPath, normalizePath, pageType, routeCandidates, type PageType, type Route } from "../lib/routes";
+import { MAX_PAGE_DEPTH, PAGE_TYPES, addressPattern, blogLive, entryPath, hasPage, indexLive, indexOn, indexPath, normalizePath, pageType, routeCandidates, type PageType, type Route } from "../lib/routes";
 import { pageSeo, type Crumb, type Identity, type PageSeo } from "../lib/seo";
 export type { PageSeo, Crumb } from "../lib/seo";
 export { PAGE_TYPES, pageType, hasPage, indexPath, entryPath, normalizePath, type Route, type PageType } from "../lib/routes";
@@ -130,6 +130,8 @@ export interface Business {
 	headerRow: string; footerRow: string;
 	popupShows: "nothing" | "an offer" | "a form"; popupTitle: string; popupOffer: string; popupForm: string; popupTrigger: "on arrival" | "after ten seconds" | "after thirty seconds" | "after scrolling halfway" | "on leaving"; popupEvery: "once a visit" | "once a day" | "every time";
 	logo: { src: string; alt?: string; width?: number; height?: number } | null;
+	/** The logo for dark surfaces (the Business record's logo_dark), when there is one. */
+	logoDark: { src: string; alt?: string; width?: number; height?: number } | null;
 	/** The browser tab icon, when the Business record carries one. */
 	favicon: { src: string; alt?: string; width?: number; height?: number } | null;
 	ga4Id: string; gtmId: string; gtmId2: string; customCss: string;
@@ -207,7 +209,7 @@ async function readBusiness(): Promise<Business> {
 		footerServicesLabel: str(fr.footer_services_label), footerServices: fr.footer_services !== "off", footerMenuLabel: str(fr.footer_menu_label), siteLanguage: str(fr.site_language) || "en",
 		headerRow: str(fr.header_row), footerRow: str(fr.footer_row),
 		popupShows: pickOne(fr.popup_shows, ["nothing", "an offer", "a form"], "nothing"), popupTitle: str(fr.popup_title), popupOffer: str(fr.popup_offer), popupForm: str(fr.popup_form), popupTrigger: pickOne(fr.popup_trigger, ["on arrival", "after ten seconds", "after thirty seconds", "after scrolling halfway", "on leaving"], "after ten seconds"), popupEvery: pickOne(fr.popup_every, ["once a visit", "once a day", "every time"], "once a visit"),
-		logo: mediaSrc(d.logo), favicon: mediaSrc(d.favicon), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), gtmId2: str(ig.gtm_id_2), customCss: s("custom_css"), schemaType: s("schema_type"), priceRange: s("price_range"), siteSchema: str(fr.site_schema), wording: parseWording(fr.wording), raw: d,
+		logo: mediaSrc(d.logo), logoDark: mediaSrc(d.logo_dark), favicon: mediaSrc(d.favicon), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), gtmId2: str(ig.gtm_id_2), customCss: s("custom_css"), schemaType: s("schema_type"), priceRange: s("price_range"), siteSchema: str(fr.site_schema), wording: parseWording(fr.wording), raw: d,
 	};
 }
 /** "Original => Replacement" lines into a map; a line without the arrow, or with an empty side, is skipped. */
@@ -273,7 +275,7 @@ export function brandStyle(b: Business): string {
 }
 /** Every stylesheet the brand fonts need: Google for the named families, Adobe when a kit is set. Uploaded files come as @font-face from fontFaces(). */
 export function fontLinks(b: Business): string[] {
-	const links = [fontsHref(b)];
+	const links = googleFontHrefs(b);
 	const kit = adobeKitId(b.adobeFontsKit);
 	if (kit) links.push(`https://use.typekit.net/${kit}.css`);
 	return links;
@@ -284,10 +286,25 @@ export function fontFaces(b: Business): string {
 	return [b.displayFontFile ? face("Brand Display", b.displayFontFile) : "", b.bodyFontFile ? face("Brand Body", b.bodyFontFile) : ""].join("");
 }
 /** Google Fonts stylesheet for the two brand families. */
+/**
+ * One Google Fonts stylesheet per named family. One request for both used to
+ * fail whole when either name was not a Google family (a ported site's Proxima
+ * Nova beside Bebas Neue), and then neither font loaded. Light copy (300) is
+ * common in ported designs, headings at 400 too, so both come along. A family
+ * an uploaded file stands in for is not requested.
+ */
+export function googleFontHrefs(b: Business): string[] {
+	const fam = (name: string, axes: string) => `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name.trim()).replace(/%20/g, "+")}:${axes}&display=swap`;
+	const display = b.displayFontFile ? "" : b.fontDisplay.trim();
+	const body = b.bodyFontFile ? "" : b.fontBody.trim();
+	const out: string[] = [];
+	if (display) out.push(fam(display, "wght@300;400;500;600;700;800"));
+	if (body && body.toLowerCase() !== display.toLowerCase()) out.push(fam(body, "wght@300;400;500;600;700"));
+	return out;
+}
+/** The first of the Google Fonts stylesheets, kept for themes that printed one link. */
 export function fontsHref(b: Business): string {
-	const fam = (name: string, axes: string) => `family=${encodeURIComponent(name).replace(/%20/g, "+")}:${axes}`;
-	// Headings at a regular weight are common in ported designs, so the display family comes with 400 as well.
-	return `https://fonts.googleapis.com/css2?${fam(b.fontDisplay, "wght@400;600;700;800")}&${fam(b.fontBody, "wght@400;500;600;700")}&display=swap`;
+	return googleFontHrefs(b)[0] ?? "";
 }
 /** The one line of address a section prints. */
 export function addressLine(b: { address: string; city: string; region: string; postal: string; hideAddress?: boolean }): string {
@@ -413,14 +430,15 @@ function cached<T>(key: string, ttlMs: number, read: () => Promise<T>): Promise<
 /** Forget the cached patterns and frame, for tests and for a request that just changed them. */
 export function forgetRoutes(): void { shortCache.clear(); }
 
-/** The URL pattern of every page-bearing collection as the site has it (EmDash's collection setting; the template's default until changed). */
+/** The URL pattern of every page-bearing collection as the site has it: the frame record's address for it first (`blog_path`, `services_path`, …), then EmDash's collection setting, then the template's default. */
 export function sitePatterns(): Promise<Record<string, string>> {
 	return cached("patterns", 5_000, async () => {
 		const out: Record<string, string> = {};
+		const frame = await siteFrame();
 		await Promise.all(PAGE_TYPES.map(async (t) => {
 			let pattern = t.pattern;
 			try { const info = (await getCollectionInfo(t.collection)) as { urlPattern?: string | null } | null; if (info?.urlPattern) pattern = info.urlPattern; } catch { /* the collection is missing on an older site */ }
-			out[t.collection] = pattern;
+			out[t.collection] = addressPattern(t, frame) ?? pattern;
 		}));
 		return out;
 	});
@@ -463,19 +481,23 @@ export async function pageParents(data: Record<string, unknown> | null, lookup?:
 	}
 	return out;
 }
-/** The address of a type's listing page, or null when the type has none or its switch is off. The blog's is always on. */
+/** The address of a type's listing page, or null when the type has none or its switch is off. The blog's follows `blog_index` (on, off, or on while there are posts). */
 export async function collectionUrl(collection: string): Promise<string | null> {
 	const t = pageType(collection);
 	if (!t) return null;
 	const [patterns, frame] = await Promise.all([sitePatterns(), siteFrame()]);
 	const base = indexPath(patterns[collection] ?? t.pattern);
 	if (!base) return null;
-	if (collection === "posts") return base;
+	if (collection === "posts") return blogLive(frame, await hasPosts()) ? base : null;
 	return indexLive(t, frame, await listable(t)) ? base : null;
 }
-/** The blog's address (the posts pattern's prefix), `/blog` unless the site changed it. */
+/** The blog's address (the posts pattern's prefix), `/blog` unless the site changed it; whether the listing is on is collectionUrl("posts"). */
 export async function blogBase(): Promise<string> {
-	return (await collectionUrl("posts")) ?? "/blog";
+	return indexPath((await sitePatterns()).posts ?? "/blog/{slug}") ?? "/blog";
+}
+/** Whether the site has a post to list. */
+async function hasPosts(): Promise<boolean> {
+	return (await entries("posts", { limit: 1 })).length > 0;
 }
 
 /** What a path is on this site: the first candidate whose record exists and has its page on, or null for a 404. */
@@ -493,7 +515,8 @@ export async function resolveRoute(path: string): Promise<(Route & { entry?: Awa
 			if (!t || !indexLive(t, frame, await listable(t))) continue;
 			return c;
 		}
-		if (c.kind === "home" || c.kind === "blog") return c;
+		if (c.kind === "home") return c;
+		if (c.kind === "blog") { if (!blogLive(frame, await hasPosts())) continue; return c; }
 		const collection = c.kind === "page" ? "pages" : c.collection;
 		let found: { entry: unknown; cacheHint?: unknown } | null = null;
 		try { found = (await getEmDashEntry(collection as never, c.slug)) as { entry: unknown; cacheHint?: unknown }; } catch { found = null; }
@@ -518,7 +541,7 @@ export async function sitePages(): Promise<SitePage[]> {
 	for (const t of PAGE_TYPES) {
 		const pattern = patterns[t.collection] ?? t.pattern;
 		if (t.index && indexLive(t, frame, (lists.get(t.collection) ?? []).some((e) => hasPage(t, e.data)))) { const base = indexPath(pattern); if (base) add({ path: base, kind: "index", collection: t.collection, title: t.index.label }); }
-		if (t.collection === "posts") { const base = indexPath(pattern); if (base) add({ path: base, kind: "blog", collection: "posts", title: "Blog" }); }
+		if (t.collection === "posts" && blogLive(frame, (lists.get("posts") ?? []).length > 0)) { const base = indexPath(pattern); if (base) add({ path: base, kind: "blog", collection: "posts", title: "Blog" }); }
 	}
 	for (const t of PAGE_TYPES) {
 		const pattern = patterns[t.collection] ?? t.pattern;
@@ -533,7 +556,7 @@ export async function sitePages(): Promise<SitePage[]> {
 		}
 	}
 	const base = indexPath(patterns.posts ?? "/blog/{slug}");
-	if (base) {
+	if (base && blogLive(frame, (lists.get("posts") ?? []).length > 0)) {
 		const f = await blogFacets();
 		for (const c of f.categories) add({ path: `${base}/category/${c.slug}`, kind: "blog", collection: "posts", title: c.label });
 		for (const tg of f.tags) add({ path: `${base}/tag/${tg.slug}`, kind: "blog", collection: "posts", title: tg.label });

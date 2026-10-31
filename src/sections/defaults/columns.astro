@@ -15,7 +15,7 @@ import { markdownToHtml } from "../../lib/markdown";
 import { sanitizeHtml } from "../../lib/sanitize";
 import { renderCustomHtml } from "../context";
 import Dialog from "../../frame/Dialog.astro";
-import { mediaSrcset, sizesFor } from "../../lib/images";
+import { mediaSrcset, responsiveImgs, sizesFor } from "../../lib/images";
 import Form from "../Form.astro";
 const n = nodeOf(Astro.props);
 const props = Astro.props as { grouped?: boolean; groupTone?: string | null };
@@ -53,6 +53,11 @@ const prose = (md: string) => sanitizeHtml(markdownToHtml(md));
 const htmlSlots = new Map<number, Awaited<ReturnType<typeof renderCustomHtml>>>();
 for (const { s, i } of slots) if (kindOf(s) === "html") htmlSlots.set(i, await renderCustomHtml(str(s.html), Astro.request));
 const seen = ((Astro.locals as unknown as { tidyFormDialogs?: Set<string> }).tidyFormDialogs ??= new Set<string>());
+// A slot's own <img> tags get the variants and the share of the row the slot has, and load lazily below the first screen, like a custom row's.
+const slotPictures = (html: string, isFull: boolean) => {
+	const sized = responsiveImgs(html, sizesFor(isFull ? "full" : across >= 4 ? "quarter" : across === 3 ? "third" : "half"));
+	return loading === "lazy" ? sized.replace(/<img\b(?![^>]*\bloading=)([^>]*)>/gi, '<img loading="lazy" decoding="async"$1>') : sized;
+};
 const slotDialogs = [...htmlSlots.values()].flatMap((r) => r.dialogs).filter((d) => { if (seen.has(d.id)) return false; seen.add(d.id); return true; });
 const embed = (url: string) => url.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/").replace("vimeo.com/", "player.vimeo.com/video/");
 const full = (s: Slot) => str(s.span) === "full row";
@@ -100,7 +105,7 @@ const classes = ["ts", "ts-columns", toneClass, bg ? "ts-has-bg" : "", grouped ?
 							{heading && <H>{heading}</H>}
 							<div class="ts-video">{/\.(mp4|webm|mov)(\?|$)/i.test(str(s.video_url)) ? <video src={str(s.video_url)} controls playsinline></video> : <iframe src={embed(str(s.video_url))} title={heading || "Video"} loading="lazy" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>}</div>
 						</>)}
-						{kind === "html" && (htmlSlots.get(slotIndex)?.segments ?? []).map((seg) => ("html" in seg ? <Fragment set:html={seg.html} /> : <Form name={seg.form} class="ts-card" hidden={{ section: "columns" }} />))}
+						{kind === "html" && (htmlSlots.get(slotIndex)?.segments ?? []).map((seg) => ("html" in seg ? <Fragment set:html={slotPictures(seg.html, isFull)} /> : <Form name={seg.form} class="ts-card" hidden={{ section: "columns" }} />))}
 					</div>
 				);
 			})}
