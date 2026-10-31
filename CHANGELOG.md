@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.12
+
+- The form's contact boxes render from the template again, in one ordered list with the questions. 0.30.11 built them in a function in the component's frontmatter, which Astro cannot parse, so every theme build on 0.30.11 failed. Nothing changes in the markup.
+
 ## 0.30.11
 
 From the Radiant Roots Lighting port (GoDaddy).
