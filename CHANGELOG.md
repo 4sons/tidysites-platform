@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.30.8
+
+- A platform route's 500 answer (bootstrap, schema, fill: a bearer on every call) carries the thrown message as `detail`; a bootstrap that died ten minutes in answered a bare "internal error". Public routes still hide it.
+- The bootstrap lock goes stale after 12 minutes, not 30: a bootstrap takes about ten, so a dead one (a worker cut off mid-seed) no longer blocks the provisioning retries for half an hour.
+
 ## CLI 0.1.21
 
 - A video travels up to 25 MB, the most one file of a published site may weigh; a 26 MB hero video went up to the preview and then failed the publish of the whole site. The message says to re-encode it.

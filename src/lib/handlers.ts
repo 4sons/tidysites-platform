@@ -86,7 +86,8 @@ export interface BootstrapResult {
 /** Where a running bootstrap leaves its mark, so a second call waits for it instead of running the seed beside it. */
 export const BOOTSTRAP_LOCK = "tidy:bootstrap";
 const BOOTSTRAP_WAIT_MS = 270_000;
-const BOOTSTRAP_STALE_MS = 30 * 60_000;
+// A bootstrap takes about ten minutes; one that has held its lock longer than this is dead (a worker cut off mid-seed), and the next call takes over.
+const BOOTSTRAP_STALE_MS = 12 * 60_000;
 
 /**
  * Headless first run for a freshly provisioned site: apply the template seed,
