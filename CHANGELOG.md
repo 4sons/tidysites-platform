@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.30.3
+
+- A row's `media` list holds pictures (`image` sub-fields; SVG included) and a row's video is its own `video` file field, read as `{{ video.url }}`. The store the themes run allows no `file` inside a repeater, so 0.30.0 to 0.30.2 failed every content model update and every new site's bootstrap with a bare "internal error" once the store reached 1.3.
+- The bootstrap, schema and fill routes report the store's own words when the content model cannot be applied ("the website could not apply the content model (rows.media): ...").
+- A test applies the template's structure through the store on an in-memory database, twice (create, then update), so a shape the store refuses fails here.
+
 ## CLI 0.1.18
 
 - `push` resolves `$ref:<slug>` (or `$ref:<collection>/<slug>`): an entry the folder knows the website's id for becomes that id, and a new entry in the same push is keyed by its slug so the website resolves the reference as it creates it. A post's author written as `$ref:jane-doe` was stored as that text.

@@ -8,6 +8,16 @@ import type { PlatformStore, Role } from "./store";
 import { ROLE_LEVEL } from "./store";
 import { VERSION } from "../version";
 
+/** The store's own words when the content model cannot be applied, instead of a bare "internal error": which collection or field, and why. */
+async function speaking<T>(run: () => Promise<T>, what = ""): Promise<T> {
+	try { return await run(); }
+	catch (err) {
+		if (err instanceof HttpError) throw err;
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new HttpError(500, `the website could not apply the content model${what ? ` (${what})` : ""}: ${msg.slice(0, 600)}`);
+	}
+}
+
 export interface SeedOps {
 	load(): Promise<Record<string, unknown> & { settings?: Record<string, unknown> }>;
 	validate(seed: unknown): { valid: boolean; errors?: unknown };
@@ -143,8 +153,8 @@ export async function bootstrap(input: BootstrapInput, deps: Deps, requestOrigin
 		// and the content that follows is only valid against this seed's fields.
 		const structure: Record<string, unknown> = {};
 		for (const k of STRUCTURE_KEYS) if (data[k] !== undefined) structure[k] = data[k];
-		steps.structure = await seed.applyStructure(structure);
-		const result = await seed.apply(data);
+		steps.structure = await speaking(() => seed.applyStructure(structure));
+		const result = await speaking(() => seed.apply(data), "content");
 		steps.seed = { collections: result.collections, content: result.content };
 	}
 
@@ -307,7 +317,7 @@ export async function applySchema(deps: Deps, input: SchemaInput = {}): Promise<
 	let next = { ...known };
 	for (const it of pending) {
 		if ((deps.now ?? Date.now)() - started > budget) { result.complete = false; break; }
-		addCounts(result.counts, await deps.seed.applyStructure(await keepSiteRouting(deps, it.seed)));
+		addCounts(result.counts, await speaking(async () => deps.seed.applyStructure(await keepSiteRouting(deps, it.seed)), it.key));
 		next = { ...next, [it.key]: it.hash };
 		await deps.store.setOption(STRUCTURE_OPTION, next);
 		result.applied.push(it.key);
