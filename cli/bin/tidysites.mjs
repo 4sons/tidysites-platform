@@ -9,6 +9,7 @@
  *   push [--prune] [--force] [--dry]          write the changes back, then pull
  *   shot <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--first-screen] [--menu] [--open sel,..] [--hover sel,..]   screenshot to .tidysites/shots (none = desktop and mobile); a tall page comes in 1600px bands; --menu opens every navigation menu first
  *   measure <path|url> [--mobile] [--tablet] [--desktop] [--wide] [--all] [--full] [--menu] [--open sel,..] [--hover sel,..]   the computed type and boxes of a page: the numbers to style to and diff
+ *   speed <path|url> [--mobile|--desktop] [--live] [--against <url>]   PageSpeed Insights for a page, and the old page beside it
  *   redirect [add <old> <new> | rm <old>]      the website's redirects (an old address that must keep working goes here)
  *   pages                                     every address the website renders
  *   page <path> [--html]                      the rendered page, section by section
@@ -434,6 +435,39 @@ async function measure(ctx) {
 	}
 }
 
+/** PageSpeed Insights for a page of the website (or any address), and the old page beside it with --against. */
+async function speed(ctx) {
+	const target = positional[0] ?? '/';
+	const isUrl = /^https?:\/\//.test(target);
+	const strategy = flags.mobile && !flags.desktop ? 'mobile' : flags.desktop && !flags.mobile ? 'desktop' : 'both';
+	const args = { site_id: ctx.cfg.site, strategy, ...(isUrl ? { url: target } : { path: target, site: flags.live ? 'live' : 'preview' }), ...(flags.against ? { compare_url: String(flags.against) } : {}) };
+	say(`Testing${flags.against ? ' both pages' : ''} with PageSpeed Insights (a minute or two)...`);
+	const { json } = await tool(ctx.cfg, 'speed_website', args);
+	if (!json?.page) fail('No result came back.');
+	const outDir = join(ctx.dir, META, 'speed');
+	mkdirSync(outDir, { recursive: true });
+	const stamp = new Date().toISOString().replace(/[-:.]/g, '').slice(4, 18);
+	const base = (isUrl ? new URL(target).hostname + new URL(target).pathname : target).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'home';
+	const file = join(outDir, `${base}-${stamp}.json`);
+	writeFileSync(file, JSON.stringify(json, null, '\t'));
+	const n = (v, unit = '') => (v === null || v === undefined ? '—' : `${v}${unit}`);
+	const line = (r) => r.error ? `    ${r.strategy.padEnd(8)} ${r.error}` : `    ${r.strategy.padEnd(8)} perf ${n(r.scores.performance)}  a11y ${n(r.scores.accessibility)}  best ${n(r.scores.best_practices)}  seo ${n(r.scores.seo)}   LCP ${n(r.lab.lcp_ms, 'ms')}  FCP ${n(r.lab.fcp_ms, 'ms')}  TBT ${n(r.lab.tbt_ms, 'ms')}  CLS ${n(r.lab.cls)}  ${r.lab.total_bytes ? Math.round(r.lab.total_bytes / 1024) + ' KB' : '—'} in ${n(r.lab.requests)} requests${r.field ? `   field: LCP ${n(r.field.lcp_ms, 'ms')} INP ${n(r.field.inp_ms, 'ms')} CLS ${n(r.field.cls)} (${r.field.overall})` : ''}`;
+	say(`\n${json.target}`);
+	for (const r of json.page) say(line(r));
+	if (json.compare) { say(`\n${json.compare_url}  (the page it is compared with)`); for (const r of json.compare) say(line(r)); }
+	for (const r of json.page) {
+		if (r.error) continue;
+		say(`\n  ${r.strategy}: what to change`);
+		if (r.lcp_element) say(`    largest paint: ${r.lcp_element.replace(/\s+/g, ' ').slice(0, 160)}`);
+		for (const o of r.opportunities.slice(0, 8)) {
+			say(`    • ${o.title}${o.savings_ms ? ` (${o.savings_ms} ms)` : ''}${o.savings_kb ? ` (${o.savings_kb} KB)` : ''}`);
+			for (const it of o.items.slice(0, 4)) say(`        ${it}`);
+		}
+		for (const d of r.diagnostics.slice(0, 8)) say(`    · ${d}`);
+	}
+	say(`\nSaved to ${relative(process.cwd(), file)}. Full reports: ${json.page.filter((r) => !r.error).map((r) => r.report_url).join('  ')}`);
+}
+
 /** The website's redirects: list them, add one, remove one. They ship with the next publish. */
 async function redirect(ctx) {
 	const sub = positional[0];
@@ -642,6 +676,8 @@ async function main() {
 		}
 		case 'measure':
 			return measure(config());
+		case 'speed':
+			return speed(config());
 		case 'redirect':
 		case 'redirects':
 			return redirect(config());
