@@ -47,6 +47,13 @@ test('a good page passes', () => {
 	assert.deepEqual(validateAll(local, schema), []);
 });
 
+test('a picture from the folder passes on an image field; a video does not', () => {
+	assert.deepEqual(validateAll(entry('pages', 'home', { title: 'Home', hero_image: { $media: { file: 'assets/hero.svg', alt: 'A' } } }), schema), []);
+	const bad = validateAll(entry('pages', 'home', { title: 'Home', hero_image: { $media: { file: 'assets/hero.mp4', alt: '' } } }), schema);
+	assert.equal(bad.length, 1);
+	assert.match(bad[0], /a picture: png, jpg/);
+});
+
 test('unknown fields, types, options and shapes are named with the file', () => {
 	const local = entry('pages', 'about', {
 		title: 'About',

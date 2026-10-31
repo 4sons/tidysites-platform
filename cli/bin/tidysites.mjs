@@ -87,11 +87,15 @@ function writeFiles(dir, files) {
 function readLocal(dir, only = null) {
 	const local = {};
 	const problems = [];
+	// Only the website's own collections are entries; a folder of the person's own (notes, assets, source) is left alone.
+	const schema = readJson(join(dir, META, 'schema.json'));
+	const known = schema ? new Set((schema.collections?.items ?? schema.collections ?? []).map((c) => c.slug).filter(Boolean)) : null;
 	for (const name of readdirSync(dir)) {
 		if (name.startsWith('.') || name === 'node_modules') continue;
 		const colDir = join(dir, name);
 		if (!statSync(colDir).isDirectory()) continue;
 		if (!/^[a-z][a-z0-9_]*$/.test(name) || name === 'menus') continue;
+		if (known && known.size && !known.has(name)) continue;
 		if (only && !only.includes(name)) continue;
 		const sidecarExts = Object.keys(SIDECARS[name] ?? SIDECARS.default);
 		for (const file of readdirSync(colDir)) {
@@ -678,7 +682,15 @@ async function main() {
 			writeFileSync(join(dir, META, 'key'), `${key}\n`, { mode: 0o600 });
 			writeFileSync(join(dir, META, '.gitignore'), 'key\nshots/\nsource/\npages/\n');
 			say(`Connected ${relative(process.cwd(), dir) || '.'} to ${site} on ${host}.`);
-			await pull(config());
+			// A website that is still being set up answers 404 on its content model for a few minutes; the first pull waits for it.
+			for (let attempt = 1; ; attempt++) {
+				try { await pull(config()); break; }
+				catch (e) {
+					if (e?.code !== 'website_unreachable' || attempt >= 20) throw e;
+					say(`The website is still being set up (${e.message.slice(0, 120)}); trying again in 30 seconds (${attempt}/20).`);
+					await new Promise((r) => setTimeout(r, 30_000));
+				}
+			}
 			return;
 		}
 		case 'pull':

@@ -115,3 +115,13 @@ describe("files on a lead", () => {
 		expect((await storeLeadFiles({} as never, files, {})).refused).toEqual(["My Resume.pdf", "virus.exe"]);
 	});
 });
+
+describe("a form with no contact boxes", () => {
+	it("takes the person from the answers that read as a name, an email and a phone", () => {
+		const lead = leadFrom({ form: "Quote", q_first_name: "Sara", q_last_name: "Morris", q_email_address: "sara@example.com", q_phone_number: "555 0100", q_country: "Canada", "label:q_first_name": "First name", "label:q_last_name": "Last name", "label:q_email_address": "Email address", "label:q_phone_number": "Phone number", "label:q_country": "Country" }, "/contact");
+		expect(lead.name).toBe("Sara Morris");
+		expect(lead.email).toBe("sara@example.com");
+		expect(lead.phone).toBe("555 0100");
+		expect(lead.fields.Country).toBe("Canada");
+	});
+});
