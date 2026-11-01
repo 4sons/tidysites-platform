@@ -3664,6 +3664,11 @@
 					}
 				},
 				{
+					"slug": "booking_heading",
+					"label": "Booking pop-up heading (the button label when empty)",
+					"type": "string"
+				},
+				{
 					"slug": "header_row",
 					"label": "Replace the header with a custom row (its name)",
 					"type": "string"

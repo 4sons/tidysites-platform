@@ -86,7 +86,7 @@ function businessScope(b: Business): Scope {
 		title: b.title, tagline: b.tagline, phone: b.phone, phone_href: b.phoneHref, phone_text: b.phoneText, phone_text_href: b.phoneTextHref, email: b.email, email_href: b.email ? `mailto:${b.email}` : "",
 		address: b.address, city: b.city, region: b.region, postal: b.postal, country: b.country, address_line: addressLine(b), hours: b.hours, hours_note: b.hoursNote,
 		founded_year: b.foundedYear, years_line: b.yearsLine, rating: b.rating, review_count: b.reviewCount, rating_source: b.ratingSource, reviews_url: b.reviewsUrl,
-		booking_url: b.bookingUrl || "/contact", booking_label: b.bookingLabel, portal_url: b.portalUrl, portal_label: b.portalLabel, cta_label: b.ctaLabel,
+		booking_url: b.bookingUrl || "/contact", booking_label: b.bookingLabel, booking_heading: b.bookingHeading || b.bookingLabel, portal_url: b.portalUrl, portal_label: b.portalLabel, cta_label: b.ctaLabel,
 		logo: b.logo ? { url: b.logo.src, alt: b.logo.alt ?? b.title, width: b.logo.width, height: b.logo.height, srcset: mediaSrcset(b.raw.logo) ?? "" } : null,
 		logo_dark: b.logoDark ? { url: b.logoDark.src, alt: b.logoDark.alt ?? b.title, width: b.logoDark.width, height: b.logoDark.height, srcset: mediaSrcset(b.raw.logo_dark) ?? "" } : null,
 		social: b.social.map((s) => ({ network: s.network, url: s.url, label: s.network.charAt(0).toUpperCase() + s.network.slice(1) })),
