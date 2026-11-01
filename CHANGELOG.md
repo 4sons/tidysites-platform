@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.30.16
+
+- The phone menu fits the screen and scrolls by itself under the sticky header, and the page behind it holds still while it is open. A menu longer than the screen used to grow the header past the viewport, so swipes scrolled the page underneath and the lower items, the call button and the booking button were out of reach.
+- Phone menu sections fold. An item with children is a `<details>` whose row holds the link and a toggle: a tap on the label follows the link, a tap on the rest of the row opens or closes its children. Closed by default; the section holding the current page starts open. Classes `ts-mobile-fold`, `ts-mobile-fold-head`, `ts-mobile-fold-toggle`.
+- `booking_heading` on the Frame record (beside the header row and pop-up settings): the heading over the booking form or embed when the button opens it in a dialog, set apart from the button's label. Empty, the label stays the heading. Rows read `{{ business.booking_heading }}`.
+
 ## 0.30.15
 
 - Forms render again. 0.30.12 declared the form's ordered item list above the `questions` it reads, so every fresh render of a form threw "Cannot access 'questions' before initialization" and the page was cut off at the form; pages that still showed forms were cached renders. The block now sits below the questions.

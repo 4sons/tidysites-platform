@@ -128,7 +128,7 @@ export interface Business {
 	/** The pop-up the frame opens on its own: what, when, how often. */
 	/** A custom row that stands in for the site's header or footer everywhere; a page may say otherwise. */
 	headerRow: string; footerRow: string;
-	popupShows: "nothing" | "an offer" | "a form"; popupTitle: string; popupOffer: string; popupForm: string; popupTrigger: "on arrival" | "after ten seconds" | "after thirty seconds" | "after scrolling halfway" | "on leaving"; popupEvery: "once a visit" | "once a day" | "every time";
+	popupShows: "nothing" | "an offer" | "a form"; popupTitle: string; bookingHeading: string; popupOffer: string; popupForm: string; popupTrigger: "on arrival" | "after ten seconds" | "after thirty seconds" | "after scrolling halfway" | "on leaving"; popupEvery: "once a visit" | "once a day" | "every time";
 	logo: { src: string; alt?: string; width?: number; height?: number } | null;
 	/** The logo for dark surfaces (the Business record's logo_dark), when there is one. */
 	logoDark: { src: string; alt?: string; width?: number; height?: number } | null;
@@ -208,7 +208,7 @@ async function readBusiness(): Promise<Business> {
 		cookieBanner: fr.cookie_banner === "on", cookieText: str(fr.cookie_text), cookiePolicyUrl: str(fr.cookie_policy_url), cookieAcceptLabel: str(fr.cookie_accept_label), cookieDeclineLabel: str(fr.cookie_decline_label), cookieHeading: str(fr.cookie_heading), cookieDecline: str(fr.cookie_decline) !== "hidden", blogPageSize: int(fr.blog_page_size, 12),
 		footerServicesLabel: str(fr.footer_services_label), footerServices: fr.footer_services !== "off", footerMenuLabel: str(fr.footer_menu_label), siteLanguage: str(fr.site_language) || "en",
 		headerRow: str(fr.header_row), footerRow: str(fr.footer_row),
-		popupShows: pickOne(fr.popup_shows, ["nothing", "an offer", "a form"], "nothing"), popupTitle: str(fr.popup_title), popupOffer: str(fr.popup_offer), popupForm: str(fr.popup_form), popupTrigger: pickOne(fr.popup_trigger, ["on arrival", "after ten seconds", "after thirty seconds", "after scrolling halfway", "on leaving"], "after ten seconds"), popupEvery: pickOne(fr.popup_every, ["once a visit", "once a day", "every time"], "once a visit"),
+		popupShows: pickOne(fr.popup_shows, ["nothing", "an offer", "a form"], "nothing"), popupTitle: str(fr.popup_title), bookingHeading: str(fr.booking_heading), popupOffer: str(fr.popup_offer), popupForm: str(fr.popup_form), popupTrigger: pickOne(fr.popup_trigger, ["on arrival", "after ten seconds", "after thirty seconds", "after scrolling halfway", "on leaving"], "after ten seconds"), popupEvery: pickOne(fr.popup_every, ["once a visit", "once a day", "every time"], "once a visit"),
 		logo: mediaSrc(d.logo), logoDark: mediaSrc(d.logo_dark), favicon: mediaSrc(d.favicon), ga4Id: s("ga4_id"), gtmId: s("gtm_id"), gtmId2: str(ig.gtm_id_2), customCss: s("custom_css"), schemaType: s("schema_type"), priceRange: s("price_range"), siteSchema: str(fr.site_schema), wording: parseWording(fr.wording), raw: d,
 	};
 }

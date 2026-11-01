@@ -84,8 +84,12 @@ const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, tr
 		<ul class="ts-mobile-list">
 			{items.map((i) => (
 				<li class="ts-mobile-item">
-					<a class="ts-mobile-link" href={i.url} target={i.target}>{i.label}</a>
-					{kids(i).length > 0 && <ul class="ts-mobile-sub">{kids(i).map((c) => <li><a class="ts-mobile-sub-link" href={c.url} target={c.target}>{c.label}</a>{kids(c).length > 0 && <ul class="ts-mobile-sub">{kids(c).map((g) => <li><a class="ts-mobile-sub-link" href={g.url}>{g.label}</a></li>)}</ul>}</li>)}</ul>}
+					{kids(i).length > 0 ? (
+						<details class="ts-mobile-fold" open={isCurrent(i.url) || kids(i).some((c) => isCurrent(c.url) || kids(c).some((g) => isCurrent(g.url))) || undefined}>
+							<summary class="ts-mobile-fold-head"><a class="ts-mobile-link" href={i.url} target={i.target}>{i.label}</a><span class="ts-mobile-fold-toggle" aria-hidden="true"></span></summary>
+							<ul class="ts-mobile-sub">{kids(i).map((c) => <li><a class="ts-mobile-sub-link" href={c.url} target={c.target}>{c.label}</a>{kids(c).length > 0 && <ul class="ts-mobile-sub">{kids(c).map((g) => <li><a class="ts-mobile-sub-link" href={g.url}>{g.label}</a></li>)}</ul>}</li>)}</ul>
+						</details>
+					) : <a class="ts-mobile-link" href={i.url} target={i.target}>{i.label}</a>}
 				</li>
 			))}
 		</ul>
@@ -98,7 +102,7 @@ const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, tr
 	</nav>
 </header>
 )}
-{bookInDialog && <Dialog id="ts-booking" title={b.bookingLabel} class={embedUrl ? "ts-dialog-embed" : ""}>{embedUrl ? <iframe class="ts-booking-embed" src={embedUrl} title={b.bookingLabel} loading="lazy"></iframe> : <Form name={b.bookingForm} hidden={{ section: "header" }} />}</Dialog>}
+{bookInDialog && <Dialog id="ts-booking" title={b.bookingHeading || b.bookingLabel} class={embedUrl ? "ts-dialog-embed" : ""}>{embedUrl ? <iframe class="ts-booking-embed" src={embedUrl} title={b.bookingHeading || b.bookingLabel} loading="lazy"></iframe> : <Form name={b.bookingForm} hidden={{ section: "header" }} />}</Dialog>}
 {popup && (
 	<Dialog id="ts-popup" title={popup.title || null} class="ts-popup">
 		{popupOffer ? (
@@ -128,14 +132,24 @@ const popup = b.popupShows === "a form" || popupOffer ? { kind: b.popupShows, tr
 <script is:inline>
 (function(){
 	if (window.__tidyHeader) return; window.__tidyHeader = true;
+	// The phone drawer fits under the sticky header and scrolls by itself; the page behind it holds still while it is open.
+	function fit(menu) { menu.style.maxHeight = Math.max(160, window.innerHeight - menu.getBoundingClientRect().top) + "px"; }
+	function setMenu(btn, menu, open) {
+		if (open) { menu.removeAttribute("hidden"); fit(menu); document.documentElement.classList.add("ts-menu-open"); }
+		else { menu.setAttribute("hidden", ""); menu.style.maxHeight = ""; document.documentElement.classList.remove("ts-menu-open"); }
+		btn.setAttribute("aria-expanded", String(open));
+	}
+	window.addEventListener("resize", function () {
+		var menu = document.querySelector(".ts-mobile-menu:not([hidden])"); if (!menu) return;
+		var btn = document.querySelector('.ts-menu-btn[aria-controls="' + menu.id + '"]');
+		if (window.innerWidth > 960) { if (btn) setMenu(btn, menu, false); } else fit(menu);
+	});
 	document.addEventListener("click", function (e) {
 		var t = e.target instanceof Element ? e.target : null; if (!t) return;
 		var btn = t.closest(".ts-menu-btn");
 		if (btn) {
 			var id = btn.getAttribute("aria-controls"); var menu = id ? document.getElementById(id) : null; if (!menu) return;
-			var open = !menu.hasAttribute("hidden");
-			if (open) menu.setAttribute("hidden", ""); else menu.removeAttribute("hidden");
-			btn.setAttribute("aria-expanded", String(!open));
+			setMenu(btn, menu, menu.hasAttribute("hidden"));
 			return;
 		}
 		// A tap on a parent link on a touch screen opens its panel first; a second tap follows the link.

@@ -92,7 +92,7 @@ import Scripts from "@tideworthy/tidysites-platform/frame/scripts";
 | Header | `ts-header` (`ts-header-sticky`), `ts-header-wrap`, `ts-brand`, `ts-brand-logo`, `ts-brand-mark`, `ts-brand-name`, `ts-topbar`, `ts-topbar-wrap`, `ts-topbar-link` |
 | Menu | `ts-nav`, `ts-nav-list`, `ts-nav-item` (`ts-nav-has-children`, `ts-nav-has-mega`, `ts-nav-open`), `ts-nav-link`, `ts-nav-caret`, `ts-nav-panel` (`ts-nav-mega`), `ts-nav-sub-list`, `ts-nav-sub-item`, `ts-nav-sub-link`, `ts-nav-sub-label`, `ts-nav-sub-desc`, `ts-nav-sub-sub`, `ts-nav-sub-sub-link` |
 | Actions | `ts-header-actions`, `ts-header-phone`, `ts-header-portal`, `ts-header-book`, `ts-menu-btn` |
-| Mobile menu | `ts-mobile-menu`, `ts-mobile-list`, `ts-mobile-item`, `ts-mobile-link`, `ts-mobile-sub`, `ts-mobile-sub-link`, `ts-mobile-actions` |
+| Mobile menu | `ts-mobile-menu`, `ts-mobile-list`, `ts-mobile-item`, `ts-mobile-link`, `ts-mobile-fold` (an item with children: a `<details>` whose `ts-mobile-fold-head` holds the link and the `ts-mobile-fold-toggle`), `ts-mobile-sub`, `ts-mobile-sub-link`, `ts-mobile-actions` |
 | Footer | `ts-footer`, `ts-footer-wrap`, `ts-footer-brand`, `ts-footer-tagline`, `ts-footer-social`, `ts-footer-social-link`, `ts-footer-col`, `ts-footer-visit`, `ts-footer-heading`, `ts-footer-list`, `ts-footer-hours`, `ts-footer-legal` |
 | Call bar | `ts-callbar`, `ts-callbar-call`, `ts-callbar-book` (small screens only) |
 | Dialog | `ts-dialog` (`ts-dialog-embed`, `ts-booking-embed`), `ts-dialog-box`, `ts-dialog-title`, `ts-dialog-close`, `ts-dialog-body`; any element with `data-tidy-dialog="<id>"` opens the dialog with that id |
@@ -182,7 +182,7 @@ A custom row is HTML and CSS a person or an agent wrote, rendered as part of the
 A row's markup can read the site's records, so a custom header or footer is as live as the frame's own. The vocabulary is small on purpose (`src/lib/template.ts`):
 
 ```
-{{ business.phone }}  {{ business.phone_href }}  {{ business.email }}  {{ business.address_line }}  {{ business.hours }}  {{ business.logo.url }}  {{ business.logo_dark.url }}  {{ business.booking_url }}  {{ business.booking_label }}
+{{ business.phone }}  {{ business.phone_href }}  {{ business.email }}  {{ business.address_line }}  {{ business.hours }}  {{ business.logo.url }}  {{ business.logo_dark.url }}  {{ business.booking_url }}  {{ business.booking_label }}  {{ business.booking_heading }}
 {{ page.title }}  {{ page.headline }}  {{ page.summary }}  {{ page.image.url }}  {{ page.url }}  {{ page.slug }}  {{ page.collection }}  {{ page.kind }}  {{ page.category.title }}
 {{ site.title }}  {{ site.url }}  {{ site.year }}
 {{#each services as s}} <a href="{{ s.url }}">{{ s.title }}</a> {{/each}}        also service_categories, service_areas, locations, people, reviews, faqs, posts, audiences, offers, plans, badges, brands, products, case_studies, clients
